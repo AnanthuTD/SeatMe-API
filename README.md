@@ -3,8 +3,6 @@
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Installation](#installation)
-- [Usage](#usage)
   - [Running the Application](#running-the-application)
   - [Committing without Husky](#committing-without-husky)
 
@@ -20,8 +18,8 @@ cd seating-arrangement
 Install the dependencies:
 
 npm install
-Usage
-Running the Application
+## Usage
+### Running the Application
 1.Start the development server:
 
 npm run dev
@@ -36,7 +34,7 @@ This will start your Node.js application using Nodemon, which monitors for chang
 npm run lint
 npm run format
 
-Committing without Husky
+### Committing without Husky
 While Husky enforces code quality by running checks before committing, there might be cases where you need to commit without running these checks. You can use the --no-verify flag with the git commit command to bypass Husky's Git hooks:
 
 git commit -m "Your commit message" --no-verify
