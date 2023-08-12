@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/app.js",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "husky install"
   },
   "author": "",
   "license": "ISC",
@@ -22,6 +23,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-sequelize": "^1.0.4",
     "nodemon": "^3.0.1",
-    "prettier": "3.0.1"
+    "prettier": "3.0.1",
+    "husky": "^8.0.0"
   }
 }
