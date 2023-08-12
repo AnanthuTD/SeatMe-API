@@ -3,15 +3,19 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  extends: 'airbnb-base',
+  extends: [
+    'eslint:recommended',
+    'airbnb-base',
+    'plugin:node/recommended',
+    'plugin:prettier/recommended',
+  ],
+  plugins: ['sequelize'],
   overrides: [
     {
       env: {
         node: true,
       },
-      files: [
-        '.eslintrc.{js,cjs}',
-      ],
+      files: ['.eslintrc.{js,cjs}'],
       parserOptions: {
         sourceType: 'script',
       },
@@ -21,6 +25,5 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  rules: {
-  },
+  rules: {},
 };
