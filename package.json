@@ -11,6 +11,10 @@
   },
   "author": "",
   "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=8.10.0"
+  },
   "dependencies": {
     "express": "^4.18.2"
   },
