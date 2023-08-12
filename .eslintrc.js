@@ -9,7 +9,7 @@ module.exports = {
     'plugin:node/recommended',
     'plugin:prettier/recommended',
   ],
-  plugins: ['sequelize'],
+  plugins: ['sequelize', 'prettier'],
   overrides: [
     {
       env: {
@@ -25,5 +25,9 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  rules: {},
+  rules: {
+    'prettier/prettier': 'error',
+    'arrow-body-style': 'off',
+    'prefer-arrow-callback': 'off',
+  },
 };
