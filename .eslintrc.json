@@ -9,13 +9,18 @@
     "plugin:node/recommended",
     "plugin:prettier/recommended"
   ],
-  "plugins": ["sequelize", "prettier"],
+  "plugins": [
+    "sequelize",
+    "prettier"
+  ],
   "overrides": [
     {
       "env": {
         "node": true
       },
-      "files": [".eslintrc.{js,cjs}"],
+      "files": [
+        ".eslintrc.{js,cjs}"
+      ],
       "parserOptions": {
         "sourceType": "script"
       }
@@ -29,6 +34,22 @@
     "prettier/prettier": "error",
     "arrow-body-style": "off",
     "prefer-arrow-callback": "off",
-    "no-console": ["error", { "allow": ["log", "warn", "error"] }]
+    "no-console": [
+      "error",
+      {
+        "allow": [
+          "log",
+          "warn",
+          "error"
+        ]
+      }
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "always"
+      }
+    ]
   }
 }
