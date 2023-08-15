@@ -1,23 +1,29 @@
-import { DataTypes } from 'sequelize';
-import { sequelize } from '../db.js';
+import { DataTypes, Sequelize } from 'sequelize';
 
-const Department = sequelize.define(
-  'Department',
-  {
-    id: {
-      type: DataTypes.TINYINT.UNSIGNED,
-      primaryKey: true,
-      allowNull: false,
+/**
+ * Define the Department model using Sequelize.
+ *
+ * @param {Sequelize} sequelize - The Sequelize instance to associate with the model.
+ * @returns {Model|null} The Department model if the sequelize parameter is valid, otherwise null.
+ */
+const Department = (sequelize) => {
+  // Check if the sequelize parameter is a valid Sequelize instance
+  if (!(sequelize instanceof Sequelize)) return null;
+
+  // Define the Department model schema
+  return sequelize.define(
+    'Department',
+    {
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
+    {
+      // Other model options can be added here
     },
-  },
-  {
-    // Other model options go here
-  },
-);
+  );
+};
 
 export default Department;
