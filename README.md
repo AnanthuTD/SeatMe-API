@@ -5,7 +5,7 @@
 - [Usage](#usage)
   - [Running the Application](#running-the-application)
   - [Committing without Husky](#committing-without-husky)
-
+  - [Environment Variables](#environment-variables)
 ## Installation
 
 1. Clone the repository:
@@ -39,3 +39,18 @@ While Husky enforces code quality by running checks before committing, there mig
 
 git commit -m "Your commit message" --no-verify
 However, it's recommended to follow the established development practices and let Husky ensure code quality standards.
+
+### Environment Variables
+To properly configure your application, you need to set up environment variables. The .env.example file in the repository provides a template for these variables. Here's what you should do:
+
+1.Create a .env file:
+
+Copy the contents of .env.example into a new file named .env.
+
+2.Fill in the values:
+
+Replace placeholders with actual values for your application's configuration. This includes variables like database credentials, API keys, etc.
+
+3.Use .env in your app:
+
+Your application will read configuration from the .env file. Make sure to use these variables in your code wherever needed.
