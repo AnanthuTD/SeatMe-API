@@ -21,7 +21,7 @@ const Department = (sequelize) => {
       },
     },
     {
-      // Other model options can be added here
+      timestamps: false,
     },
   );
 };

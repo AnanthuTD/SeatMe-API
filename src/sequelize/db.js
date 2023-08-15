@@ -1,7 +1,6 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
-import applyExtraSetup from './extra-setup.js';
 
 dotenv.config();
 
@@ -18,8 +17,5 @@ const config = {
 };
 
 const sequelize = new Sequelize(database, username, password, config);
-
-// We execute any extra setup after the models are defined, such as adding associations.
-applyExtraSetup(sequelize);
 
 export { sequelize };

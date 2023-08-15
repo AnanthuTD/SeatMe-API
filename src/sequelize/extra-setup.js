@@ -1,6 +1,12 @@
-// eslint-disable-next-line no-unused-vars
-export default function applyExtraSetup(sequelize) {
-  //   const { instrument, orchestra } = sequelize.models;
-  /*   orchestra.hasMany(instrument);
-  instrument.belongsTo(orchestra); */
-}
+import { Sequelize } from 'sequelize';
+
+const applyExtraSetup = (sequelize) => {
+  if (!(sequelize instanceof Sequelize))
+    throw new Error('not a Sequelize instance');
+
+  const { Department, AuthUser } = sequelize.models;
+
+  AuthUser.belongsTo(Department);
+  Department.hasMany(AuthUser);
+};
+export { applyExtraSetup };
