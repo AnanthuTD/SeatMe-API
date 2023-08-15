@@ -1,9 +1,10 @@
 import express from 'express';
+import { authAdminMiddleware } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.send('User page');
+router.get('/', authAdminMiddleware, (req, res) => {
+  res.send('admin page');
 });
 
 export default router;
