@@ -5,11 +5,11 @@ import applyExtraSetup from './extra-setup.js';
 
 dotenv.config();
 
-const username = process.env.LOCAL_DB_USER_NAME;
-const password = process.env.LOCAL_DB_PASSWORD;
-const database = process.env.LOCAL_DB_NAME;
-const host = process.env.LOCAL_DB_HOST;
-const port = process.env.LOCAL_DB_PORT;
+const username = process.env.DB_USER_NAME;
+const password = process.env.DB_PASSWORD;
+const database = process.env.DB_NAME;
+const host = process.env.DB_HOST;
+const port = process.env.DB_PORT;
 
 const config = {
   host,
