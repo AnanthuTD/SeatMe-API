@@ -16,7 +16,7 @@
 
   ```sh
   cd seating-arrangement
-```
+  ```
 3. Install the dependencies:
 
 ```sh
