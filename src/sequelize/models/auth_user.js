@@ -1,18 +1,12 @@
 import { DataTypes, Sequelize } from 'sequelize';
 
-/**
- * Define the Department model using Sequelize.
- *
- * @param {Sequelize} sequelize - The Sequelize instance to associate with the model.
- * @returns {Model|null} The Department model if the sequelize parameter is valid, otherwise null.
- */
 export default (sequelize) => {
   // Check if the sequelize parameter is a valid Sequelize instance
   if (!(sequelize instanceof Sequelize)) return null;
 
   // Define the Department model schema
   const AuthUser = sequelize.define(
-    'auth_user',
+    'AuthUser',
     {
       id: {
         type: DataTypes.BIGINT.UNSIGNED,
@@ -36,6 +30,7 @@ export default (sequelize) => {
     },
     {
       // Other model options can be added here
+      tableName: 'auth_user',
     },
   );
 
