@@ -1,17 +1,13 @@
-import { sequelize } from './db.js';
-import department from './models/department.js';
-import applyExtraSetup from './extra-setup.js';
-import authUser from './models/auth_user.js';
+import { sequelize } from './connection.js';
+import Department from './models/department.js';
+import { applyExtraSetup } from './extra-setup.js';
+import AuthUser from './models/auth_user.js';
 
 const models = {
-  Department: department(sequelize),
-  AuthUser: authUser(sequelize),
+  Department: Department(sequelize),
+  AuthUser: AuthUser(sequelize),
 };
-// We execute any extra setup after the models are defined, such as adding associations.
+
 applyExtraSetup(sequelize);
 
-const sync = () => {
-  sequelize.sync();
-};
-
-export { models, sync };
+export { models, sequelize };
