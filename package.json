@@ -8,13 +8,14 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "prepare": "husky install",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "migrate":"node src/sequelize/migrate.js"
   },
   "author": "",
   "license": "ISC",
   "type": "module",
   "engines": {
-    "node": ">=8.10.0"
+    "node": ">=18.17.1"
   },
   "dependencies": {
     "dotenv": "^16.3.1",
