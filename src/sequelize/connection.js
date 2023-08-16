@@ -1,4 +1,3 @@
-/* eslint-disable node/no-unsupported-features/es-syntax */
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
