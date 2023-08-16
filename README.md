@@ -14,7 +14,9 @@
    git clone https://github.com/AnanthuTD/seating-arrangement.git
 Navigate to the project directory:
 
-cd seating-arrangement
+  ```sh
+  cd seating-arrangement
+```
 Install the dependencies:
 
 npm install
