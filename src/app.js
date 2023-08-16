@@ -2,11 +2,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import dotenv from 'dotenv';
-import 'dotenv/config';
 import userRouter from './routes/user.js';
 import adminRouter from './routes/admin.js';
 import { sequelize } from './sequelize/db.js';
-import * as models from './sequelize/models.js';
 
 const filenameUrl = import.meta.url;
 const dirname = path.dirname(fileURLToPath(filenameUrl));
@@ -20,7 +18,8 @@ async function assertDatabaseConnectionOk() {
   try {
     await sequelize.authenticate();
     console.log('Database connection OK!');
-    models.sync();
+    // initializing models
+    import('./sequelize/models.js');
   } catch (error) {
     console.log('Unable to connect to the database:');
     console.log(error.message);
