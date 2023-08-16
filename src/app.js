@@ -4,7 +4,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import userRouter from './routes/user.js';
 import adminRouter from './routes/admin.js';
-import { sequelize } from './sequelize/db.js';
+import { sequelize } from './sequelize/connection.js';
 
 const filenameUrl = import.meta.url;
 const dirname = path.dirname(fileURLToPath(filenameUrl));
