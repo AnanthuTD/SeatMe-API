@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 const secretKey = process.env.SECRET_KEY;
 
-const authMiddleware = (req, res, next) => {
+const authStaffMiddleware = (req, res, next) => {
   const { token } = req.cookies;
   if (!token)
     return res
@@ -29,7 +29,7 @@ const authAdminMiddleware = (req, res, next) => {
 
   try {
     const verified = jwt.verify(token, secretKey);
-    if (!verified.admin)
+    if (!verified.is_admin)
       return res
         .status(200)
         .send('not authorized admin. Visit staff page instead.');
@@ -41,4 +41,4 @@ const authAdminMiddleware = (req, res, next) => {
   return null;
 };
 
-export { authMiddleware, authAdminMiddleware };
+export { authStaffMiddleware, authAdminMiddleware };
