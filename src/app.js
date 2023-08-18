@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import session from 'express-session';
 import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
@@ -11,7 +12,11 @@ import { sequelize } from './sequelize/connection.js';
 import {
   authAdminMiddleware,
   authStaffMiddleware,
-} from './middlewares/auth.js';
+} from './middlewares/authMiddleware.js';
+import {
+  csrfProtectionMiddleware,
+  generateCsrfToken,
+} from './middlewares/csrfMiddleware.js';
 
 const filenameUrl = import.meta.url;
 const dirname = path.dirname(fileURLToPath(filenameUrl));
@@ -40,6 +45,13 @@ function setupMiddlewares() {
   app.use(express.static(path.join(dirname, 'public')));
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
+  app.use(
+    session({
+      secret: process.env.SESSION_KEY, // Secret key for session data encryption
+      resave: false, // Don't save session data if not modified
+      saveUninitialized: true, // Save new sessions even if they have not been modified
+    }),
+  );
   app.use(cookieParser());
   app.set('view engine', 'ejs');
 
@@ -62,9 +74,11 @@ function setupMiddlewares() {
 
 function setupRoutes() {
   app.use('/', userRouter);
+  app.use(csrfProtectionMiddleware);
   app.use('/admin', authAdminMiddleware, adminRouter);
   app.use('/staff', authStaffMiddleware, staffRouter);
   app.use('/login', loginRouter);
+  app.use('/csrf', generateCsrfToken);
 }
 
 function startServer() {
