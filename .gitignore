@@ -13,7 +13,7 @@ results
 .env
 
 # Editors
-.vscode/
+# .vscode/
 .idea/
 
 # macOS
