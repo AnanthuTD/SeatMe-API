@@ -8,7 +8,7 @@ async function checkCredentialsAndRetrieveData(email, password) {
         password,
         is_admin: true,
       },
-      attributes: ['id', 'name', 'designation'],
+      attributes: ['id', 'name', 'designation', 'is_admin'],
     });
 
     if (user) {
