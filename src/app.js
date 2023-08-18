@@ -6,7 +6,12 @@ import cookieParser from 'cookie-parser';
 import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
+import loginRouter from './routes/loginRouter.js';
 import { sequelize } from './sequelize/connection.js';
+import {
+  authAdminMiddleware,
+  authStaffMiddleware,
+} from './middlewares/auth.js';
 
 const filenameUrl = import.meta.url;
 const dirname = path.dirname(fileURLToPath(filenameUrl));
@@ -57,8 +62,9 @@ function setupMiddlewares() {
 
 function setupRoutes() {
   app.use('/', userRouter);
-  app.use('/admin', adminRouter);
-  app.use('/staff', staffRouter);
+  app.use('/admin', authAdminMiddleware, adminRouter);
+  app.use('/staff', authStaffMiddleware, staffRouter);
+  app.use('/login', loginRouter);
 }
 
 function startServer() {
