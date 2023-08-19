@@ -1,3 +1,3 @@
 import { sequelize } from './models.js';
 
-sequelize.sync();
+sequelize.sync({ alter: true });
