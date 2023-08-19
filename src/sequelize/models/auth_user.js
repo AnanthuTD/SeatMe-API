@@ -9,7 +9,7 @@ export default (sequelize) => {
     'AuthUser',
     {
       id: {
-        type: DataTypes.BIGINT.UNSIGNED,
+        type: DataTypes.MEDIUMINT.UNSIGNED,
         primaryKey: true,
       },
       name: {
