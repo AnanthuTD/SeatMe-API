@@ -9,8 +9,15 @@ export default (sequelize) => {
     'Program',
     {
       id: {
-        type: DataTypes.BIGINT.UNSIGNED,
+        type: DataTypes.TINYINT.UNSIGNED,
         primaryKey: true,
+        validate: {
+          isTwoDigitNumber(value) {
+            if (!/^\d{2}$/.test(value)) {
+              throw new Error('ID must be a 2-digit number.');
+            }
+          },
+        },
       },
       name: {
         type: DataTypes.STRING(100),

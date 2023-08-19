@@ -11,6 +11,13 @@ export default (sequelize) => {
       id: {
         type: DataTypes.MEDIUMINT.UNSIGNED,
         primaryKey: true,
+        validate: {
+          isSixDigit(value) {
+            if (!/^\d{6}$/.test(value)) {
+              throw new Error('ID must be a six-digit number.');
+            }
+          },
+        },
       },
       name: {
         type: DataTypes.STRING(100),
