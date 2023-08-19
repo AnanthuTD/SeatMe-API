@@ -25,6 +25,11 @@ dotenv.config();
 
 const app = express();
 
+/**
+ * Asserts that the database connection is functional.
+ * Initializes models after successful connection.
+ * @throws {Error} If unable to connect to the database.
+ */
 async function assertDatabaseConnectionOk() {
   console.log(`Checking database connection...`);
   try {
@@ -41,6 +46,9 @@ async function assertDatabaseConnectionOk() {
   }
 }
 
+/**
+ * Sets up various middlewares for the application.
+ */
 function setupMiddlewares() {
   app.use(express.static(path.join(dirname, 'public')));
   app.use(express.urlencoded({ extended: true }));
@@ -54,6 +62,9 @@ function setupMiddlewares() {
   );
   app.use(cookieParser());
   app.set('view engine', 'ejs');
+  if (process.env.NODE_ENV === 'production') {
+    app.use(csrfProtectionMiddleware);
+  }
 
   app.use((req, res, next) => {
     const start = Date.now();
@@ -72,15 +83,20 @@ function setupMiddlewares() {
   });
 }
 
+/**
+ * Sets up routes and attaches middleware for different routes.
+ */
 function setupRoutes() {
   app.use('/', userRouter);
-  app.use(csrfProtectionMiddleware);
   app.use('/admin', authAdminMiddleware, adminRouter);
   app.use('/staff', authStaffMiddleware, staffRouter);
   app.use('/login', loginRouter);
   app.use('/csrf', generateCsrfToken);
 }
 
+/**
+ * Starts the server on the specified port.
+ */
 function startServer() {
   const port = process.env.PORT;
   app.listen(port, () => {
@@ -88,6 +104,9 @@ function startServer() {
   });
 }
 
+/**
+ * Initialize the application by connecting to the database, setting up middlewares, routes, and starting the server.
+ */
 async function init() {
   await assertDatabaseConnectionOk();
   setupMiddlewares();
@@ -95,4 +114,5 @@ async function init() {
   startServer();
 }
 
+// Initialize the application
 init();
