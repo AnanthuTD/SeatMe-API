@@ -9,6 +9,8 @@ import adminRouter from './routes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
 import loginRouter from './routes/loginRouter.js';
 import { sequelize } from './sequelize/connection.js';
+import { cleanBlacklist } from './utils/jwtUtils.js';
+import cron from 'node-cron';
 import {
   authAdminMiddleware,
   authStaffMiddleware,
@@ -112,6 +114,11 @@ async function init() {
   setupMiddlewares();
   setupRoutes();
   startServer();
+
+  // Schedule the jwt blacklist cleanup task to run every day at midnight (adjust as needed)
+  cron.schedule('0 0 * * *', () => {
+    cleanBlacklist();
+  });
 }
 
 // Initialize the application

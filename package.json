@@ -25,6 +25,7 @@
     "express-session": "^1.17.3",
     "jsonwebtoken": "^9.0.0",
     "mysql2": "^3.6.0",
+    "node-cron": "^3.0.2",
     "sequelize": "^6.32.1",
     "zxcvbn": "^4.4.2"
   },

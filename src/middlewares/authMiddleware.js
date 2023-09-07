@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { isBlacklisted } from '../utils/jwtUtils.js';
 
 // Retrieve the secret key from environment variables
 const secretKey = process.env.SECRET_KEY;
@@ -21,6 +22,13 @@ const authStaffMiddleware = (req, res, next) => {
 
   try {
     const verified = jwt.verify(token, secretKey);
+
+    // checking if the token is in the blacklist
+    if (isBlacklisted(verified.id, token))
+      return res
+        .status(403)
+        .send('Access denied. This token has been blacklisted.');
+
     req.user = verified;
     return next();
   } catch (error) {
@@ -46,6 +54,12 @@ const authAdminMiddleware = (req, res, next) => {
 
   try {
     const verified = jwt.verify(token, secretKey);
+    // checking if the token is in the blacklist
+    if (isBlacklisted(verified.id, token))
+      return res
+        .status(403)
+        .send('Access denied. This token has been blacklisted.');
+
     if (!verified.is_admin) {
       return res
         .status(403)
