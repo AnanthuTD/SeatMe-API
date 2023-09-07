@@ -4,13 +4,13 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
+import cron from 'node-cron';
 import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
 import loginRouter from './routes/loginRouter.js';
 import { sequelize } from './sequelize/connection.js';
 import { cleanBlacklist } from './utils/jwtUtils.js';
-import cron from 'node-cron';
 import {
   authAdminMiddleware,
   authStaffMiddleware,
