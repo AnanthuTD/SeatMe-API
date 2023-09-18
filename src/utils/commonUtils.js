@@ -7,29 +7,29 @@ import { models } from '../sequelize/models.js';
  * @returns {object|null} User data object if credentials are valid and user is an admin, or null if not.
  */
 async function checkCredentialsAndRetrieveData(email, password) {
-  try {
-    // Find a user in the database with matching email, password, and is_admin = true
-    const user = await models.AuthUser.findOne({
-      where: {
-        email,
-        password,
-      },
-      attributes: ['id', 'name', 'designation', 'is_admin'],
-    });
+    try {
+        // Find a user in the database with matching email, password, and is_admin = true
+        const user = await models.AuthUser.findOne({
+            where: {
+                email,
+                password,
+            },
+            attributes: ['id', 'name', 'designation', 'is_admin'],
+        });
 
-    if (user) {
-      // Credentials match and user is an admin
-      const userData = user.get();
-      // Here, you can retrieve additional data or perform actions with userData
-      return userData;
+        if (user) {
+            // Credentials match and user is an admin
+            const userData = user.get();
+            // Here, you can retrieve additional data or perform actions with userData
+            return userData;
+        }
+
+        // Credentials are incorrect or user is not an admin
+        return null;
+    } catch (error) {
+        console.error('Error:', error);
+        return null; // Handle database errors or exceptions
     }
-
-    // Credentials are incorrect or user is not an admin
-    return null;
-  } catch (error) {
-    console.error('Error:', error);
-    return null; // Handle database errors or exceptions
-  }
 }
 
 export { checkCredentialsAndRetrieveData };

@@ -7,7 +7,7 @@ import { Sequelize } from 'sequelize';
  * @returns {boolean} True if the object is an instance of Sequelize, otherwise false.
  */
 function isSequelizeInstance(object) {
-  return object instanceof Sequelize;
+    return object instanceof Sequelize;
 }
 
 export { isSequelizeInstance };

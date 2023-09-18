@@ -12,28 +12,30 @@ const secretKey = process.env.SECRET_KEY;
  * @returns {object|null} If authentication fails, an error response is sent. Otherwise, the next middleware is invoked.
  */
 const authStaffMiddleware = (req, res, next) => {
-  const { token } = req.cookies;
+    const { token } = req.cookies;
 
-  if (!token) {
-    return res
-      .status(401)
-      .send('Access denied. You need a valid token to access this route.');
-  }
+    if (!token) {
+        return res
+            .status(401)
+            .send(
+                'Access denied. You need a valid token to access this route.',
+            );
+    }
 
-  try {
-    const verified = jwt.verify(token, secretKey);
+    try {
+        const verified = jwt.verify(token, secretKey);
 
-    // checking if the token is in the blacklist
-    if (isBlacklisted(verified.id, token))
-      return res
-        .status(403)
-        .send('Access denied. This token has been blacklisted.');
+        // checking if the token is in the blacklist
+        if (isBlacklisted(verified.id, token))
+            return res
+                .status(403)
+                .send('Access denied. This token has been blacklisted.');
 
-    req.user = verified;
-    return next();
-  } catch (error) {
-    return res.status(400).send('Invalid token.');
-  }
+        req.user = verified;
+        return next();
+    } catch (error) {
+        return res.status(400).send('Invalid token.');
+    }
 };
 
 /**
@@ -44,32 +46,34 @@ const authStaffMiddleware = (req, res, next) => {
  * @returns {object|null} If authentication fails, an error response is sent. Otherwise, the next middleware is invoked.
  */
 const authAdminMiddleware = (req, res, next) => {
-  const { token } = req.cookies;
+    const { token } = req.cookies;
 
-  if (!token) {
-    return res
-      .status(401)
-      .send('Access denied. You need a valid token to access this route.');
-  }
-
-  try {
-    const verified = jwt.verify(token, secretKey);
-    // checking if the token is in the blacklist
-    if (isBlacklisted(verified.id, token))
-      return res
-        .status(403)
-        .send('Access denied. This token has been blacklisted.');
-
-    if (!verified.is_admin) {
-      return res
-        .status(403)
-        .send('Access denied. You are not authorized as an admin.');
+    if (!token) {
+        return res
+            .status(401)
+            .send(
+                'Access denied. You need a valid token to access this route.',
+            );
     }
-    req.admin = verified;
-    return next();
-  } catch (error) {
-    return res.status(400).send('Invalid token.');
-  }
+
+    try {
+        const verified = jwt.verify(token, secretKey);
+        // checking if the token is in the blacklist
+        if (isBlacklisted(verified.id, token))
+            return res
+                .status(403)
+                .send('Access denied. This token has been blacklisted.');
+
+        if (!verified.is_admin) {
+            return res
+                .status(403)
+                .send('Access denied. You are not authorized as an admin.');
+        }
+        req.admin = verified;
+        return next();
+    } catch (error) {
+        return res.status(400).send('Invalid token.');
+    }
 };
 
 export { authStaffMiddleware, authAdminMiddleware };

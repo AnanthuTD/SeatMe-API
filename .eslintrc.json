@@ -1,88 +1,58 @@
 {
-  "env": {
-    "es2022": true,
-    "node": true
-  },
-  "extends": [
-    "eslint:recommended",
-    "airbnb-base",
-    "plugin:node/recommended",
-    "plugin:prettier/recommended"
-  ],
-  "plugins": [
-    "sequelize",
-    "prettier"
-  ],
-  "overrides": [
-    {
-      "env": {
+    "env": {
+        "es2022": true,
         "node": true
-      },
-      "files": [
-        ".eslintrc.{js,cjs}"
-      ],
-      "parserOptions": {
-        "sourceType": "script"
-      }
+    },
+    "extends": [
+        "eslint:recommended",
+        "airbnb-base",
+        "plugin:node/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "plugins": ["sequelize", "prettier"],
+    "overrides": [
+        {
+            "env": {
+                "node": true
+            },
+            "files": [".eslintrc.{js,cjs}"],
+            "parserOptions": {
+                "sourceType": "script"
+            }
+        }
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "rules": {
+        "prettier/prettier": "error",
+        "arrow-body-style": "off",
+        "prefer-arrow-callback": "off",
+        "no-console": [
+            "error",
+            {
+                "allow": ["log", "warn", "error"]
+            }
+        ],
+        "import/extensions": [
+            "error",
+            "ignorePackages",
+            {
+                "js": "always"
+            }
+        ],
+        "import/prefer-default-export": "off",
+        "node/exports-style": ["error", "module.exports"],
+        "node/file-extension-in-import": ["error", "always"],
+        "node/prefer-global/buffer": ["error", "always"],
+        "node/prefer-global/console": ["error", "always"],
+        "node/prefer-global/process": ["error", "always"],
+        "node/prefer-global/url-search-params": ["error", "always"],
+        "node/prefer-global/url": ["error", "always"],
+        "node/prefer-promises/dns": "error",
+        "node/prefer-promises/fs": "error",
+        "node/no-unsupported-features/es-syntax": "off",
+        "no-param-reassign": "off"
     }
-  ],
-  "parserOptions": {
-    "ecmaVersion": "latest",
-    "sourceType": "module"
-  },
-  "rules": {
-    "prettier/prettier": "error",
-    "arrow-body-style": "off",
-    "prefer-arrow-callback": "off",
-    "no-console": [
-      "error",
-      {
-        "allow": [
-          "log",
-          "warn",
-          "error"
-        ]
-      }
-    ],
-    "import/extensions": [
-      "error",
-      "ignorePackages",
-      {
-        "js": "always"
-      }
-    ],
-    "import/prefer-default-export": "off",
-    "node/exports-style": [
-      "error",
-      "module.exports"
-    ],
-    "node/file-extension-in-import": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/buffer": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/console": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/process": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/url-search-params": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/url": [
-      "error",
-      "always"
-    ],
-    "node/prefer-promises/dns": "error",
-    "node/prefer-promises/fs": "error",
-    "node/no-unsupported-features/es-syntax": "off",
-    "no-param-reassign":"off"
-  }
 }

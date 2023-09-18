@@ -8,7 +8,7 @@ const router = express.Router();
  * @desc Display the admin page.
  */
 router.get('/', (req, res) => {
-  res.send('admin page');
+    res.send('admin page');
 });
 
 /**
@@ -18,11 +18,11 @@ router.get('/', (req, res) => {
  * @returns {object} Response object with status and message indicating the result of the operation.
  */
 router.post('/create-staff', async (req, res) => {
-  const { staffData } = req.body;
+    const { staffData } = req.body;
 
-  const result = await createStaff(staffData);
+    const result = await createStaff(staffData);
 
-  return res.status(result.status).json(result);
+    return res.status(result.status).json(result);
 });
 
 export default router;

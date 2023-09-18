@@ -10,9 +10,9 @@ const host = process.env.DB_HOST;
 const port = process.env.DB_PORT;
 
 const config = {
-  host,
-  port,
-  dialect: 'mysql',
+    host,
+    port,
+    dialect: 'mysql',
 };
 
 const sequelize = new Sequelize(database, username, password, config);
