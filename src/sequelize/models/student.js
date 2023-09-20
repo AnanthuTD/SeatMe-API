@@ -4,17 +4,27 @@ export default (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
     if (!(sequelize instanceof Sequelize)) return null;
 
-    // Define the Department model schema
-    const AuthUser = sequelize.define(
-        'AuthUser',
+    const Student = sequelize.define(
+        'Student',
         {
             id: {
-                type: DataTypes.STRING(6),
+                type: DataTypes.BIGINT.UNSIGNED,
                 primaryKey: true,
                 validate: {
-                    isSixDigit(value) {
-                        if (!/^[0-9A-Z]{6}$/.test(value)) {
-                            throw new Error('ID must be a six-digit number.');
+                    isTwelveDigitNumber(value) {
+                        if (!/^\d{12}$/.test(value)) {
+                            throw new Error('ID must be a 12-digit number.');
+                        }
+                    },
+                },
+            },
+            roll_number: {
+                type: DataTypes.INTEGER.UNSIGNED,
+                unique: true,
+                validate: {
+                    isSixDigitNumber(value) {
+                        if (!/^\d{6}$/.test(value)) {
+                            throw new Error('ID must be a 6-digit number.');
                         }
                     },
                 },
@@ -30,17 +40,14 @@ export default (sequelize) => {
                     isEmail: true,
                 },
             },
-            phone: { type: DataTypes.BIGINT, allowNull: false },
-            is_admin: { type: DataTypes.BOOLEAN, defaultValue: false },
-            password: { type: DataTypes.STRING(72), allowNull: false },
-            designation: { type: DataTypes.STRING(100), allowNull: false },
+            phone: { type: DataTypes.BIGINT.UNSIGNED, allowNull: false },
         },
         {
             // Other model options can be added here
-            tableName: 'auth_user',
+            tableName: 'student',
             underscored: true,
         },
     );
 
-    return AuthUser;
+    return Student;
 };

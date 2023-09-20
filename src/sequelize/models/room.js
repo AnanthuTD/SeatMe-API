@@ -4,42 +4,37 @@ export default (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
     if (!(sequelize instanceof Sequelize)) return null;
 
-    // Define the program model schema
-    const Program = sequelize.define(
-        'Program',
+    const Room = sequelize.define(
+        'Room',
         {
             id: {
-                type: DataTypes.TINYINT.UNSIGNED,
+                type: DataTypes.INTEGER.UNSIGNED,
                 primaryKey: true,
-                validate: {
-                    isTwoDigitNumber(value) {
-                        if (!/^\d{2}$/.test(value)) {
-                            throw new Error('ID must be a 2-digit number.');
-                        }
-                    },
-                },
             },
-            name: {
-                type: DataTypes.STRING(100),
-                allowNull: false,
-            },
-            duration: {
+            cols: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },
-
-            level: {
-                type: DataTypes.STRING(5),
+            rows: {
+                type: DataTypes.TINYINT.UNSIGNED,
+                allowNull: false,
+            },
+            is_available: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+            },
+            floor: {
+                type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },
         },
         {
             // Other model options can be added here
-            tableName: 'program',
+            tableName: 'room',
             timestamps: false,
             underscored: true,
         },
     );
 
-    return Program;
+    return Room;
 };

@@ -1,23 +1,15 @@
 import { DataTypes, Sequelize } from 'sequelize';
 
-const Department = (sequelize) => {
+export default (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
     if (!(sequelize instanceof Sequelize)) return null;
 
-    // Define the Department model schema
-    return sequelize.define(
-        'Department',
+    const Block = sequelize.define(
+        'Block',
         {
             id: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 primaryKey: true,
-                validate: {
-                    isTwoDigitNumber(value) {
-                        if (!/^\d{2}$/.test(value)) {
-                            throw new Error('ID must be a 2-digit number.');
-                        }
-                    },
-                },
             },
             name: {
                 type: DataTypes.STRING(100),
@@ -26,10 +18,12 @@ const Department = (sequelize) => {
             },
         },
         {
+            // Other model options can be added here
+            tableName: 'block',
             timestamps: false,
             underscored: true,
         },
     );
-};
 
-export default Department;
+    return Block;
+};
