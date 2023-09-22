@@ -10,7 +10,7 @@ import Student from './models/student.js';
 import Supplementary from './models/supplementary.js';
 import ProgramCourse from './models/program_course.js';
 import StudentSeat from './models/student_seat.js';
-import TimeTable from './models/time_table.js';
+// import TimeTable from './models/time_table.js';
 import DateTime from './models/date_time.js';
 import TeacherSeat from './models/teacher_seat.js';
 
@@ -25,7 +25,7 @@ const models = {
     Supplementary: Supplementary(sequelize),
     ProgramCourse: ProgramCourse(sequelize),
     StudentSeat: StudentSeat(sequelize),
-    TimeTable: TimeTable(sequelize),
+    // TimeTable: TimeTable(sequelize),
     DateTime: DateTime(sequelize),
     TeacherSeat: TeacherSeat(sequelize),
 };

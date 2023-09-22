@@ -29,7 +29,7 @@ export default (sequelize) => {
             },
 
             level: {
-                type: DataTypes.STRING(5),
+                type: DataTypes.ENUM(['UG', 'PG']),
                 allowNull: false,
             },
         },

@@ -13,7 +13,6 @@ const applyExtraSetup = (sequelize) => {
         Course,
         StudentSeat,
         Student,
-        TimeTable,
         DateTime,
         TeacherSeat,
         Supplementary,
@@ -23,14 +22,18 @@ const applyExtraSetup = (sequelize) => {
     AuthUser.belongsTo(Department);
     Department.hasMany(AuthUser);
 
-    Program.belongsTo(Department);
     Department.hasMany(Program);
+    Program.belongsTo(Department);
 
     Room.belongsTo(Block);
     Block.hasMany(Room);
 
     Program.belongsToMany(Course, { through: ProgramCourse });
+    Program.hasMany(ProgramCourse);
+    ProgramCourse.belongsTo(Program);
     Course.belongsToMany(Program, { through: ProgramCourse });
+    Course.hasMany(ProgramCourse);
+    ProgramCourse.belongsTo(Course);
 
     StudentSeat.belongsTo(Room);
     Room.hasMany(StudentSeat);
@@ -38,12 +41,11 @@ const applyExtraSetup = (sequelize) => {
     StudentSeat.belongsTo(Student);
     Room.belongsToMany(Student, { through: StudentSeat });
     Student.belongsToMany(Room, { through: StudentSeat });
-    StudentSeat.hasOne(TimeTable);
+    Course.hasMany(StudentSeat);
+    StudentSeat.belongsTo(Course);
 
-    TimeTable.hasOne(Course);
-    Course.hasMany(TimeTable);
-    TimeTable.hasOne(DateTime);
-    DateTime.hasMany(TimeTable);
+    DateTime.hasMany(Course);
+    Course.belongsTo(DateTime);
 
     Room.belongsToMany(AuthUser, { through: TeacherSeat });
     AuthUser.belongsToMany(Room, { through: TeacherSeat });
@@ -74,10 +76,8 @@ const applyExtraSetup = (sequelize) => {
         targetKey: 'course_id',
     });
 
-    Student.belongsToMany(Course, { through: ProgramCourse });
-    Course.belongsToMany(Student, { through: ProgramCourse });
-    Course.hasMany(ProgramCourse);
-    ProgramCourse.belongsTo(Course);
+    // Student.belongsToMany(Course, { through: ProgramCourse });
+    // Course.belongsToMany(Student, { through: ProgramCourse });
     Program.hasMany(Student);
     Student.belongsTo(Program);
 };

@@ -27,6 +27,10 @@ export default (sequelize) => {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },
+            block_id: {
+                type: DataTypes.TINYINT.UNSIGNED,
+                allowNull: false,
+            },
         },
         {
             // Other model options can be added here

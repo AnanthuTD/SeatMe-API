@@ -24,6 +24,10 @@ const Department = (sequelize) => {
                 allowNull: false,
                 unique: true,
             },
+            /* department_id: {
+                type: DataTypes.TINYINT,
+                allowNull: false,
+            }, */
         },
         {
             timestamps: false,
