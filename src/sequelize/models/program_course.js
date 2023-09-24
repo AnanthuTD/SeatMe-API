@@ -1,4 +1,4 @@
-import { DataTypes, Sequelize } from 'sequelize';
+import { Sequelize } from 'sequelize';
 
 export default (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
@@ -6,16 +6,7 @@ export default (sequelize) => {
 
     const ProgramCourse = sequelize.define(
         'ProgramCourse',
-        {
-            program_id: {
-                type: DataTypes.TINYINT.UNSIGNED,
-                primaryKey: true,
-            },
-            course_id: {
-                type: DataTypes.STRING(8),
-                primaryKey: true,
-            },
-        },
+        {},
         {
             // Other model options can be added here
             tableName: 'program_course',
@@ -23,6 +14,5 @@ export default (sequelize) => {
             underscored: true,
         },
     );
-
     return ProgramCourse;
 };
