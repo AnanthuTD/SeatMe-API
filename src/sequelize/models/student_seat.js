@@ -13,13 +13,14 @@ export default (sequelize) => {
             is_present: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
+                defaultValue: true,
             },
         },
         {
             // Other model options can be added here
             tableName: 'student_seat',
             timestamps: false,
-            underscored: true,
+            // underscored: true,
         },
     );
 
