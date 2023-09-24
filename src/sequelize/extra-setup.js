@@ -39,8 +39,8 @@ const applyExtraSetup = (sequelize) => {
     Room.hasMany(StudentSeat);
     Student.hasMany(StudentSeat);
     StudentSeat.belongsTo(Student);
-    Room.belongsToMany(Student, { through: StudentSeat });
-    Student.belongsToMany(Room, { through: StudentSeat });
+    /*    Room.belongsToMany(Student, { through: StudentSeat });
+    Student.belongsToMany(Room, { through: StudentSeat }); */
     Course.hasMany(StudentSeat);
     StudentSeat.belongsTo(Course);
 
