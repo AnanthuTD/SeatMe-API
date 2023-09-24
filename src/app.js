@@ -1,5 +1,4 @@
 import path from 'path';
-import { fileURLToPath } from 'url';
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -19,9 +18,9 @@ import {
     csrfProtectionMiddleware,
     generateCsrfToken,
 } from './middlewares/csrfMiddleware.js';
+import getRootDir from '../getRootDir.js';
 
-const filenameUrl = import.meta.url;
-const dirname = path.dirname(fileURLToPath(filenameUrl));
+const dirname = getRootDir();
 
 dotenv.config();
 
