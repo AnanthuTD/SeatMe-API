@@ -60,8 +60,8 @@ const applyExtraSetup = (sequelize) => {
     Supplementary.belongsTo(Program);
     Course.hasMany(Supplementary);
     Supplementary.belongsTo(Course);
-    ProgramCourse.hasMany(Supplementary);
-    Supplementary.belongsTo(ProgramCourse, {
+    // ProgramCourse.hasMany(Supplementary);
+    /*  Supplementary.belongsTo(ProgramCourse, {
         foreignKey: {
             name: 'program_id',
             allowNull: false,
@@ -74,7 +74,7 @@ const applyExtraSetup = (sequelize) => {
             allowNull: false,
         },
         targetKey: 'course_id',
-    });
+    }); */
 
     // Student.belongsToMany(Course, { through: ProgramCourse });
     // Course.belongsToMany(Student, { through: ProgramCourse });
