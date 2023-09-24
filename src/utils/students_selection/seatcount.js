@@ -5,7 +5,7 @@
  */
 export default function seatCount(classes) {
     const seatData = classes
-        .flatMap((seatingMatrix) => seatingMatrix.flat())
+        .flatMap(({ seatingMatrix }) => seatingMatrix.flat())
         .reduce(
             (counts, seat) => {
                 if (seat.occupied) {

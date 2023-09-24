@@ -21,10 +21,20 @@ export default function generateSeatingMatrixHTML(
     }<br>Total Assigned Seats: ${totalAssignedSeats}<br>Total Unassigned Seats: ${totalEmptySeats}<br>Total Unassigned Examinees: ${totalNotAssignedStudents}</h1>`;
 
     for (let classIndex = 0; classIndex < classes.length; classIndex += 1) {
-        const seatingMatrix = classes[classIndex];
+        const { seatingMatrix, exams } = classes[classIndex];
 
         // Create an HTML table for the current class
         htmlContent += `<h2>Seating Matrix for Class ${classIndex + 1}</h2>`;
+
+        htmlContent += '<table cellpadding="5">';
+        htmlContent += '<tr><th colspan=2>courses</th></tr>';
+        htmlContent += '<tr><th>id</th><th>name</th></tr>';
+        // eslint-disable-next-line no-loop-func
+        exams.forEach((exam) => {
+            htmlContent += `<tr><td>${exam.id}</td><td>${exam.name}</td></tr>`;
+        });
+        htmlContent += '</table>';
+
         htmlContent += "<table border='1'>";
 
         // Create the table header row

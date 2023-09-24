@@ -7,14 +7,14 @@ export default async function findRepeatingRegNos(classes) {
     const regNoSet = new Set(); // To store unique registration numbers
 
     // Use flatMap to flatten the nested arrays
-    const allSeats = classes.flatMap((seatingMatrix) =>
+    const allSeats = classes.flatMap(({ seatingMatrix }) =>
         seatingMatrix.flatMap((row) => row),
     );
 
     // Initialize repeatingRegNos as an empty Set
     const repeatingRegNos = new Set();
 
-    await allSeats
+    allSeats
         .filter((seat) => seat.occupied)
         .forEach((seat) => {
             const { regno } = seat;
