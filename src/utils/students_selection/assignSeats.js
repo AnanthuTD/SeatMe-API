@@ -1,7 +1,9 @@
+import { createRecord } from '../adminUtils/studentSeat.js';
 import findRepeatingRegNos from './findRepeatingRegno.js';
 import getData from './getData.js';
 import generateSeatingMatrixHTML from './htmlSeatingMatrix.js';
 import seatCount from './seatcount.js';
+import generateSeatingMatrix from './seatingMatrix.js';
 
 let assignedCount = 0;
 
@@ -12,16 +14,17 @@ class SeatingArrangement {
     /**
      * Create a SeatingArrangement instance.
      * @param {Array} students - An array of students.
-     * @param {Array} seatingMatrix - A 2D array representing the seating matrix.
+     * @param {Object} room
      * @param {number} numRows - The number of rows in the seating matrix.
      * @param {number} numCols - The number of columns in the seating matrix.
      */
-    constructor(students, seatingMatrix, numRows, numCols) {
+    constructor(students, room, numRows, numCols) {
         this.students = students;
         this.numRows = numRows;
         this.numCols = numCols;
+        this.room = room;
         this.classCapacity = this.numRows * this.numCols;
-        this.seatingMatrix = seatingMatrix;
+        this.seatingMatrix = room.seatingMatrix;
         this.currentRow = 0;
         this.currentCol = 0;
         this.numExams =
@@ -31,10 +34,10 @@ class SeatingArrangement {
         this.numStudentsEachExam = Math.floor(
             this.classCapacity / this.numExams,
         );
-        console.log(`\nclassCapacity: ${this.classCapacity}`);
+        /* console.log(`\nclassCapacity: ${this.classCapacity}`);
         console.log(
             `total students: ${this.numStudentsEachExam * this.numExams}`,
-        );
+        ); */
         this.balanceSeats = 0;
         this.unassignedStudents = [];
     }
@@ -45,6 +48,11 @@ class SeatingArrangement {
     async assignSeats() {
         let studentCount = 0;
         for (let i = 0; i < this.numExams; i += 1) {
+            this.room.exams.push({
+                id: this.students[i][0].courseId,
+                name: this.students[i][0].courseName,
+            });
+
             let numStudentsThisExam;
 
             // Calculate the remaining available seats in the current class
@@ -57,11 +65,11 @@ class SeatingArrangement {
                 numStudentsThisExam =
                     this.numStudentsEachExam + this.balanceSeats;
                 this.balanceSeats = 0;
-                console.log(`numStudentsThisExam: ${numStudentsThisExam}`);
+                // console.log(`numStudentsThisExam: ${numStudentsThisExam}`);
             } else {
                 // If there aren't enough remaining seats, assign the remaining ones
                 numStudentsThisExam = remainingSeats;
-                console.log(`numStudentsThisExam: ${numStudentsThisExam}`);
+                // console.log(`numStudentsThisExam: ${numStudentsThisExam}`);
 
                 this.balanceSeats = 0; // Reset balanceSeats as all seats are assigned
             }
@@ -70,7 +78,7 @@ class SeatingArrangement {
                 this.balanceSeats =
                     numStudentsThisExam - this.students[i].length;
                 numStudentsThisExam = this.students[i].length;
-                console.log(`numStudentsThisExam: ${numStudentsThisExam}`);
+                // console.log(`numStudentsThisExam: ${numStudentsThisExam}`);
             }
             if (
                 this.currentRow === this.numRows &&
@@ -80,7 +88,7 @@ class SeatingArrangement {
                 this.currentRow = 0;
             }
             let j;
-            console.log(`thisExam: ${numStudentsThisExam}`);
+            // console.log(`thisExam: ${numStudentsThisExam}`);
             for (j = 0; j < numStudentsThisExam; j += 1) {
                 studentCount += 1;
                 // if (student_count > this.classCapacity) break;
@@ -100,45 +108,41 @@ class SeatingArrangement {
                     this.seatingMatrix[row][col].exam = exam;
                     this.seatingMatrix[row][col].id = id;
                     this.seatingMatrix[row][col].regno = regno;
+                    this.seatingMatrix[row][col].name = name;
 
                     this.currentRow = row;
                     this.currentCol = col;
 
-                    console.log(
+                    /* console.log(
                         `${studentCount}) Assigned ${name} (Reg No: ${regno}, Exam: ${exam}) to Row ${
                             row + 1
                         }, Col ${col + 1}`,
-                    );
+                    ); */
                 } else {
-                    console.log(
+                    /*  console.log(
                         `${studentCount}) No available seat for ${name} (Reg No: ${regno}, Exam: ${exam})`,
-                    );
+                    ); */
 
                     this.displaySeatingArrangement();
-                    console.log('In swapping function');
                     if (this.swapSeats(exam, id, regno)) {
-                        console.log('Swapping successfully done');
+                        // console.log('Swapping successfully done');
                     } else {
                         this.unassignedStudents.push(this.students[i][j]);
                     }
-                    console.log('Out swapping function');
                 }
             }
-            console.log('unassigned students : ', this.unassignedStudents);
+            // console.log('unassigned students : ', this.unassignedStudents);
             this.students[i].splice(0, j);
             this.students[i] = [
                 ...this.students[i],
                 ...this.unassignedStudents,
             ];
-            if (this.unassignedStudents.length) {
-                console.log('');
-            }
             this.unassignedStudents = [];
-            console.log(this.students[i]);
-            console.log('');
+            // console.log(this.students[i]);
         }
-        if (this.balanceSeats)
+        if (this.balanceSeats) {
             console.log(`Balance seats : ${this.balanceSeats}`);
+        }
         if (studentCount !== this.numStudentsEachExam * this.numExams)
             console.log('student missing');
         this.displaySeatingArrangement();
@@ -262,100 +266,86 @@ class SeatingArrangement {
                     .join(' '),
             );
         }
+        this.room.exams.forEach((exam) => console.log(exam));
     }
 }
 
-// eslint-disable-next-line prefer-const
-let { exams: students, totalStudents } = await getData();
+async function assignSeats() {
+    // eslint-disable-next-line prefer-const
+    let { exams: students, totalStudents } = await getData();
 
-console.log(`total subjects : ${students.length}`);
-console.log(`Generated ${totalStudents} students`);
+    console.log(`total subjects : ${students.length}`);
+    console.log(`Generated ${totalStudents} students`);
 
-let numRows;
-let numCols;
-let totalSeats = 0;
-const Classes = [];
-
-// Add a buffer of 20 seats in case there aren't enough initially
-while (totalSeats < totalStudents + 20) {
-    numRows = Math.floor(Math.random() * (6 - 4 + 1)) + 4;
-    numCols = Math.floor(Math.random() * (6 - 4 + 1)) + 4;
-
-    const currentClassSeats = numRows * numCols;
-
-    // eslint-disable-next-line no-loop-func
-    const currentClass = Array.from({ length: numRows }, () =>
-        Array.from({ length: numCols }, () => ({
-            occupied: false,
-            exam: null,
-        })),
-    );
-    Classes.push(currentClass);
-
-    totalSeats += currentClassSeats;
-
-    if (totalSeats >= totalStudents + 20) {
-        break;
-    }
-}
-
-console.log(
-    `Generated ${Classes.length} classes with a total of ${totalSeats} seats.`,
-);
-
-let classesIndex = 0;
-while (students.length > 0 && classesIndex < Classes.length) {
-    const seatingArrangement = new SeatingArrangement(
-        students,
-        Classes[classesIndex],
-        Classes[classesIndex].length,
-        Classes[classesIndex][0].length,
-    );
-
-    try {
-        console.log(`\nClass : ${classesIndex}\n`);
-        seatingArrangement.assignSeats();
-    } catch (error) {
-        console.error(error.message);
-    }
-    students = students.filter((classStudents) => classStudents.length > 0);
-
-    classesIndex += 1;
-}
-if (students.length === 0) console.log('All students assigned');
-else {
-    const unassignedCounts = students.map(
-        (classStudents) =>
-            classStudents.filter((student) => !student.assigned).length,
-    );
+    const { classes, totalSeats } = await generateSeatingMatrix();
 
     console.log(
-        `${unassignedCounts} students have not been assigned. Add more classes to assign.`,
+        `Generated ${classes.length} classes with a total of ${totalSeats} seats.`,
     );
+
+    let classesIndex = 0;
+    while (students.length > 0 && classesIndex < classes.length) {
+        const seatingArrangement = new SeatingArrangement(
+            students,
+            classes[classesIndex],
+            classes[classesIndex].seatingMatrix.length,
+            classes[classesIndex].seatingMatrix[0].length,
+        );
+
+        try {
+            console.log(`\nClass : ${classesIndex}\n`);
+            seatingArrangement.assignSeats();
+        } catch (error) {
+            console.error(error.message);
+        }
+        students = students.filter((classStudents) => classStudents.length > 0);
+
+        classesIndex += 1;
+    }
+    if (students.length === 0) console.log('All students assigned');
+    else {
+        const unassignedCounts = students.map(
+            (classStudents) =>
+                classStudents.filter((student) => !student.assigned).length,
+        );
+
+        console.log(
+            `${unassignedCounts} students have not been assigned. Add more classes to assign.`,
+        );
+    }
+
+    const repeatingRegNos = findRepeatingRegNos(classes);
+
+    if (repeatingRegNos.length > 0) {
+        console.log('Repeating registration numbers found:');
+        console.log(repeatingRegNos);
+    } else {
+        console.log('No repeating registration numbers found.');
+    }
+
+    const { totalEmptySeats, totalAssignedSeats } = seatCount(classes);
+    const totalNotAssignedStudents = totalStudents - totalAssignedSeats;
+    if (totalAssignedSeats === totalStudents) {
+        console.log('All students have been assigned');
+    } else
+        console.warn(
+            `${totalNotAssignedStudents} students are not been assigned`,
+        );
+
+    console.log(assignedCount);
+
+    generateSeatingMatrixHTML(
+        classes,
+        totalStudents,
+        totalAssignedSeats,
+        totalEmptySeats,
+        totalNotAssignedStudents,
+    );
+
+    return classes;
 }
 
-const repeatingRegNos = findRepeatingRegNos(Classes);
-
-if (repeatingRegNos.length > 0) {
-    console.log('Repeating registration numbers found:');
-    console.log(repeatingRegNos);
-} else {
-    console.log('No repeating registration numbers found.');
-}
-
-const { totalEmptySeats, totalAssignedSeats } = seatCount(Classes);
-const totalNotAssignedStudents = totalStudents - totalAssignedSeats;
-if (totalAssignedSeats === totalStudents) {
-    console.log('All students have been assigned');
-} else
-    console.warn(`${totalNotAssignedStudents} students are not been assigned`);
-
-console.log(assignedCount);
-
-generateSeatingMatrixHTML(
-    Classes,
-    totalStudents,
-    totalAssignedSeats,
-    totalEmptySeats,
-    totalNotAssignedStudents,
-);
+assignSeats().then(async (seating) => {
+    await createRecord(seating);
+});
+export { assignSeats };
