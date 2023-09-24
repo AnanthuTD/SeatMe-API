@@ -46,7 +46,7 @@ export default function generateDummyData(minStudents, maxStudents) {
                         10,
                     ),
 
-                    program_id: program,
+                    ProgramId: program,
                 };
                 students.push(student);
             }
