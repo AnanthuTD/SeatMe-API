@@ -29,6 +29,10 @@ export default (sequelize) => {
                     },
                 },
             },
+            semester: {
+                type: DataTypes.TINYINT.UNSIGNED,
+                allowNull: false,
+            },
             name: {
                 type: DataTypes.STRING(100),
                 allowNull: false,
@@ -43,7 +47,6 @@ export default (sequelize) => {
             phone: { type: DataTypes.BIGINT.UNSIGNED, allowNull: false },
         },
         {
-            // Other model options can be added here
             tableName: 'student',
             underscored: true,
         },
