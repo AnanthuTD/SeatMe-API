@@ -7,8 +7,8 @@ function generateDummyRoomData() {
 
     for (let i = 1; i <= numberOfEntries; i += 1) {
         const id = i;
-        const cols = Math.floor(Math.random() * 5) + 1; // Random number of columns (1 to 5)
-        const rows = Math.floor(Math.random() * 5) + 1; // Random number of rows (1 to 5)
+        const cols = Math.floor(Math.random() * (6 - 4 + 1)) + 4; // Random number of columns (4 to 6)
+        const rows = Math.floor(Math.random() * (7 - 4 + 1)) + 4; // Random number of rows (4 to 7)
         const isAvailable = Math.random() < 0.5 ? 1 : 0; // Random availability (50% chance)
         const floor = Math.floor(Math.random() * 3) + 1; // Random floor (1 to 3)
         const blockId = blockIds[Math.floor(Math.random() * blockIds.length)]; // Random block ID from the array
