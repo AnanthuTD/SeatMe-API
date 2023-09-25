@@ -2,7 +2,7 @@ import { createRecord } from '../adminUtils/studentSeat.js';
 import findRepeatingRegNos from './findRepeatingRegno.js';
 import getData from './getData.js';
 import generateSeatingMatrixHTML from './htmlSeatingMatrix.js';
-import seatCount from './seatcount.js';
+import seatCount from './seatCount.js';
 import generateSeatingMatrix from './seatingMatrix.js';
 
 let assignedCount = 0;
@@ -271,8 +271,9 @@ class SeatingArrangement {
 }
 
 async function assignSeats() {
+    const orderBy = 'roll_number'; // roll_number or id(register_number)
     // eslint-disable-next-line prefer-const
-    let { exams: students, totalStudents } = await getData();
+    let { exams: students, totalStudents } = await getData(orderBy);
 
     console.log(`total subjects : ${students.length}`);
     console.log(`Generated ${totalStudents} students`);

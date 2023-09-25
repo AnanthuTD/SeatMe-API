@@ -27,7 +27,7 @@ async function fetchData(date) {
 }
 
 // Function to fetch students from the database
-async function fetchStudents(data) {
+async function fetchStudents(data, orderBy = '') {
     try {
         const students = await models.Student.findAll({
             where: {
@@ -40,7 +40,8 @@ async function fetchStudents(data) {
                     ),
                 ),
             },
-            attributes: ['name', 'id', 'semester', 'program_id'],
+            order: [[orderBy, 'ASC']],
+            attributes: ['name', 'id', 'semester', 'program_id', 'roll_number'],
             raw: true,
         });
         return students;
@@ -87,17 +88,17 @@ function groupStudentsByCourseId(students) {
 }
 
 // Main function to execute the code
-export default async function getData() {
+export default async function getData(orderBy = 'roll_number') {
     const date = new Date().toISOString().split('T')[0];
 
     try {
         const data = await fetchData(date);
-        const students = await fetchStudents(data);
+        const students = await fetchStudents(data, orderBy);
         const totalStudents = students.length;
 
-        matchStudentsWithData(students, data);
-
         // console.log(JSON.stringify(students, null, 4));
+
+        matchStudentsWithData(students, data);
 
         const exams = groupStudentsByCourseId(students);
 
@@ -109,3 +110,4 @@ export default async function getData() {
         return null;
     }
 }
+// getData();
