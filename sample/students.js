@@ -12,6 +12,7 @@ import { models } from '../src/sequelize/models.js';
 export default function generateDummyData(minStudents, maxStudents) {
     const students = [];
     const years = ['23', '22', '21'];
+    const sem = [2, 4, 6];
     const programs = 15;
 
     for (let program = 1; program <= programs; program += 1) {
@@ -25,11 +26,7 @@ export default function generateDummyData(minStudents, maxStudents) {
                     id:
                         String(program).padStart(2, '0') + // Program (2 digits)
                         String(j).padStart(5, '0') + // j (5 digits)
-                        String(Math.floor(Math.random() * 1000)).padStart(
-                            3,
-                            '0',
-                        ) + // Random 3-digit number
-                        String(i).padStart(2, '0'), // i (2 digits)
+                        String(i).padStart(5, '0'), // i (5 digits)
 
                     roll_number: parseInt(
                         years[j - 1] +
@@ -45,7 +42,7 @@ export default function generateDummyData(minStudents, maxStudents) {
                         ).padStart(8, '0')}`,
                         10,
                     ),
-
+                    semester: sem[j - 1],
                     ProgramId: program,
                 };
                 students.push(student);
