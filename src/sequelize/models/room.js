@@ -4,8 +4,8 @@ export default (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
     if (!(sequelize instanceof Sequelize)) return null;
 
-    const Room = sequelize.define(
-        'Room',
+    const room = sequelize.define(
+        'room',
         {
             id: {
                 type: DataTypes.INTEGER.UNSIGNED,
@@ -19,7 +19,7 @@ export default (sequelize) => {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },
-            is_available: {
+            isAvailable: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
             },
@@ -27,18 +27,16 @@ export default (sequelize) => {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },
-            block_id: {
+            blockId: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },
         },
         {
-            // Other model options can be added here
-            tableName: 'room',
             timestamps: false,
             underscored: true,
         },
     );
 
-    return Room;
+    return room;
 };

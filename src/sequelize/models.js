@@ -1,33 +1,31 @@
 import { sequelize } from './connection.js';
 import { applyExtraSetup } from './extra-setup.js';
-import Department from './models/department.js';
-import AuthUser from './models/auth_user.js';
-import Program from './models/program.js';
-import Course from './models/course.js';
-import Block from './models/block.js';
-import Room from './models/room.js';
-import Student from './models/student.js';
-import Supplementary from './models/supplementary.js';
-import ProgramCourse from './models/program_course.js';
-import StudentSeat from './models/student_seat.js';
-// import TimeTable from './models/time_table.js';
-import DateTime from './models/date_time.js';
-import TeacherSeat from './models/teacher_seat.js';
+import department from './models/department.js';
+import authUser from './models/authUser.js';
+import program from './models/program.js';
+import course from './models/course.js';
+import block from './models/block.js';
+import room from './models/room.js';
+import student from './models/student.js';
+import supplementary from './models/supplementary.js';
+import programCourse from './models/programCourse.js';
+import studentSeat from './models/studentSeat.js';
+import dateTime from './models/dateTime.js';
+import teacherSeat from './models/teacherSeat.js';
 
 const models = {
-    Department: Department(sequelize),
-    AuthUser: AuthUser(sequelize),
-    Program: Program(sequelize),
-    Course: Course(sequelize),
-    Block: Block(sequelize),
-    Room: Room(sequelize),
-    Student: Student(sequelize),
-    Supplementary: Supplementary(sequelize),
-    ProgramCourse: ProgramCourse(sequelize),
-    StudentSeat: StudentSeat(sequelize),
-    // TimeTable: TimeTable(sequelize),
-    DateTime: DateTime(sequelize),
-    TeacherSeat: TeacherSeat(sequelize),
+    department: department(sequelize),
+    authUser: authUser(sequelize),
+    program: program(sequelize),
+    course: course(sequelize),
+    block: block(sequelize),
+    room: room(sequelize),
+    student: student(sequelize),
+    supplementary: supplementary(sequelize),
+    programCourse: programCourse(sequelize),
+    studentSeat: studentSeat(sequelize),
+    dateTime: dateTime(sequelize),
+    teacherSeat: teacherSeat(sequelize),
 };
 
 applyExtraSetup(sequelize);

@@ -5,70 +5,70 @@ const applyExtraSetup = (sequelize) => {
         throw new Error('not a Sequelize instance');
 
     const {
-        Department,
-        AuthUser,
-        Program,
-        Room,
-        Block,
-        Course,
-        StudentSeat,
-        Student,
-        DateTime,
-        TeacherSeat,
-        Supplementary,
-        ProgramCourse,
+        department,
+        authUser,
+        program,
+        room,
+        block,
+        course,
+        studentSeat,
+        student,
+        dateTime,
+        teacherSeat,
+        supplementary,
+        programCourse,
     } = sequelize.models;
 
-    AuthUser.belongsTo(Department);
-    Department.hasMany(AuthUser);
+    authUser.belongsTo(department);
+    department.hasMany(authUser);
 
-    Department.hasMany(Program);
-    Program.belongsTo(Department);
+    department.hasMany(program);
+    program.belongsTo(department);
 
-    Room.belongsTo(Block);
-    Block.hasMany(Room);
+    room.belongsTo(block);
+    block.hasMany(room);
 
-    Program.belongsToMany(Course, { through: ProgramCourse });
-    Program.hasMany(ProgramCourse);
-    ProgramCourse.belongsTo(Program);
-    Course.belongsToMany(Program, { through: ProgramCourse });
-    Course.hasMany(ProgramCourse);
-    ProgramCourse.belongsTo(Course);
+    program.belongsToMany(course, { through: programCourse });
+    program.hasMany(programCourse);
+    programCourse.belongsTo(program);
+    course.belongsToMany(program, { through: programCourse });
+    course.hasMany(programCourse);
+    programCourse.belongsTo(course);
 
-    StudentSeat.belongsTo(Room);
-    Room.hasMany(StudentSeat);
-    Student.hasMany(StudentSeat);
-    StudentSeat.belongsTo(Student);
-    /*    Room.belongsToMany(Student, { through: StudentSeat });
-    Student.belongsToMany(Room, { through: StudentSeat }); */
-    Course.hasMany(StudentSeat);
-    StudentSeat.belongsTo(Course);
+    studentSeat.belongsTo(room);
+    room.hasMany(studentSeat);
+    student.hasMany(studentSeat);
+    studentSeat.belongsTo(student);
+    /*    room.belongsToMany(student, { through: studentSeat });
+    student.belongsToMany(room, { through: studentSeat }); */
+    course.hasMany(studentSeat);
+    studentSeat.belongsTo(course);
 
-    DateTime.hasMany(Course);
-    Course.belongsTo(DateTime);
+    dateTime.hasMany(course);
+    course.belongsTo(dateTime);
 
-    Room.belongsToMany(AuthUser, { through: TeacherSeat });
-    AuthUser.belongsToMany(Room, { through: TeacherSeat });
-    TeacherSeat.belongsTo(Room);
-    Room.hasMany(TeacherSeat);
-    AuthUser.hasMany(TeacherSeat);
-    TeacherSeat.belongsTo(AuthUser);
+    room.belongsToMany(authUser, { through: teacherSeat });
+    authUser.belongsToMany(room, { through: teacherSeat });
+    teacherSeat.belongsTo(room);
+    room.hasMany(teacherSeat);
+    authUser.hasMany(teacherSeat);
+    teacherSeat.belongsTo(authUser);
 
-    Student.hasMany(Supplementary);
-    Supplementary.belongsTo(Student);
-    Program.hasMany(Supplementary);
-    Supplementary.belongsTo(Program);
-    Course.hasMany(Supplementary);
-    Supplementary.belongsTo(Course);
-    // ProgramCourse.hasMany(Supplementary);
-    /*  Supplementary.belongsTo(ProgramCourse, {
+    student.hasMany(supplementary);
+    supplementary.belongsTo(student);
+    program.hasMany(supplementary);
+    supplementary.belongsTo(program);
+    course.hasMany(supplementary);
+    supplementary.belongsTo(course);
+    // programCourse.hasMany(supplementary);
+    /*  supplementary.belongsTo(programCourse, {
         foreignKey: {
             name: 'program_id',
             allowNull: false,
         },
         targetKey: 'program_id',
     });
-    Supplementary.belongsTo(ProgramCourse, {
+    supplementary.belongsTo(programCourse, {
         foreignKey: {
             name: 'course_id',
             allowNull: false,
@@ -76,9 +76,9 @@ const applyExtraSetup = (sequelize) => {
         targetKey: 'course_id',
     }); */
 
-    // Student.belongsToMany(Course, { through: ProgramCourse });
-    // Course.belongsToMany(Student, { through: ProgramCourse });
-    Program.hasMany(Student);
-    Student.belongsTo(Program);
+    // student.belongsToMany(course, { through: programCourse });
+    // course.belongsToMany(student, { through: programCourse });
+    program.hasMany(student);
+    student.belongsTo(program);
 };
 export { applyExtraSetup };

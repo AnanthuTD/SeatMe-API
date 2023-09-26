@@ -5,8 +5,8 @@ export default (sequelize) => {
     if (!(sequelize instanceof Sequelize)) return null;
 
     // Define the program model schema
-    const Course = sequelize.define(
-        'Course',
+    const course = sequelize.define(
+        'course',
         {
             id: {
                 type: DataTypes.STRING(9),
@@ -22,12 +22,10 @@ export default (sequelize) => {
             },
         },
         {
-            // Other model options can be added here
-            tableName: 'course',
             timestamps: false,
             underscored: true,
         },
     );
 
-    return Course;
+    return course;
 };

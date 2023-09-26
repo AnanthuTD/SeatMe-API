@@ -11,7 +11,7 @@ import { models } from '../sequelize/models.js';
  * @returns {Promise<boolean>} A Promise that resolves to true if the user exists, or false if not.
  */
 const doesUserExist = async (email, id) => {
-    const user = await models.AuthUser.findOne({
+    const user = await models.authUser.findOne({
         where: { [Op.or]: [{ email }, { id }] },
     });
     return user !== null;
@@ -23,7 +23,7 @@ const doesUserExist = async (email, id) => {
  * @returns {Promise<object>} A Promise that resolves to the created user object.
  */
 const insertUser = async (staffData) => {
-    const user = await models.AuthUser.create(staffData);
+    const user = await models.authUser.create(staffData);
     return user;
 };
 

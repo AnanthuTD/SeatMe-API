@@ -9,6 +9,7 @@ const createRecord = async (seating) => {
 
         for (let row = 0; row < numRows; row += 1) {
             for (let col = 0; col < numCols; col += 1) {
+                // eslint-disable-next-line no-continue
                 if (!seatingMatrix[row][col].occupied) continue;
                 const serialNumber = row * numCols + col + 1;
                 const { id: CourseId } = seatingMatrix[row][col];
@@ -30,7 +31,7 @@ const createRecord = async (seating) => {
 
     // console.log(JSON.stringify(records, null, 2));
 
-    await models.StudentSeat.bulkCreate(records);
+    await models.studentSeat.bulkCreate(records);
 };
 
 export { createRecord };

@@ -4,8 +4,8 @@ export default (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
     if (!(sequelize instanceof Sequelize)) return null;
 
-    const Block = sequelize.define(
-        'Block',
+    const block = sequelize.define(
+        'block',
         {
             id: {
                 type: DataTypes.TINYINT.UNSIGNED,
@@ -18,12 +18,10 @@ export default (sequelize) => {
             },
         },
         {
-            // Other model options can be added here
-            tableName: 'block',
             timestamps: false,
             underscored: true,
         },
     );
 
-    return Block;
+    return block;
 };

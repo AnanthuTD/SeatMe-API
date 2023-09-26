@@ -4,14 +4,14 @@ import { models } from '../../sequelize/models.js';
 // Function to fetch data from the database
 async function fetchData(date) {
     try {
-        const data = await models.DateTime.findAll({
+        const data = await models.dateTime.findAll({
             where: { date },
             include: {
-                model: models.Course,
+                model: models.course,
                 nested: true,
                 attributes: ['id', 'name', 'semester'],
                 include: {
-                    model: models.Program,
+                    model: models.program,
                     attributes: ['id', 'name'],
                     through: {
                         attributes: [],
@@ -29,12 +29,12 @@ async function fetchData(date) {
 // Function to fetch students from the database
 async function fetchStudents(data, orderBy = '') {
     try {
-        const students = await models.Student.findAll({
+        const students = await models.student.findAll({
             where: {
                 [Op.or]: data.flatMap((dateTime) =>
                     dateTime.Courses.flatMap((course) =>
                         course.Programs.map((program) => ({
-                            ProgramId: program.id,
+                            programId: program.id,
                             semester: course.semester,
                         })),
                     ),

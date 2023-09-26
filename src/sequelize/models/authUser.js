@@ -5,8 +5,8 @@ export default (sequelize) => {
     if (!(sequelize instanceof Sequelize)) return null;
 
     // Define the Department model schema
-    const AuthUser = sequelize.define(
-        'AuthUser',
+    const authUser = sequelize.define(
+        'authUser',
         {
             id: {
                 type: DataTypes.STRING(6),
@@ -31,16 +31,14 @@ export default (sequelize) => {
                 },
             },
             phone: { type: DataTypes.BIGINT, allowNull: false },
-            is_admin: { type: DataTypes.BOOLEAN, defaultValue: false },
+            isAdmin: { type: DataTypes.BOOLEAN, defaultValue: false },
             password: { type: DataTypes.STRING(72), allowNull: false },
             designation: { type: DataTypes.STRING(100), allowNull: false },
         },
         {
-            // Other model options can be added here
-            tableName: 'auth_user',
             underscored: true,
         },
     );
 
-    return AuthUser;
+    return authUser;
 };

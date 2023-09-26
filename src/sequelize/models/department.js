@@ -1,12 +1,12 @@
 import { DataTypes, Sequelize } from 'sequelize';
 
-const Department = (sequelize) => {
+const department = (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
     if (!(sequelize instanceof Sequelize)) return null;
 
-    // Define the Department model schema
+    // Define the department model schema
     return sequelize.define(
-        'Department',
+        'department',
         {
             id: {
                 type: DataTypes.TINYINT.UNSIGNED,
@@ -24,10 +24,6 @@ const Department = (sequelize) => {
                 allowNull: false,
                 unique: true,
             },
-            /* department_id: {
-                type: DataTypes.TINYINT,
-                allowNull: false,
-            }, */
         },
         {
             timestamps: false,
@@ -36,4 +32,4 @@ const Department = (sequelize) => {
     );
 };
 
-export default Department;
+export default department;

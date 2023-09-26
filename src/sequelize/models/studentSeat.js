@@ -4,25 +4,23 @@ export default (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
     if (!(sequelize instanceof Sequelize)) return null;
 
-    const StudentSeat = sequelize.define(
-        'StudentSeat',
+    const studentSeat = sequelize.define(
+        'studentSeat',
         {
-            seat_number: {
+            seatNumber: {
                 type: DataTypes.INTEGER.UNSIGNED,
             },
-            is_present: {
+            isPresent: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
                 defaultValue: true,
             },
         },
         {
-            // Other model options can be added here
-            tableName: 'student_seat',
             timestamps: false,
-            // underscored: true,
+            underscored: true,
         },
     );
 
-    return StudentSeat;
+    return studentSeat;
 };

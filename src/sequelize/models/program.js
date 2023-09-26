@@ -5,8 +5,8 @@ export default (sequelize) => {
     if (!(sequelize instanceof Sequelize)) return null;
 
     // Define the program model schema
-    const Program = sequelize.define(
-        'Program',
+    const program = sequelize.define(
+        'program',
         {
             id: {
                 type: DataTypes.TINYINT.UNSIGNED,
@@ -34,12 +34,10 @@ export default (sequelize) => {
             },
         },
         {
-            // Other model options can be added here
-            tableName: 'program',
             timestamps: false,
             underscored: true,
         },
     );
 
-    return Program;
+    return program;
 };

@@ -14,8 +14,8 @@ try {
 }
 
 // Function to check if a JWT is blacklisted.
-function isBlacklisted(userId, jwt) {
-    if (blacklist[userId] && blacklist[userId].includes(jwt)) {
+function isBlacklisted(userId, jwToken) {
+    if (blacklist[userId] && blacklist[userId].includes(jwToken)) {
         return true;
     }
     return false;
@@ -31,11 +31,11 @@ function saveBlacklist() {
 }
 
 // Function to add a JWT to the blacklist for a specific user.
-function addToBlacklist(userId, jwt) {
+function addToBlacklist(userId, jwToken) {
     if (!blacklist[userId]) {
         blacklist[userId] = [];
     }
-    blacklist[userId].push(jwt);
+    blacklist[userId].push(jwToken);
     saveBlacklist();
 }
 

@@ -9,7 +9,7 @@ import { models } from '../sequelize/models.js';
 async function checkCredentialsAndRetrieveData(email, password) {
     try {
         // Find a user in the database with matching email, password, and is_admin = true
-        const user = await models.AuthUser.findOne({
+        const user = await models.authUser.findOne({
             where: {
                 email,
                 password,

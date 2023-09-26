@@ -4,8 +4,8 @@ export default (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
     if (!(sequelize instanceof Sequelize)) return null;
 
-    const Student = sequelize.define(
-        'Student',
+    const student = sequelize.define(
+        'student',
         {
             id: {
                 type: DataTypes.BIGINT.UNSIGNED,
@@ -18,7 +18,7 @@ export default (sequelize) => {
                     },
                 },
             },
-            roll_number: {
+            rollNumber: {
                 type: DataTypes.INTEGER.UNSIGNED,
                 unique: true,
                 validate: {
@@ -47,10 +47,9 @@ export default (sequelize) => {
             phone: { type: DataTypes.BIGINT.UNSIGNED, allowNull: false },
         },
         {
-            tableName: 'student',
             underscored: true,
         },
     );
 
-    return Student;
+    return student;
 };
