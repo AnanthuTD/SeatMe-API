@@ -22,7 +22,7 @@ export default function generateDummyData() {
                 name: `Program_${totalPrograms}`,
                 duration: 3,
                 level: 'UG',
-                DepartmentId: blockId,
+                departmentId: blockId,
             });
         }
     }

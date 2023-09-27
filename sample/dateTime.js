@@ -15,7 +15,7 @@ function generateDummyData() {
         dummyData.push({
             id,
             date: date.toISOString().split('T')[0],
-            time_code: timeCode,
+            timeCode,
         });
 
         id += 1;

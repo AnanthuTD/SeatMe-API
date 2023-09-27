@@ -28,7 +28,7 @@ export default function generateDummyData(minStudents, maxStudents) {
                         String(j).padStart(5, '0') + // j (5 digits)
                         String(i).padStart(5, '0'), // i (5 digits)
 
-                    roll_number: parseInt(
+                    rollNumber: parseInt(
                         years[j - 1] +
                             String(program).padStart(2, '0') +
                             String(i).padStart(2, '0'),
@@ -43,7 +43,7 @@ export default function generateDummyData(minStudents, maxStudents) {
                         10,
                     ),
                     semester: sem[j - 1],
-                    ProgramId: program,
+                    programId: program,
                 };
                 students.push(student);
             }
