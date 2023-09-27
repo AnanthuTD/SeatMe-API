@@ -7,8 +7,8 @@ export default function generateDummyData(course) {
         const programId = Math.floor(Math.random() * 15 + 1);
         if (course[n - 1].id) {
             programCourse.push({
-                ProgramId: programId,
-                CourseId: course[n - 1].id,
+                programId,
+                courseId: course[n - 1].id,
             });
         }
     }
@@ -16,7 +16,7 @@ export default function generateDummyData(course) {
     return programCourse; // Return an object with the length of the programs array.
 }
 
-const course = await models.Course.findAll({ attributes: ['id'] });
+const course = await models.course.findAll({ attributes: ['id'] });
 console.log(JSON.stringify(course, null, 4));
 
 const dummyData = generateDummyData(course);

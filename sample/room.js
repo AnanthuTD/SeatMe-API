@@ -17,9 +17,9 @@ function generateDummyRoomData() {
             id,
             cols,
             rows,
-            is_available: isAvailable,
+            isAvailable,
             floor,
-            block_id: blockId,
+            blockId,
         });
     }
 
