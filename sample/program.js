@@ -32,6 +32,6 @@ export default function generateDummyData() {
 
 const dummyData = generateDummyData();
 console.log(dummyData);
-models.Program.bulkCreate(dummyData);
+models.program.bulkCreate(dummyData);
 // let attr = models.Program.getAttributes();
 // console.log(attr);

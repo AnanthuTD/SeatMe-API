@@ -16,4 +16,4 @@ export default function generateDummyData() {
 
 const dummyData = generateDummyData();
 // console.log(dummyData);
-models.Department.bulkCreate(dummyData);
+models.department.bulkCreate(dummyData);

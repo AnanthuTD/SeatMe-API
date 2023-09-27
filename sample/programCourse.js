@@ -16,11 +16,11 @@ export default function generateDummyData(course) {
     return programCourse; // Return an object with the length of the programs array.
 }
 
-let course = await models.Course.findAll({ attributes: ['id'] });
+const course = await models.Course.findAll({ attributes: ['id'] });
 console.log(JSON.stringify(course, null, 4));
 
 const dummyData = generateDummyData(course);
 console.log(dummyData);
-models.ProgramCourse.bulkCreate(dummyData);
+models.programCourse.bulkCreate(dummyData);
 // let attr = models.Program.getAttributes();
 // console.log(attr);

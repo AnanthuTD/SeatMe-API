@@ -28,4 +28,4 @@ export default function generateDummyData() {
 
 const dummyData = generateDummyData();
 // console.log(dummyData);
-models.Course.bulkCreate(dummyData);
+models.course.bulkCreate(dummyData);

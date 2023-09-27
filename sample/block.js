@@ -1,6 +1,6 @@
 import { models } from '../src/sequelize/models.js';
 
-const { Block } = models;
+const { block } = models;
 function generateDummyBlockData() {
     const numberOfEntries = 5;
     const dummyData = [];
@@ -24,4 +24,4 @@ function generateDummyBlockData() {
 
 const blockData = generateDummyBlockData();
 // console.log(blockData);
-Block.bulkCreate(blockData);
+block.bulkCreate(blockData);

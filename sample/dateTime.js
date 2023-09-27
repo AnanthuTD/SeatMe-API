@@ -27,4 +27,4 @@ function generateDummyData() {
 
 const tableData = generateDummyData();
 // console.log(tableData);
-models.DateTime.bulkCreate(tableData);
+models.dateTime.bulkCreate(tableData);

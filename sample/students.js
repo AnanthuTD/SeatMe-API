@@ -58,6 +58,6 @@ const maxStudents = 100;
 
 const dummyData = generateDummyData(minStudents, maxStudents);
 // console.log(dummyData);
-const result = await models.Student.bulkCreate(dummyData);
+const result = await models.student.bulkCreate(dummyData);
 console.log(result.length); // 2
-console.log(result[0] instanceof models.Student);
+console.log(result[0] instanceof models.student);
