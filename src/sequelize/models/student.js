@@ -28,6 +28,7 @@ export default (sequelize) => {
                         }
                     },
                 },
+                allowNull: false,
             },
             semester: {
                 type: DataTypes.TINYINT.UNSIGNED,
