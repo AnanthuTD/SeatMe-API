@@ -20,21 +20,21 @@ async function generateSeatingMatrix() {
 
     /**
      * Represents a block with a name.
-     * @typedef {Object} Block
+     * @typedef {Object} block
      * @property {string} name - The name of the block.
      */
 
     try {
-        const rooms = await models.Room.findAll({
-            where: { is_available: true },
-            include: { model: models.Block, attributes: { include: ['name'] } },
+        const rooms = await models.room.findAll({
+            where: { isAvailable: true },
+            include: { model: models.block, attributes: { include: ['name'] } },
             raw: true,
             attributes: [
                 'id',
                 'cols',
                 'rows',
                 'floor',
-                [sequelize.literal('Room.cols * Room.rows'), 'seats'],
+                [sequelize.literal('room.cols * room.rows'), 'seats'],
             ],
         });
 
@@ -59,8 +59,8 @@ async function generateSeatingMatrix() {
                 exams: [],
                 id: room.id,
                 floor: room.floor,
-                blockId: room['Block.id'],
-                blockName: room['Block.name'],
+                blockId: room['block.id'],
+                blockName: room['block.name'],
                 seats: room.seats,
             };
 

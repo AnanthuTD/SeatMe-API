@@ -12,16 +12,16 @@ const createRecord = async (seating) => {
                 // eslint-disable-next-line no-continue
                 if (!seatingMatrix[row][col].occupied) continue;
                 const serialNumber = row * numCols + col + 1;
-                const { id: CourseId } = seatingMatrix[row][col];
-                const StudentId = seatingMatrix[row][col].regno;
+                const { id: courseId } = seatingMatrix[row][col];
+                const studentId = seatingMatrix[row][col].regno;
 
                 // console.log(seatingMatrix[row][col]);
 
                 const record = {
-                    seat_number: serialNumber,
-                    RoomId: id,
-                    StudentId,
-                    CourseId,
+                    seatNumber: serialNumber,
+                    roomId: id,
+                    studentId,
+                    courseId,
                 };
 
                 records.push(record); // Push the record object into the array

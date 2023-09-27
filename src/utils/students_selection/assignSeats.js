@@ -271,9 +271,13 @@ class SeatingArrangement {
 }
 
 async function assignSeats() {
-    const orderBy = 'roll_number'; // roll_number or id(register_number)
+    let date = new Date();
+    date.setDate(date.getDate() + 1);
+    date = date.toISOString();
+    [date] = date.split('T');
+    const orderBy = 'rollNumber'; // rollNumber or id(register_number)
     // eslint-disable-next-line prefer-const
-    let { exams: students, totalStudents } = await getData(orderBy);
+    let { exams: students, totalStudents } = await getData(date, orderBy);
 
     console.log(`total subjects : ${students.length}`);
     console.log(`Generated ${totalStudents} students`);
@@ -346,7 +350,7 @@ async function assignSeats() {
     return classes;
 }
 
-assignSeats().then(async (seating) => {
+/* assignSeats().then(async (seating) => {
     await createRecord(seating);
-});
+}); */
 export { assignSeats };

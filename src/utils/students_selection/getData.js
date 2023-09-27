@@ -32,8 +32,8 @@ async function fetchStudents(data, orderBy = '') {
         const students = await models.student.findAll({
             where: {
                 [Op.or]: data.flatMap((dateTime) =>
-                    dateTime.Courses.flatMap((course) =>
-                        course.Programs.map((program) => ({
+                    dateTime.courses.flatMap((course) =>
+                        course.programs.map((program) => ({
                             programId: program.id,
                             semester: course.semester,
                         })),
@@ -41,7 +41,7 @@ async function fetchStudents(data, orderBy = '') {
                 ),
             },
             order: [[orderBy, 'ASC']],
-            attributes: ['name', 'id', 'semester', 'program_id', 'roll_number'],
+            attributes: ['name', 'id', 'semester', 'programId', 'rollNumber'],
             raw: true,
         });
         return students;
@@ -54,10 +54,10 @@ async function fetchStudents(data, orderBy = '') {
 function matchStudentsWithData(students, data) {
     students.forEach((student) => {
         data.forEach((dateTime) =>
-            dateTime.Courses.forEach((course) =>
-                course.Programs.forEach((program) => {
+            dateTime.courses.forEach((course) =>
+                course.programs.forEach((program) => {
                     if (
-                        program.id === student.program_id &&
+                        program.id === student.programId &&
                         course.semester === student.semester
                     ) {
                         student.programName = program.name;
@@ -88,11 +88,11 @@ function groupStudentsByCourseId(students) {
 }
 
 // Main function to execute the code
-export default async function getData(orderBy = 'roll_number') {
-    const date = new Date().toISOString().split('T')[0];
-
+export default async function getData(date, orderBy = 'rollNumber') {
     try {
         const data = await fetchData(date);
+        // console.log(JSON.stringify(data, null, 4));
+
         const students = await fetchStudents(data, orderBy);
         const totalStudents = students.length;
 

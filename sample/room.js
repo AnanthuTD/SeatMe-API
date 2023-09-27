@@ -27,5 +27,5 @@ function generateDummyRoomData() {
 }
 
 const roomData = generateDummyRoomData();
-// console.log(roomData);
+console.log(roomData);
 models.room.bulkCreate(roomData);
