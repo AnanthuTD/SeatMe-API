@@ -1,11 +1,41 @@
 import { Op } from 'sequelize';
 import { models } from '../../sequelize/models.js';
 
-const getStaffs = async (offset, limit) => {
+const getStaffs = async (
+    query = '',
+    column = 'id',
+    offset = 0,
+    limit = 10,
+    sortField = 'updatedAt',
+    sortOrder = 'DESC',
+) => {
+    sortOrder = sortOrder.toUpperCase();
+
+    const whereCondition = {};
+
+    whereCondition[column] = {
+        [Op.like]: `${query}%`,
+    };
+
+    const orderCondition = [];
+
+    if (sortField && sortOrder) {
+        if (sortOrder === 'ASC') {
+            orderCondition.push([sortField, 'ASC']);
+        } else if (sortOrder === 'DESC') {
+            orderCondition.push([sortField, 'DESC']);
+        }
+    }
+
     const data = await models.authUser.findAll({
+        where: whereCondition,
+        order: orderCondition,
         limit,
         offset,
-        order: [['id', 'ASC']],
+        include: {
+            model: models.department,
+            attributes: ['name'],
+        },
         attributes: [
             'id',
             'name',
@@ -13,7 +43,9 @@ const getStaffs = async (offset, limit) => {
             'phone',
             'designation',
             'departmentId',
+            'department.name',
         ],
+        raw: true,
     });
 
     return data;
@@ -55,15 +87,35 @@ const getStudentCount = async () => {
     return totalCount;
 };
 
-const findStudent = async (query, column, offset, limit) => {
+const findStudent = async (
+    query = '',
+    column = 'id',
+    offset = 0,
+    limit = 10,
+    sortField = 'updatedAt',
+    sortOrder = 'DESC',
+) => {
+    sortOrder = sortOrder.toUpperCase();
+
     const whereCondition = {};
+
     whereCondition[column] = {
         [Op.like]: `${query}%`,
     };
 
+    const orderCondition = [];
+
+    if (sortField && sortOrder) {
+        if (sortOrder === 'ASC') {
+            orderCondition.push([sortField, 'ASC']);
+        } else if (sortOrder === 'DESC') {
+            orderCondition.push([sortField, 'DESC']);
+        }
+    }
+
     const data = await models.student.findAll({
         where: whereCondition,
-        order: [['id', 'ASC']],
+        order: orderCondition,
         limit,
         offset,
         include: {

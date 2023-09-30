@@ -37,22 +37,8 @@ router.get('/staff/count', async (req, res) => {
 });
 
 router.get('/staff/list', async (req, res) => {
-    const { start, pageSize } = req.query;
-    const offset = parseInt(start, 10) || 0;
-    const limit = parseInt(pageSize, 10) || 10;
+    let { query, column, offset, limit, sortField, sortOrder } = req.query;
 
-    const data = await getStaffs(offset, limit);
-
-    res.json(data);
-});
-
-router.get('/student/count', async (req, res) => {
-    const count = await getStudentCount();
-    res.json(count);
-});
-
-router.get('/student/list', async (req, res) => {
-    let { query = '', column = 'id', start, results } = req.query;
     const allowedColumns = [
         'id',
         'name',
@@ -63,13 +49,66 @@ router.get('/student/list', async (req, res) => {
     ];
 
     if (!allowedColumns.includes(column)) {
-        // If not, set it to a default value (e.g., 'id')
         column = 'id';
     }
-    const offset = parseInt(start, 10) || 0;
-    const limit = parseInt(results, 10) || 10;
 
-    const data = await findStudent(query, column, offset, limit);
+    query = query || '';
+    sortField = sortField || 'updatedAt';
+    sortOrder = sortOrder || 'DESC';
+    offset = parseInt(offset, 10) || 0;
+    limit = parseInt(limit, 10) || 10;
+
+    console.log('sort order: ', sortOrder);
+
+    const data = await getStaffs(
+        query,
+        column,
+        offset,
+        limit,
+        sortField,
+        sortOrder,
+    );
+
+    res.json(data);
+});
+
+router.get('/student/count', async (req, res) => {
+    const count = await getStudentCount();
+    res.json(count);
+});
+
+router.get('/student/list', async (req, res) => {
+    let { query, column, offset, limit, sortField, sortOrder } = req.query;
+
+    const allowedColumns = [
+        'id',
+        'name',
+        'rollNumber',
+        'semester',
+        'program.name',
+        'programId',
+    ];
+
+    if (!allowedColumns.includes(column)) {
+        column = 'id';
+    }
+
+    query = query || '';
+    sortField = sortField || 'updatedAt';
+    sortOrder = sortOrder || 'DESC';
+    offset = parseInt(offset, 10) || 0;
+    limit = parseInt(limit, 10) || 10;
+
+    console.log('sort order: ', sortOrder);
+
+    const data = await findStudent(
+        query,
+        column,
+        offset,
+        limit,
+        sortField,
+        sortOrder,
+    );
 
     res.json(data);
 });
