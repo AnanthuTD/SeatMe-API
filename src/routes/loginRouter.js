@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { checkCredentialsAndRetrieveData } from '../utils/commonUtils.js';
+import { checkCredentialsAndRetrieveData } from '../helpers/commonHelper.js';
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ const router = express.Router();
 const secretKey = process.env.SECRET_KEY;
 
 /**
- * @route POST /auth
+ * @route POST /
  * @desc Authenticate a user based on email and password, and issue a JWT token.
  * @param {string} req.body.email - User's email.
  * @param {string} req.body.password - User's password.
@@ -47,11 +47,11 @@ router.post('/', async (req, res) => {
             });
 
             // Respond with the generated token
-            return res.send(token);
+            return res.send(userData);
         }
 
         // Authentication failed
-        return res.status(401).send('Invalid credentials or not an admin.');
+        return res.status(401).send('Invalid credentials or not Authorized.');
     } catch (error) {
         // Handle errors during authentication
         return res.status(500).send('An error occurred during authentication.');

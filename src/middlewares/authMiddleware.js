@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { isBlacklisted } from '../utils/jwtUtils.js';
+import { isBlacklisted } from '../helpers/jwtHelper.js';
 
 // Retrieve the secret key from environment variables
 const secretKey = process.env.SECRET_KEY;
