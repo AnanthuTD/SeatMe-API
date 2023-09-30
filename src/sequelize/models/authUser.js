@@ -9,12 +9,14 @@ export default (sequelize) => {
         'authUser',
         {
             id: {
-                type: DataTypes.STRING(6),
+                type: DataTypes.STRING(7),
                 primaryKey: true,
                 validate: {
-                    isSixDigit(value) {
-                        if (!/^[0-9A-Z]{6}$/.test(value)) {
-                            throw new Error('ID must be a six-digit number.');
+                    isNumberOrCaps(value) {
+                        if (!/^[0-9A-Z]+$/.test(value)) {
+                            throw new Error(
+                                'ID must be composed of numbers or uppercase letters (caps).',
+                            );
                         }
                     },
                 },
