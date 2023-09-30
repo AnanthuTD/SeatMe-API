@@ -1,4 +1,3 @@
-import { createRecord } from '../adminUtils/studentSeat.js';
 import findRepeatingRegNos from './findRepeatingRegno.js';
 import getData from './getData.js';
 import generateSeatingMatrixHTML from './htmlSeatingMatrix.js';

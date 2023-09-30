@@ -1,7 +1,7 @@
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
 
-const BLACKLIST_FILE = 'jwtBlacklist.json';
+const BLACKLIST_FILE = 'src/jwtBlacklist.json';
 
 // Load the blacklist from the JSON file.
 let blacklist = {};
