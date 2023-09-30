@@ -9,7 +9,7 @@ import adminRouter from './routes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
 import loginRouter from './routes/loginRouter.js';
 import { sequelize } from './sequelize/connection.js';
-import { cleanBlacklist } from './utils/jwtUtils.js';
+import { cleanBlacklist } from './helpers/jwtHelper.js';
 import {
     authAdminMiddleware,
     authStaffMiddleware,
