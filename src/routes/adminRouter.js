@@ -5,6 +5,10 @@ import {
     getStaffs,
     getStudentCount,
     findStudent,
+    getDepartments,
+    getPrograms,
+    getCourses,
+    updateCoursesDateTime,
 } from '../helpers/adminHelpers/adminHelper.js';
 
 const router = express.Router();
@@ -111,6 +115,55 @@ router.get('/student/list', async (req, res) => {
     );
 
     res.json(data);
+});
+
+router.get('/departments', async (req, res) => {
+    const departments = await getDepartments();
+    res.json(departments);
+});
+router.get('/programs', async (req, res) => {
+    let { departmentId } = req.query;
+    departmentId = parseInt(departmentId, 10) || 0;
+
+    const programs = await getPrograms(departmentId);
+
+    res.json(programs);
+});
+router.get('/courses', async (req, res) => {
+    const { programId, semester } = req.query;
+    console.log('semester: ', semester);
+    const courses = await getCourses(programId, semester);
+    res.json(courses);
+});
+
+router.post('/timetable', async (req, res) => {
+    const { body } = req;
+    const { courseId, timeCode, date } = body;
+    let { courseName } = body;
+
+    courseName = courseName || '';
+    const missingProperties = [];
+
+    if (!courseId) missingProperties.push('courseId');
+
+    if (!timeCode) missingProperties.push('timeCode');
+
+    if (!date) missingProperties.push('date');
+
+    if (missingProperties.length > 0) {
+        const errorMessage = `The following properties are missing: ${missingProperties.join(
+            ', ',
+        )}`;
+
+        res.status(400).send(errorMessage);
+        return;
+    }
+    const status = await updateCoursesDateTime(body);
+    if (status)
+        res.status(200).send(
+            `Exam for course ${courseName}(${courseId}) has been set for ${date}.`,
+        );
+    else res.status(404).send(`Course ${courseName}${courseId} not found`);
 });
 
 export default router;
