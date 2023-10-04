@@ -223,6 +223,69 @@ const updateCoursesDateTime = async (data) => {
     return true;
 };
 
+const getExams = async ({
+    query = '',
+    column = 'id',
+    offset = 0,
+    limit = 10,
+    sortField = 'name',
+    sortOrder = 'ASC',
+}) => {
+    // console.log('sort order: ', sortOrder);
+    sortOrder = sortOrder.toUpperCase();
+
+    const isNestedColumn = column.includes('.');
+    const isNestedSortField = sortField.includes('.');
+
+    const whereCondition = {
+        [isNestedColumn ? column.split('.')[1] : column]: {
+            [Op.like]: `${query}%`,
+        },
+    };
+
+    const orderCondition = [];
+
+    if (sortField && sortOrder) {
+        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
+
+        console.log('field: ', isNestedColumn);
+        // console.log('sort order: ', sortOrder);
+
+        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+            if (isNestedSortField) {
+                orderCondition.push([models.dateTime, field, sortOrder]);
+                console.log('orderCondition: ', orderCondition);
+            } else orderCondition.push([field, sortOrder]);
+        }
+    }
+
+    console.log('whereCondition: ', whereCondition);
+
+    const data = await models.course.findAll({
+        limit,
+        offset,
+        where: whereCondition,
+        order: orderCondition,
+        include: {
+            model: models.dateTime,
+            attributes: ['date', 'timeCode'],
+            required: true,
+            where: isNestedColumn ? whereCondition : undefined,
+        },
+        raw: true,
+    });
+
+    return data;
+};
+
+const getExamCount = async () => {
+    const totalCount = await models.course.count({
+        where: { dateTimeId: { [Op.ne]: null } },
+    });
+
+    return totalCount;
+};
+
 export {
     getStaffs,
     getStaffCount,
@@ -233,4 +296,6 @@ export {
     getCourses,
     getPrograms,
     updateCoursesDateTime,
+    getExamCount,
+    getExams,
 };

@@ -9,6 +9,8 @@ import {
     getPrograms,
     getCourses,
     updateCoursesDateTime,
+    getExamCount,
+    getExams,
 } from '../helpers/adminHelpers/adminHelper.js';
 
 const router = express.Router();
@@ -164,6 +166,47 @@ router.post('/timetable', async (req, res) => {
             `Exam for course ${courseName}(${courseId}) has been set for ${date}.`,
         );
     else res.status(404).send(`Course ${courseName}${courseId} not found`);
+});
+
+router.get('/exams/count', async (req, res) => {
+    const count = await getExamCount();
+    res.json(count);
+});
+
+router.get('/exams', async (req, res) => {
+    let { query, column, offset, limit, sortField, sortOrder } = req.query;
+
+    const allowedColumns = [
+        'id',
+        'name',
+        'semester',
+        'dateTime.date',
+        'dateTime.timeCode',
+    ];
+
+    if (!allowedColumns.includes(column)) {
+        column = 'id';
+    }
+
+    query = query || '';
+    sortField = sortField || 'name';
+    sortOrder = sortOrder || 'ASC';
+    offset = parseInt(offset, 10) || 0;
+    limit = parseInt(limit, 10) || 10;
+
+    // sortOrder = 'DESC';
+    console.log('sort order: ', sortOrder);
+
+    const data = await getExams({
+        query,
+        column,
+        offset,
+        limit,
+        sortField,
+        sortOrder,
+    });
+
+    res.json(data);
 });
 
 export default router;
