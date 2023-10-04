@@ -11,30 +11,37 @@ const getStaffs = async (
 ) => {
     sortOrder = sortOrder.toUpperCase();
 
-    const whereCondition = {};
+    const isNestedColumn = column.includes('.');
+    const isNestedSortField = sortField.includes('.');
 
-    whereCondition[column] = {
-        [Op.like]: `${query}%`,
+    const whereCondition = {
+        [isNestedColumn ? column.split('.')[1] : column]: {
+            [Op.like]: `${query}%`,
+        },
     };
 
     const orderCondition = [];
 
     if (sortField && sortOrder) {
-        if (sortOrder === 'ASC') {
-            orderCondition.push([sortField, 'ASC']);
-        } else if (sortOrder === 'DESC') {
-            orderCondition.push([sortField, 'DESC']);
+        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
+
+        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+            if (isNestedSortField) {
+                orderCondition.push([models.department, field, sortOrder]);
+            } else orderCondition.push([field, sortOrder]);
         }
     }
 
     const data = await models.authUser.findAll({
-        where: whereCondition,
-        order: orderCondition,
         limit,
         offset,
+        where: whereCondition,
+        order: orderCondition,
         include: {
             model: models.department,
             attributes: ['name'],
+            // required: true,
+            where: isNestedColumn ? whereCondition : undefined,
         },
         attributes: [
             'id',
@@ -97,30 +104,37 @@ const findStudent = async (
 ) => {
     sortOrder = sortOrder.toUpperCase();
 
-    const whereCondition = {};
+    const isNestedColumn = column.includes('.');
+    const isNestedSortField = sortField.includes('.');
 
-    whereCondition[column] = {
-        [Op.like]: `${query}%`,
+    const whereCondition = {
+        [isNestedColumn ? column.split('.')[1] : column]: {
+            [Op.like]: `${query}%`,
+        },
     };
 
     const orderCondition = [];
 
     if (sortField && sortOrder) {
-        if (sortOrder === 'ASC') {
-            orderCondition.push([sortField, 'ASC']);
-        } else if (sortOrder === 'DESC') {
-            orderCondition.push([sortField, 'DESC']);
+        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
+
+        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+            if (isNestedSortField) {
+                orderCondition.push([models.program, field, sortOrder]);
+            } else orderCondition.push([field, sortOrder]);
         }
     }
 
     const data = await models.student.findAll({
-        where: whereCondition,
-        order: orderCondition,
         limit,
         offset,
+        where: whereCondition,
+        order: orderCondition,
         include: {
             model: models.program,
             attributes: ['name'],
+            required: true,
+            where: isNestedColumn ? whereCondition : undefined,
         },
         attributes: [
             'id',
@@ -183,18 +197,11 @@ const getCourses = async (programId, semester) => {
         }
 
         if (!program) {
-            console.log('Program not found');
             return [];
         }
 
-        // Access the associated courses
-        const { courses } = program; // Assuming you've defined the alias as "Courses"
+        const { courses } = program;
 
-        // Now "courses" contains an array of Course instances related to the program
-        console.log('Courses related to the program:');
-        courses.forEach((course) => {
-            console.log(`Course Id: ${course.id}, Course Name: ${course.name}`);
-        });
         return courses;
     } catch (error) {
         console.error('Error:', error);
@@ -231,7 +238,6 @@ const getExams = async ({
     sortField = 'name',
     sortOrder = 'ASC',
 }) => {
-    // console.log('sort order: ', sortOrder);
     sortOrder = sortOrder.toUpperCase();
 
     const isNestedColumn = column.includes('.');
@@ -248,18 +254,12 @@ const getExams = async ({
     if (sortField && sortOrder) {
         const field = isNestedSortField ? sortField.split('.')[1] : sortField;
 
-        console.log('field: ', isNestedColumn);
-        // console.log('sort order: ', sortOrder);
-
         if (sortOrder === 'ASC' || sortOrder === 'DESC') {
             if (isNestedSortField) {
                 orderCondition.push([models.dateTime, field, sortOrder]);
-                console.log('orderCondition: ', orderCondition);
             } else orderCondition.push([field, sortOrder]);
         }
     }
-
-    console.log('whereCondition: ', whereCondition);
 
     const data = await models.course.findAll({
         limit,
@@ -269,7 +269,7 @@ const getExams = async ({
         include: {
             model: models.dateTime,
             attributes: ['date', 'timeCode'],
-            required: true,
+            // required: true,
             where: isNestedColumn ? whereCondition : undefined,
         },
         raw: true,
