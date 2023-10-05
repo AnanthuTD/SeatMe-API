@@ -1,5 +1,5 @@
-import { Op } from 'sequelize';
-import { models } from '../../sequelize/models.js';
+import { Op, literal } from 'sequelize';
+import { models, sequelize } from '../../sequelize/models.js';
 
 const getStaffs = async (
     query = '',
@@ -269,7 +269,7 @@ const getExams = async ({
         include: {
             model: models.dateTime,
             attributes: ['date', 'timeCode'],
-            // required: true,
+            required: true,
             where: isNestedColumn ? whereCondition : undefined,
         },
         raw: true,
@@ -286,6 +286,62 @@ const getExamCount = async () => {
     return totalCount;
 };
 
+const getRooms = async () => {
+    try {
+        const rooms = await models.room.findAll({
+            attributes: [
+                'id',
+                'rows',
+                'cols',
+                'blockId',
+                'isAvailable',
+                'floor',
+                [literal('`rows` * `cols`'), 'seats'],
+            ],
+        });
+        return rooms;
+    } catch (error) {
+        console.error('Error fetching rooms:', error);
+        throw error;
+    }
+};
+
+const updateRoomAvailability = async ({ roomIds = [] }) => {
+    const t = await sequelize.transaction();
+    try {
+        // Update rooms with specific ids to isAvailable: true
+        await models.room.update(
+            { isAvailable: true },
+            {
+                where: {
+                    id: roomIds,
+                },
+                transaction: t,
+            },
+        );
+
+        // Update rooms with ids not in roomIds to isAvailable: false
+        await models.room.update(
+            { isAvailable: false },
+            {
+                where: {
+                    id: {
+                        [Op.notIn]: roomIds,
+                    },
+                },
+                transaction: t,
+            },
+        );
+
+        await t.commit(); // Commit the transaction
+        console.log('Room availability updated successfully.');
+    } catch (error) {
+        await t.rollback(); // Rollback the transaction
+        console.error('Error updating room availability:', error);
+        throw error;
+    }
+};
+
 export {
     getStaffs,
     getStaffCount,
@@ -298,4 +354,6 @@ export {
     updateCoursesDateTime,
     getExamCount,
     getExams,
+    getRooms,
+    updateRoomAvailability,
 };

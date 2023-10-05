@@ -11,6 +11,8 @@ import {
     updateCoursesDateTime,
     getExamCount,
     getExams,
+    getRooms,
+    updateRoomAvailability,
 } from '../helpers/adminHelpers/adminHelper.js';
 
 const router = express.Router();
@@ -207,6 +209,28 @@ router.get('/exams', async (req, res) => {
     });
 
     res.json(data);
+});
+
+router.get('/rooms', async (req, res) => {
+    const rooms = await getRooms();
+    res.json(rooms);
+});
+
+router.patch('/rooms', async (req, res) => {
+    const { roomIds } = req.body;
+
+    if (!roomIds || !Array.isArray(roomIds)) {
+        return res.status(400).json({ error: 'Invalid roomIds' });
+    }
+
+    try {
+        await updateRoomAvailability({ roomIds });
+        res.json({ message: 'Room availability updated successfully' });
+    } catch (error) {
+        console.error('Error updating room availability:', error);
+        res.status(500).json({ error: 'Failed to update room availability' });
+    }
+    return null;
 });
 
 export default router;
