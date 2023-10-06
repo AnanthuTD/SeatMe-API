@@ -12,6 +12,7 @@ import programCourse from './models/programCourse.js';
 import studentSeat from './models/studentSeat.js';
 import dateTime from './models/dateTime.js';
 import teacherSeat from './models/teacherSeat.js';
+import exam from './models/exam.js';
 
 const models = {
     department: department(sequelize),
@@ -26,6 +27,7 @@ const models = {
     studentSeat: studentSeat(sequelize),
     dateTime: dateTime(sequelize),
     teacherSeat: teacherSeat(sequelize),
+    exam: exam(sequelize),
 };
 
 applyExtraSetup(sequelize);
