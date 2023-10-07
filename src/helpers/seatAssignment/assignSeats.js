@@ -106,17 +106,17 @@ class SeatingArrangement {
                 if (seat) {
                     const { row, col } = seat;
 
-                    this.seatingMatrix[row][col].occupied = true;
-                    this.seatingMatrix[row][col].exam = exam;
-                    this.seatingMatrix[row][col].id = id;
-                    this.seatingMatrix[row][col].regno = regno;
-                    this.seatingMatrix[row][col].name = name;
-                    this.seatingMatrix[row][col].examId = examId;
+                    this.seatingMatrix[col][row].occupied = true;
+                    this.seatingMatrix[col][row].exam = exam;
+                    this.seatingMatrix[col][row].id = id;
+                    this.seatingMatrix[col][row].regno = regno;
+                    this.seatingMatrix[col][row].name = name;
+                    this.seatingMatrix[col][row].examId = examId;
 
                     this.insertRegno(id, regno, examId);
 
-                    this.currentRow = row;
-                    this.currentCol = col;
+                    this.currentRow = col;
+                    this.currentCol = row;
 
                     /* console.log(
                         `${studentCount}) Assigned ${name} (Reg No: ${regno}, Exam: ${exam}) to Row ${
@@ -164,18 +164,18 @@ class SeatingArrangement {
         for (let i = 0; i < this.numRows; i += 1) {
             for (let j = 0; j < this.numCols; j += 1) {
                 if (
-                    this.seatingMatrix[i][j].exam !== exam &&
+                    this.seatingMatrix[j][i].exam !== exam &&
                     !this.isAdjacentSeatOccupied(i, j, exam)
                 ) {
                     const swappedExam = {
-                        exam: this.seatingMatrix[i][j].exam,
-                        occupied: this.seatingMatrix[i][j].occupied,
-                        id: this.seatingMatrix[i][j].id,
-                        regno: this.seatingMatrix[i][j].regno,
-                        examId: this.seatingMatrix[i][j].examId,
+                        exam: this.seatingMatrix[j][i].exam,
+                        occupied: this.seatingMatrix[j][i].occupied,
+                        id: this.seatingMatrix[j][i].id,
+                        regno: this.seatingMatrix[j][i].regno,
+                        examId: this.seatingMatrix[j][i].examId,
                     };
 
-                    this.seatingMatrix[i][j] = {
+                    this.seatingMatrix[j][i] = {
                         exam,
                         occupied: true,
                         id,
@@ -187,7 +187,7 @@ class SeatingArrangement {
 
                     if (seat) {
                         const { row, col } = seat;
-                        this.seatingMatrix[row][col] = swappedExam;
+                        this.seatingMatrix[col][row] = swappedExam;
                         return true;
                     }
                     this.swapSeats(
@@ -240,7 +240,7 @@ class SeatingArrangement {
                 col += 1
             ) {
                 if (
-                    !this.seatingMatrix[row][col].occupied &&
+                    !this.seatingMatrix[col][row].occupied &&
                     !this.isAdjacentSeatOccupied(row, col, exam)
                 ) {
                     return { row, col };
@@ -280,8 +280,8 @@ class SeatingArrangement {
                 newRow < this.numRows &&
                 newCol >= 0 &&
                 newCol < this.numCols &&
-                this.seatingMatrix[newRow][newCol].occupied &&
-                this.seatingMatrix[newRow][newCol].exam === exam
+                this.seatingMatrix[newCol][newRow].occupied &&
+                this.seatingMatrix[newCol][newRow].exam === exam
             ) {
                 isAdjacentOccupied = true;
             }
