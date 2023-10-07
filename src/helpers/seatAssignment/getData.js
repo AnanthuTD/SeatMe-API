@@ -1,13 +1,13 @@
 import { Op } from 'sequelize';
 import { models } from '../../sequelize/models.js';
 
-// Function to fetch data from the database
-async function fetchData(date) {
+async function fetchExams(date) {
     try {
         const data = await models.dateTime.findAll({
             where: { date },
             include: {
                 model: models.course,
+                through: { attributes: [] },
                 nested: true,
                 attributes: ['id', 'name', 'semester'],
                 include: {
@@ -26,7 +26,6 @@ async function fetchData(date) {
     }
 }
 
-// Function to fetch students from the database
 async function fetchStudents(data, orderBy = '') {
     try {
         const students = await models.student.findAll({
@@ -90,13 +89,12 @@ function groupStudentsByCourseId(students) {
 // Main function to execute the code
 export default async function getData(date, orderBy = 'rollNumber') {
     try {
-        const data = await fetchData(date);
+        const data = await fetchExams(date);
         // console.log(JSON.stringify(data, null, 4));
 
         const students = await fetchStudents(data, orderBy);
-        const totalStudents = students.length;
-
         // console.log(JSON.stringify(students, null, 4));
+        const totalStudents = students.length;
 
         matchStudentsWithData(students, data);
 
@@ -110,4 +108,4 @@ export default async function getData(date, orderBy = 'rollNumber') {
         return null;
     }
 }
-// getData();
+getData(new Date());

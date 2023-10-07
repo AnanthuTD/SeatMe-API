@@ -350,6 +350,6 @@ async function assignSeats() {
 }
 
 /* assignSeats().then(async (seating) => {
-    await createRecord(seating);
+    // await createRecord(seating);
 }); */
 export { assignSeats };
