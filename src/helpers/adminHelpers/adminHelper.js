@@ -254,10 +254,11 @@ const getExamDateTime = async ({ courseId = undefined }) => {
             model: models.dateTime,
             attributes: ['date', 'timeCode'],
             where: { date: { [Op.gte]: new Date() } },
+            required: true,
         },
         attributes: [],
     });
-    return examDateTime.dateTime;
+    return examDateTime?.dateTime;
 };
 
 const getExams = async ({
@@ -298,6 +299,7 @@ const getExams = async ({
         order: orderCondition,
         include: {
             model: models.dateTime,
+            through: { attributes: [] },
             attributes: ['date', 'timeCode'],
             required: true,
             where: isNestedColumn ? whereCondition : undefined,
@@ -316,7 +318,7 @@ const getOngoingExamCount = async () => {
                 model: models.dateTime,
                 where: {
                     date: {
-                        [Op.lte]: currentDate,
+                        [Op.gte]: currentDate,
                     },
                 },
             },
