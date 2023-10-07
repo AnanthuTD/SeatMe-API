@@ -13,6 +13,7 @@ import {
     getExams,
     getRooms,
     updateRoomAvailability,
+    getExamDateTime,
 } from '../helpers/adminHelpers/adminHelper.js';
 
 const router = express.Router();
@@ -173,6 +174,12 @@ router.post('/timetable', async (req, res) => {
 router.get('/exams/count', async (req, res) => {
     const count = await getOngoingExamCount();
     res.json(count);
+});
+
+router.get('/exam', async (req, res) => {
+    const { courseId } = req.query;
+    const examDateTime = await getExamDateTime({ courseId });
+    res.json(examDateTime);
 });
 
 router.get('/exams', async (req, res) => {

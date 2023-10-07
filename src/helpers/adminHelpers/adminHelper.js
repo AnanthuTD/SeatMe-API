@@ -169,7 +169,7 @@ const getPrograms = async (departmentId) => {
 
 const getCourses = async (programId, semester) => {
     if (!programId) {
-        const courses = await models.course.findAll();
+        const courses = await models.course.findAll({});
         return courses;
     }
     try {
@@ -243,6 +243,21 @@ const updateCoursesDateTime = async (data) => {
     }
 
     return true;
+};
+
+const getExamDateTime = async ({ courseId = undefined }) => {
+    if (!courseId) return false;
+
+    const examDateTime = await models.exam.findOne({
+        where: { courseId },
+        include: {
+            model: models.dateTime,
+            attributes: ['date', 'timeCode'],
+            where: { date: { [Op.gte]: new Date() } },
+        },
+        attributes: [],
+    });
+    return examDateTime.dateTime;
 };
 
 const getExams = async ({
@@ -368,53 +383,6 @@ const updateRoomAvailability = async ({ roomIds = [] }) => {
     }
 };
 
-const test = async ({
-    query = '',
-    column = 'id',
-    offset = 0,
-    limit = 10,
-    sortField = 'name',
-    sortOrder = 'ASC',
-}) => {
-    sortOrder = sortOrder.toUpperCase();
-
-    const isNestedColumn = column.includes('.');
-    const isNestedSortField = sortField.includes('.');
-
-    const whereCondition = {
-        [isNestedColumn ? column.split('.')[1] : column]: {
-            [Op.like]: `${query}%`,
-        },
-    };
-
-    const orderCondition = [];
-
-    if (sortField && sortOrder) {
-        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
-
-        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
-            if (isNestedSortField) {
-                orderCondition.push([models.dateTime, field, sortOrder]);
-            } else orderCondition.push([field, sortOrder]);
-        }
-    }
-
-    const data = await models.exam.findAll({
-        limit,
-        offset,
-        where: whereCondition,
-        order: orderCondition,
-        include: [
-            {
-                model: models.dateTime,
-                attributes: ['date', 'timeCode'],
-            },
-        ],
-        raw: true,
-    });
-
-    return data;
-};
 export {
     getStaffs,
     getStaffCount,
@@ -429,5 +397,5 @@ export {
     getExams,
     getRooms,
     updateRoomAvailability,
-    test,
+    getExamDateTime,
 };
