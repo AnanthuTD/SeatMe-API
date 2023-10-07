@@ -32,7 +32,14 @@ export default function generateSeatingMatrixHTML(
         // eslint-disable-next-line no-loop-func
         exams.forEach((exam) => {
             htmlContent += `<tr><td>${exam.id}</td><td>${exam.name}</td></tr>`;
+
+            exam.examines.forEach((regno) => {
+                if (regno !== undefined) {
+                    htmlContent += `<tr><td colspan="2">${regno.toString()}</td></tr>`;
+                }
+            });
         });
+
         htmlContent += '</table>';
 
         htmlContent += "<table border='1'>";

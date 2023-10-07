@@ -3,7 +3,7 @@ import { models } from '../../sequelize/models.js';
 const createRecord = async (seating) => {
     const records = [];
     await seating.forEach((room) => {
-        const { id, seatingMatrix } = room;
+        const { id, seatingMatrix, exams } = room;
         const numRows = seatingMatrix.length;
         const numCols = seatingMatrix[0].length;
 
@@ -12,7 +12,7 @@ const createRecord = async (seating) => {
                 // eslint-disable-next-line no-continue
                 if (!seatingMatrix[row][col].occupied) continue;
                 const serialNumber = row * numCols + col + 1;
-                const { id: courseId } = seatingMatrix[row][col];
+                const { examId } = seatingMatrix[row][col];
                 const studentId = seatingMatrix[row][col].regno;
 
                 // console.log(seatingMatrix[row][col]);
@@ -21,7 +21,7 @@ const createRecord = async (seating) => {
                     seatNumber: serialNumber,
                     roomId: id,
                     studentId,
-                    courseId,
+                    examId,
                 };
 
                 records.push(record); // Push the record object into the array

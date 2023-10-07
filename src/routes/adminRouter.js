@@ -15,6 +15,8 @@ import {
     updateRoomAvailability,
     getExamDateTime,
 } from '../helpers/adminHelpers/adminHelper.js';
+import { assignSeats } from '../helpers/seatAssignment/assignSeats.js';
+import { createRecord } from '../helpers/adminHelpers/studentSeat.js';
 
 const router = express.Router();
 
@@ -179,7 +181,11 @@ router.get('/exams/count', async (req, res) => {
 router.get('/exam', async (req, res) => {
     const { courseId } = req.query;
     const examDateTime = await getExamDateTime({ courseId });
-    res.json(examDateTime);
+    if (examDateTime) {
+        res.json(examDateTime);
+        return;
+    }
+    res.sendStatus(204);
 });
 
 router.get('/exams', async (req, res) => {
@@ -202,9 +208,6 @@ router.get('/exams', async (req, res) => {
     sortOrder = sortOrder || 'ASC';
     offset = parseInt(offset, 10) || 0;
     limit = parseInt(limit, 10) || 10;
-
-    // sortOrder = 'DESC';
-    console.log('sort order: ', sortOrder);
 
     const data = await getExams({
         query,
@@ -238,6 +241,12 @@ router.patch('/rooms', async (req, res) => {
         res.status(500).json({ error: 'Failed to update room availability' });
     }
     return null;
+});
+
+router.get('/exam/assign', async (req, res) => {
+    const seating = await assignSeats();
+    console.log(JSON.stringify(seating, null, 2));
+    await createRecord(seating);
 });
 
 export default router;

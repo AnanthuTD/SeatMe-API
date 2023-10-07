@@ -7,7 +7,7 @@ async function fetchExams(date) {
             where: { date },
             include: {
                 model: models.course,
-                through: { attributes: [] },
+                // through: { attributes: [] },
                 nested: true,
                 attributes: ['id', 'name', 'semester'],
                 include: {
@@ -62,6 +62,7 @@ function matchStudentsWithData(students, data) {
                         student.programName = program.name;
                         student.courseName = course.name;
                         student.courseId = course.id;
+                        student.examId = course.exam.id;
                     }
                 }),
             ),
@@ -108,4 +109,4 @@ export default async function getData(date, orderBy = 'rollNumber') {
         return null;
     }
 }
-getData(new Date());
+// getData(new Date());

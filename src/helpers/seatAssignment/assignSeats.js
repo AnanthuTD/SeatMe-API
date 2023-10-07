@@ -50,6 +50,8 @@ class SeatingArrangement {
             this.room.exams.push({
                 id: this.students[i][0].courseId,
                 name: this.students[i][0].courseName,
+                examines: [],
+                examId: this.students[i][0].examId,
             });
 
             let numStudentsThisExam;
@@ -97,6 +99,7 @@ class SeatingArrangement {
                     courseName: exam,
                     id: regno,
                     courseId: id,
+                    examId,
                 } = this.students[i][j];
                 const seat = this.findSuitableSeat(exam);
 
@@ -108,6 +111,9 @@ class SeatingArrangement {
                     this.seatingMatrix[row][col].id = id;
                     this.seatingMatrix[row][col].regno = regno;
                     this.seatingMatrix[row][col].name = name;
+                    this.seatingMatrix[row][col].examId = examId;
+
+                    this.insertRegno(id, regno, examId);
 
                     this.currentRow = row;
                     this.currentCol = col;
@@ -122,8 +128,8 @@ class SeatingArrangement {
                         `${studentCount}) No available seat for ${name} (Reg No: ${regno}, Exam: ${exam})`,
                     ); */
 
-                    this.displaySeatingArrangement();
-                    if (this.swapSeats(exam, id, regno)) {
+                    // this.displaySeatingArrangement();
+                    if (this.swapSeats(exam, id, regno, examId)) {
                         // console.log('Swapping successfully done');
                     } else {
                         this.unassignedStudents.push(this.students[i][j]);
@@ -144,7 +150,7 @@ class SeatingArrangement {
         }
         if (studentCount !== this.numStudentsEachExam * this.numExams)
             console.log('student missing');
-        this.displaySeatingArrangement();
+        // this.displaySeatingArrangement();
         assignedCount += studentCount;
     }
 
@@ -154,7 +160,7 @@ class SeatingArrangement {
      * @param {string} id - The ID of the student to be swapped.
      * @returns {boolean} True if swapping is successful, false otherwise.
      */
-    swapSeats(exam, id, regno) {
+    swapSeats(exam, id, regno, examId) {
         for (let i = 0; i < this.numRows; i += 1) {
             for (let j = 0; j < this.numCols; j += 1) {
                 if (
@@ -166,6 +172,7 @@ class SeatingArrangement {
                         occupied: this.seatingMatrix[i][j].occupied,
                         id: this.seatingMatrix[i][j].id,
                         regno: this.seatingMatrix[i][j].regno,
+                        examId: this.seatingMatrix[i][j].examId,
                     };
 
                     this.seatingMatrix[i][j] = {
@@ -174,6 +181,7 @@ class SeatingArrangement {
                         id,
                         regno,
                     };
+                    this.insertRegno(id, regno, examId);
 
                     const seat = this.findSuitableSeat(swappedExam.exam);
 
@@ -182,11 +190,39 @@ class SeatingArrangement {
                         this.seatingMatrix[row][col] = swappedExam;
                         return true;
                     }
-                    this.swapSeats(swappedExam.exam, swappedExam.id);
+                    this.swapSeats(
+                        swappedExam.exam,
+                        swappedExam.id,
+                        swappedExam.examId,
+                    );
                 }
             }
         }
         return false; // Swapping failed
+    }
+
+    insertRegno(id, regno, examId) {
+        let found = false;
+
+        this.room.exams = this.room.exams.map((element) => {
+            if (element.id === id) {
+                // If the exam with the specified id is found, add the regno
+                element.examines.push(regno);
+                found = true;
+            }
+            return element; // Return the modified or unmodified element
+        });
+
+        console.log(this.room.exams);
+
+        // If the exam with the specified id is not found, create a new entry
+        if (!found) {
+            this.room.exams.push({
+                id,
+                examId,
+                examines: [regno],
+            });
+        }
     }
 
     /**
@@ -271,7 +307,7 @@ class SeatingArrangement {
 
 async function assignSeats() {
     let date = new Date();
-    date.setDate(date.getDate() + 1);
+    // date.setDate(date.getDate() + 1);
     date = date.toISOString();
     [date] = date.split('T');
     const orderBy = 'rollNumber'; // rollNumber or id(register_number)
@@ -349,7 +385,4 @@ async function assignSeats() {
     return classes;
 }
 
-/* assignSeats().then(async (seating) => {
-    // await createRecord(seating);
-}); */
 export { assignSeats };
