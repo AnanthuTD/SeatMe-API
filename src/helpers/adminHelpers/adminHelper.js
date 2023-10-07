@@ -218,14 +218,29 @@ const updateCoursesDateTime = async (data) => {
     const courseExist = await models.course.findByPk(courseId);
     if (!courseExist) return false;
 
-    await models.course.update(
-        {
+    const existingExam = await models.exam.findOne({
+        where: {
+            courseId,
+        },
+        include: [
+            {
+                model: models.dateTime,
+                attributes: ['date'],
+                where: { date: { [Op.gt]: new Date() } },
+                require: true,
+            },
+        ],
+    });
+
+    if (existingExam) {
+        // If an existing exam with a future date is found, update its dateTimeId
+        await existingExam.update({ dateTimeId: dateTimeRecord.id });
+    } else {
+        await models.exam.create({
             dateTimeId: dateTimeRecord.id,
-        },
-        {
-            where: { id: courseId },
-        },
-    );
+            courseId,
+        });
+    }
 
     return true;
 };
@@ -278,9 +293,22 @@ const getExams = async ({
     return data;
 };
 
-const getExamCount = async () => {
-    const totalCount = await models.course.count({
-        where: { dateTimeId: { [Op.ne]: null } },
+const getOngoingExamCount = async () => {
+    const currentDate = new Date();
+    const totalCount = await models.exam.count({
+        include: [
+            {
+                model: models.dateTime,
+                where: {
+                    date: {
+                        [Op.lte]: currentDate,
+                    },
+                },
+            },
+            {
+                model: models.course,
+            },
+        ],
     });
 
     return totalCount;
@@ -334,14 +362,59 @@ const updateRoomAvailability = async ({ roomIds = [] }) => {
         );
 
         await t.commit(); // Commit the transaction
-        console.log('Room availability updated successfully.');
     } catch (error) {
         await t.rollback(); // Rollback the transaction
-        console.error('Error updating room availability:', error);
         throw error;
     }
 };
 
+const test = async ({
+    query = '',
+    column = 'id',
+    offset = 0,
+    limit = 10,
+    sortField = 'name',
+    sortOrder = 'ASC',
+}) => {
+    sortOrder = sortOrder.toUpperCase();
+
+    const isNestedColumn = column.includes('.');
+    const isNestedSortField = sortField.includes('.');
+
+    const whereCondition = {
+        [isNestedColumn ? column.split('.')[1] : column]: {
+            [Op.like]: `${query}%`,
+        },
+    };
+
+    const orderCondition = [];
+
+    if (sortField && sortOrder) {
+        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
+
+        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+            if (isNestedSortField) {
+                orderCondition.push([models.dateTime, field, sortOrder]);
+            } else orderCondition.push([field, sortOrder]);
+        }
+    }
+
+    const data = await models.exam.findAll({
+        limit,
+        offset,
+        where: whereCondition,
+        order: orderCondition,
+        include: [
+            {
+                model: models.dateTime,
+                attributes: ['date', 'timeCode'],
+            },
+        ],
+        raw: true,
+    });
+
+    return data;
+};
 export {
     getStaffs,
     getStaffCount,
@@ -352,8 +425,9 @@ export {
     getCourses,
     getPrograms,
     updateCoursesDateTime,
-    getExamCount,
+    getOngoingExamCount,
     getExams,
     getRooms,
     updateRoomAvailability,
+    test,
 };

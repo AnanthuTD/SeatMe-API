@@ -9,7 +9,7 @@ import {
     getPrograms,
     getCourses,
     updateCoursesDateTime,
-    getExamCount,
+    getOngoingExamCount,
     getExams,
     getRooms,
     updateRoomAvailability,
@@ -171,7 +171,7 @@ router.post('/timetable', async (req, res) => {
 });
 
 router.get('/exams/count', async (req, res) => {
-    const count = await getExamCount();
+    const count = await getOngoingExamCount();
     res.json(count);
 });
 
