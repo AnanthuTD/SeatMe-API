@@ -34,8 +34,8 @@ class SeatingArrangement {
     /**
      * Assign seats to students based on their exams.
      */
-    async assignSeats() {
-        let removedEmpty = false;
+    assignSeats() {
+       /*  let removedEmpty = false;
         this.students = this.students.filter((classStudents) => {
             if (classStudents.length > 0) return true;
             removedEmpty = true;
@@ -59,7 +59,7 @@ class SeatingArrangement {
                     ? this.classCapacity -
                       this.numStudentsEachExam * this.numExams
                     : 0;
-        }
+        } */
         for (let examIndex = 0; examIndex < this.numExams; examIndex += 1) {
             this.room.exams.push({
                 id: this.students[examIndex][0].courseId,
@@ -109,7 +109,9 @@ class SeatingArrangement {
                 } = this.students[examIndex][studentIndex];
 
                 const seat = this.findSuitableSeat(exam);
-
+                if (regno === 10000100079) {
+                    console.log('10000100079');
+                }
                 if (seat) {
                     this.occupiedSeatsCount += 1;
 
@@ -142,11 +144,14 @@ class SeatingArrangement {
         if (this.extraStudentsNeeded && this.try) {
             console.log(`Balance seats : ${this.extraStudentsNeeded}`);
             this.try = false;
-            await this.assignSeats();
+            const result = this.assignSeats();
+            console.log(result);
         }
         if (this.occupiedSeatsCount <= this.numStudentsEachExam * this.numExams)
             console.log('student missing');
         // this.displaySeatingArrangement();
+        assignedCount += this.occupiedSeatsCount;
+        return true;
     }
 
     insertRegno(id, regno, examId) {
@@ -305,7 +310,7 @@ async function assignSeats() {
             `${totalNotAssignedStudents} students are not been assigned`,
         );
 
-    console.log(assignedCount);
+    console.log(totalAssignedSeats);
 
     generateSeatingMatrixHTML(
         classes,
