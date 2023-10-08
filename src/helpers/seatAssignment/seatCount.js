@@ -1,7 +1,13 @@
 /**
- * Check the count of empty and assigned seats in all classes.
- * @param {Array} classes - An array of seating matrices for all classes.
- * @returns {Object} - An object containing the total counts for all classes.
+ * @typedef {Object} SeatCounts
+ * @property {number} totalEmptySeats - The total number of empty seats.
+ * @property {number} totalAssignedSeats - The total number of assigned seats.
+ */
+
+/**
+ * Calculate the seat counts for a list of classes.
+ * @param {Array} classes - An array of class objects.
+ * @returns {SeatCounts} - An object containing seat count information.
  */
 export default function seatCount(classes) {
     const seatData = classes

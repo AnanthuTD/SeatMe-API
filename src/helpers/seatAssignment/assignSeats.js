@@ -262,7 +262,7 @@ async function assignSeats() {
         });
 
         try {
-            console.log(`\nClass : ${classesIndex}\n`);
+            // console.log(`\nClass : ${classesIndex}\n`);
             seatingArrangement.assignSeats();
         } catch (error) {
             console.error(error.message);
@@ -271,7 +271,7 @@ async function assignSeats() {
 
         classesIndex += 1;
     }
-    if (students.length === 0) console.log('All students assigned');
+    /* if (students.length === 0) console.log('All students assigned');
     else {
         const unassignedCounts = students.map(
             (classStudents) =>
@@ -282,7 +282,7 @@ async function assignSeats() {
             `${unassignedCounts} students have not been assigned. Add more classes to assign.`,
         );
     }
-
+ */
     const repeatingRegNos = findRepeatingRegNos(classes);
 
     if (repeatingRegNos.length > 0) {
@@ -295,13 +295,13 @@ async function assignSeats() {
     const { totalEmptySeats, totalAssignedSeats } = seatCount(classes);
     const totalNotAssignedStudents = totalStudents - totalAssignedSeats;
     if (totalAssignedSeats === totalStudents) {
-        console.log('All students have been assigned');
+        console.log(
+            'All students have been assigned (' + totalAssignedSeats + ')',
+        );
     } else
         console.warn(
             `${totalNotAssignedStudents} students are not been assigned`,
         );
-
-    console.log(totalAssignedSeats);
 
     generateSeatingMatrixHTML(
         classes,
