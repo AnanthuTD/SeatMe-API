@@ -17,8 +17,6 @@ class SeatingArrangement {
         this.numCols = this.seatingMatrix[0].length;
         this.room = room;
         this.classCapacity = this.numRows * this.numCols;
-        this.currentRow = 0;
-        this.currentCol = 0;
         this.numExams =
             this.numCols > this.students.length
                 ? this.students.length
@@ -26,27 +24,42 @@ class SeatingArrangement {
         this.numStudentsEachExam = Math.floor(
             this.classCapacity / this.numExams,
         );
-        this.balanceSeats =
+        this.extraStudentsNeeded =
             this.classCapacity - this.numStudentsEachExam * this.numExams;
         this.unassignedStudents = [];
-        this.studentCount = 0;
-    }
-
-    async filterStudent() {
-        this.students = await this.students.filter(
-            (classStudents) => classStudents.length > 0,
-        );
-        // return null;
+        this.occupiedSeatsCount = 0;
+        this.try = true;
     }
 
     /**
      * Assign seats to students based on their exams.
      */
     async assignSeats() {
-       /*  this.students = this.students.filter(
-            (classStudents) => classStudents.length > 0,
-        ); */
-
+        let removedEmpty = false;
+        this.students = this.students.filter((classStudents) => {
+            if (classStudents.length > 0) return true;
+            removedEmpty = true;
+            console.log('empty class students');
+            return false;
+        });
+        if (this.students.length === 0) {
+            return;
+        }
+        if (removedEmpty) {
+            this.numExams =
+                this.numCols > this.students.length
+                    ? this.students.length
+                    : this.numCols;
+            this.numStudentsEachExam = Math.floor(
+                this.classCapacity / this.numExams,
+            );
+            this.extraStudentsNeeded =
+                this.classCapacity - this.numStudentsEachExam * this.numExams >
+                0
+                    ? this.classCapacity -
+                      this.numStudentsEachExam * this.numExams
+                    : 0;
+        }
         for (let examIndex = 0; examIndex < this.numExams; examIndex += 1) {
             this.room.exams.push({
                 id: this.students[examIndex][0].courseId,
@@ -58,34 +71,27 @@ class SeatingArrangement {
             let numStudentsThisExam;
 
             // Calculate the remaining available seats in the current class
-            const remainingSeats =
-                this.numRows * this.numCols - this.studentCount;
+            const unOccupiedSeatsCount =
+                this.classCapacity - this.occupiedSeatsCount;
 
             // Check if there are enough remaining seats for this exam
             if (
-                remainingSeats >=
-                this.numStudentsEachExam + this.balanceSeats
+                unOccupiedSeatsCount >=
+                this.numStudentsEachExam + this.extraStudentsNeeded
             ) {
                 numStudentsThisExam =
-                    this.numStudentsEachExam + this.balanceSeats;
-                this.balanceSeats = 0;
+                    this.numStudentsEachExam + this.extraStudentsNeeded;
+                this.extraStudentsNeeded = 0;
             } else {
-                numStudentsThisExam = remainingSeats;
+                numStudentsThisExam = unOccupiedSeatsCount;
 
-                this.balanceSeats = 0; // Reset balanceSeats as all seats are assigned
+                this.extraStudentsNeeded = 0; // Reset balanceSeats as all seats are assigned
             }
 
             if (numStudentsThisExam > this.students[examIndex].length) {
-                this.balanceSeats =
+                this.extraStudentsNeeded =
                     numStudentsThisExam - this.students[examIndex].length;
                 numStudentsThisExam = this.students[examIndex].length;
-            }
-            if (
-                this.currentRow === this.numRows &&
-                this.currentCol === this.numCols
-            ) {
-                this.currentCol = 0;
-                this.currentRow = 0;
             }
 
             let studentIndex;
@@ -105,7 +111,7 @@ class SeatingArrangement {
                 const seat = this.findSuitableSeat(exam);
 
                 if (seat) {
-                    this.studentCount += 1;
+                    this.occupiedSeatsCount += 1;
 
                     const { row, col } = seat;
 
@@ -117,18 +123,15 @@ class SeatingArrangement {
                     this.seatingMatrix[row][col].examId = examId;
 
                     this.insertRegno(id, regno, examId);
-
-                    this.currentRow = row;
-                    this.currentCol = col;
                 } else {
                     // this.displaySeatingArrangement();
                     this.unassignedStudents.push(
                         this.students[examIndex][studentIndex],
                     );
-                    this.balanceSeats += 1;
+                    this.extraStudentsNeeded += 1;
                 }
             }
-            // console.log('unassigned students : ', this.unassignedStudents);
+
             this.students[examIndex].splice(0, studentIndex);
             this.students[examIndex] = [
                 ...this.unassignedStudents,
@@ -136,15 +139,14 @@ class SeatingArrangement {
             ];
             this.unassignedStudents = [];
         }
-        if (this.balanceSeats) {
-            console.log(`Balance seats : ${this.balanceSeats}`);
-            // this.displaySeatingArrangement();
+        if (this.extraStudentsNeeded && this.try) {
+            console.log(`Balance seats : ${this.extraStudentsNeeded}`);
+            this.try = false;
             await this.assignSeats();
         }
-        if (this.studentCount <= this.numStudentsEachExam * this.numExams)
+        if (this.occupiedSeatsCount <= this.numStudentsEachExam * this.numExams)
             console.log('student missing');
         // this.displaySeatingArrangement();
-        assignedCount += this.studentCount;
     }
 
     insertRegno(id, regno, examId) {
@@ -158,8 +160,6 @@ class SeatingArrangement {
             }
             return element; // Return the modified or unmodified element
         });
-
-        // console.log(this.room.exams);
 
         // If the exam with the specified id is not found, create a new entry
         if (!found) {
@@ -179,7 +179,6 @@ class SeatingArrangement {
     findSuitableSeat(exam) {
         for (let col = 0; col < this.numCols; col += 1) {
             for (let row = 0; row < this.numRows; row += 1) {
-                // console.log(row);
                 if (
                     !this.seatingMatrix[row][col].occupied &&
                     !this.isAdjacentSeatOccupied(row, col, exam)
