@@ -71,6 +71,12 @@ function matchStudentsWithData(students, data) {
 }
 
 // Function to group students by courseId
+/**
+ *
+ * @param {*} students
+ * @type {import('./type.js').NestedStudentArray } NestedStudentArray
+ * @returns {NestedStudentArray}
+ */
 function groupStudentsByCourseId(students) {
     const groupedStudents = {};
 
@@ -99,14 +105,14 @@ export default async function getData(date, orderBy = 'rollNumber') {
 
         matchStudentsWithData(students, data);
 
-        const exams = groupStudentsByCourseId(students);
+        const groupedStudents = groupStudentsByCourseId(students);
 
-        // console.log(JSON.stringify(exams, null, 4));
+        // console.log(JSON.stringify(groupedStudents, null, 4));
 
-        return { exams, totalStudents };
+        return [groupedStudents, totalStudents];
     } catch (error) {
         console.error(error.message);
         return null;
     }
 }
-// getData(new Date());
+getData(new Date());
