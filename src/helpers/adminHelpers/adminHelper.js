@@ -385,6 +385,40 @@ const updateRoomAvailability = async ({ roomIds = [] }) => {
     }
 };
 
+const countExamsForDate = async ({ targetDate = new Date() }) => {
+    try {
+        const count = await models.student.count({
+            include: {
+                model: models.program,
+                include: {
+                    model: models.course,
+                    through: { model: models.programCourse },
+                    include: {
+                        model: models.exam,
+                        include: {
+                            model: models.dateTime,
+                            where: {
+                                date: {
+                                    [Op.eq]: targetDate,
+                                },
+                            },
+                            required: true,
+                        },
+                        required: true,
+                    },
+                    required: true,
+                },
+                required: true,
+            },
+        });
+
+        return count;
+    } catch (error) {
+        console.error('Error counting exams:', error);
+        throw error;
+    }
+};
+
 export {
     getStaffs,
     getStaffCount,
@@ -400,4 +434,5 @@ export {
     getRooms,
     updateRoomAvailability,
     getExamDateTime,
+    countExamsForDate,
 };

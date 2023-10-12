@@ -14,6 +14,7 @@ import {
     getRooms,
     updateRoomAvailability,
     getExamDateTime,
+    countExamsForDate,
 } from '../helpers/adminHelpers/adminHelper.js';
 import { assignSeats } from '../helpers/seatAssignment/assignSeats.js';
 import { createRecord } from '../helpers/adminHelpers/studentSeat.js';
@@ -224,6 +225,12 @@ router.get('/exams', async (req, res) => {
 router.get('/rooms', async (req, res) => {
     const rooms = await getRooms();
     res.json(rooms);
+});
+
+router.get('/examines-count', async (req, res) => {
+    const { date } = req.query;
+    const count = await countExamsForDate({ targetDate: date });
+    res.json(count);
 });
 
 router.patch('/rooms', async (req, res) => {
