@@ -30,12 +30,12 @@ export default function generateSeatingMatrixHTML(
         htmlContent += '<tr><th colspan=2>courses</th></tr>';
         htmlContent += '<tr><th>id</th><th>name</th></tr>';
         // eslint-disable-next-line no-loop-func
-        exams.forEach((exam) => {
-            htmlContent += `<tr><td>${exam.id}</td><td>${exam.name}</td></tr>`;
+        exams.forEach((course) => {
+            htmlContent += `<tr><td>${course.id}</td><td>${course.name}</td></tr>`;
 
-            exam.examines.forEach((regno) => {
-                if (regno !== undefined) {
-                    htmlContent += `<tr><td colspan="2">${regno.toString()}</td></tr>`;
+            course.examines.forEach((id) => {
+                if (id !== undefined) {
+                    htmlContent += `<tr><td colspan="2">${id.toString()}</td></tr>`;
                 }
             });
         });
@@ -57,7 +57,7 @@ export default function generateSeatingMatrixHTML(
             for (let col = 0; col < seatingMatrix[row].length; col += 1) {
                 const seat = seatingMatrix[row][col];
                 if (seat.occupied) {
-                    htmlContent += `<td>Seat ${seat.id}<br>Regno: ${seat.regno}<br>(Exam: ${seat.exam})</td>`;
+                    htmlContent += `<td>Seat ${seat.id}<br>Regno: ${seat.id}<br>(Exam: ${seat.courseName})</td>`;
                 } else {
                     htmlContent += '<td>Empty</td>';
                 }

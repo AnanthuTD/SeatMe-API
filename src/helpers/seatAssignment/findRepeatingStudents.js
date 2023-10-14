@@ -3,7 +3,7 @@
  * @param {Array} classes - An array of seating matrices for all classes.
  * @returns {Array} - An array of repeating registration numbers.
  */
-export default async function findRepeatingRegNos(classes) {
+export default async function findRepeatingStudents(classes) {
     const regNoSet = new Set(); // To store unique registration numbers
 
     // Use flatMap to flatten the nested arrays

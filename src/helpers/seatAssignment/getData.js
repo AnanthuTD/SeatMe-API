@@ -43,6 +43,7 @@ async function fetchStudents(data, orderBy = '') {
             attributes: ['name', 'id', 'semester', 'programId', 'rollNumber'],
             raw: true,
         });
+
         return students;
     } catch (error) {
         throw new Error(`Error fetching students: ${error.message}`);
@@ -51,7 +52,7 @@ async function fetchStudents(data, orderBy = '') {
 
 // Function to match students with programs and courses
 function matchStudentsWithData(students, data) {
-    students.forEach((student) => {
+    return students.map((student) => {
         data.forEach((dateTime) =>
             dateTime.courses.forEach((course) =>
                 course.programs.forEach((program) => {
@@ -67,6 +68,7 @@ function matchStudentsWithData(students, data) {
                 }),
             ),
         );
+        return student;
     });
 }
 
@@ -101,11 +103,13 @@ export default async function getData(date, orderBy = 'rollNumber') {
 
         const students = await fetchStudents(data, orderBy);
         // console.log(JSON.stringify(students, null, 4));
+
         const totalStudents = students.length;
 
-        matchStudentsWithData(students, data);
+        const updateStudents = matchStudentsWithData(students, data);
+        // console.log(JSON.stringify(updateStudents, null, 4));
 
-        const groupedStudents = groupStudentsByCourseId(students);
+        const groupedStudents = groupStudentsByCourseId(updateStudents);
 
         // console.log(JSON.stringify(groupedStudents, null, 4));
 
@@ -115,4 +119,4 @@ export default async function getData(date, orderBy = 'rollNumber') {
         return null;
     }
 }
-getData(new Date());
+// getData(new Date());
