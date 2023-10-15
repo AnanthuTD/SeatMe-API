@@ -56,14 +56,14 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
     }
 
     const { totalEmptySeats, totalAssignedSeats } = seatCount(classes);
-    const totalNotAssignedStudents = totalStudents - totalAssignedSeats;
+    const totalUnassignedStudents = totalStudents - totalAssignedSeats;
     if (totalAssignedSeats === totalStudents) {
         console.log(
             `All students have been assigned ( ${totalAssignedSeats}  )`,
         );
     } else
         console.warn(
-            `${totalNotAssignedStudents} students are not been assigned`,
+            `${totalUnassignedStudents} students are not been assigned`,
         );
 
     generateSeatingMatrixHTML(
@@ -72,12 +72,12 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
         totalStudents,
         totalAssignedSeats,
         totalEmptySeats,
-        totalNotAssignedStudents,
+        totalUnassignedStudents,
     );
 
     console.log(JSON.stringify(students, null, 4));
 
-    return classes;
+    return [classes, totalUnassignedStudents];
 }
 
 export { assignSeats };

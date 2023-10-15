@@ -133,10 +133,7 @@ export default class SeatingArrangement {
                 this.numStudentsEachExam * this.numExams;
             this.extraStudentsNeeded =
                 this.extraStudentsNeeded > 0 ? this.extraStudentsNeeded : 0;
-            console.log(
-                'Current Students:',
-                JSON.stringify(this.students, null, 2),
-            );
+
             this.assignSeats();
         }
     }

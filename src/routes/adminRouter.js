@@ -272,11 +272,19 @@ router.get('/exam/assign', async (req, res) => {
         return res.status(400).json({ error: 'Invalid orderBy value' });
     }
 
-    const seating = await assignSeats({ date, orderBy });
+    const [seating, totalUnassignedStudents] = await assignSeats({
+        date,
+        orderBy,
+    });
+
+    if (totalUnassignedStudents > 0)
+        return res.status(200).json({
+            message: `There are ${totalUnassignedStudents} unassigned students. Please add more rooms to accommodate them and try again. No record has been created.`,
+        });
 
     await createRecord(seating);
 
-    return res.sendStatus(200);
+    return res.sendStatus(201);
 });
 
 export default router;
