@@ -10,6 +10,14 @@ export default (sequelize) => {
             seatNumber: {
                 type: DataTypes.INTEGER.UNSIGNED,
             },
+            studentId: {
+                type: DataTypes.BIGINT.UNSIGNED,
+                allowNull: false,
+            },
+            examId: {
+                type: DataTypes.INTEGER.UNSIGNED,
+                allowNull: false,
+            },
             isPresent: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
@@ -19,6 +27,12 @@ export default (sequelize) => {
         {
             timestamps: false,
             underscored: true,
+            indexes: [
+                {
+                    unique: true,
+                    fields: ['student_id', 'exam_id'],
+                },
+            ],
         },
     );
 

@@ -251,9 +251,32 @@ router.patch('/rooms', async (req, res) => {
 });
 
 router.get('/exam/assign', async (req, res) => {
-    const seating = await assignSeats();
-    console.log(JSON.stringify(seating, null, 2));
+    const { date, orderBy } = req.query;
+    const currentDate = new Date();
+
+    const currentDateString = currentDate.toISOString().split('T')[0];
+
+    try {
+        console.log(date);
+        const providedDateString = date.split('T')[0];
+        if (providedDateString < currentDateString) {
+            return res
+                .status(400)
+                .json({ error: 'Date should not be in the past' });
+        }
+    } catch (error) {
+        return res.status(400).json({ error: 'Invalid date format' });
+    }
+
+    if (!['rollNumber', 'id'].includes(orderBy)) {
+        return res.status(400).json({ error: 'Invalid orderBy value' });
+    }
+
+    const seating = await assignSeats({ date, orderBy });
+
     await createRecord(seating);
+
+    return res.sendStatus(200);
 });
 
 export default router;

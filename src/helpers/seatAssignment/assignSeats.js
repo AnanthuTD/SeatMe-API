@@ -34,27 +34,18 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
         });
 
         try {
-            // console.log(`\nClass : ${classesIndex}\n`);
             seatingArrangement.assignSeats();
         } catch (error) {
             console.error(error.message);
         }
-        students = students.filter((classStudents) => classStudents.length > 0);
+        const unassignedStudents = seatingArrangement.getUnsignedStudents();
+        students = unassignedStudents.filter(
+            (classStudents) => classStudents.length > 0,
+        );
 
         classesIndex += 1;
     }
-    /* if (students.length === 0) console.log('All students assigned');
-    else {
-        const unassignedCounts = students.map(
-            (classStudents) =>
-                classStudents.filter((student) => !student.assigned).length,
-        );
 
-        console.log(
-            `${unassignedCounts} students have not been assigned. Add more classes to assign.`,
-        );
-    }
- */
     const repeatingRegNos = findRepeatingRegNos(classes);
 
     if (repeatingRegNos.length > 0) {
@@ -77,15 +68,18 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
 
     generateSeatingMatrixHTML(
         classes,
+        date,
         totalStudents,
         totalAssignedSeats,
         totalEmptySeats,
         totalNotAssignedStudents,
     );
 
+    console.log(JSON.stringify(students, null, 4));
+
     return classes;
 }
 
 export { assignSeats };
 
-// assignSeats({});
+assignSeats({ date: new Date('2023-10-11') });

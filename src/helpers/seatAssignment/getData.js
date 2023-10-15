@@ -120,3 +120,4 @@ export default async function getData(date, orderBy = 'rollNumber') {
     }
 }
 // getData(new Date());
+export { fetchExams };

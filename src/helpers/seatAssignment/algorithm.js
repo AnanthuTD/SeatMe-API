@@ -71,7 +71,7 @@ export default class SeatingArrangement {
                     semester,
                 } = this.students[examIndex][studentIndex];
 
-                const seat = this.findSuitableSeat(courseName);
+                const seat = this.findSuitableSeat(courseId);
 
                 if (seat) {
                     this.occupiedSeatsCount += 1;
@@ -133,7 +133,10 @@ export default class SeatingArrangement {
                 this.numStudentsEachExam * this.numExams;
             this.extraStudentsNeeded =
                 this.extraStudentsNeeded > 0 ? this.extraStudentsNeeded : 0;
-
+            console.log(
+                'Current Students:',
+                JSON.stringify(this.students, null, 2),
+            );
             this.assignSeats();
         }
     }
@@ -166,12 +169,12 @@ export default class SeatingArrangement {
      * @param {string} exam - The exam the student is taking.
      * @returns {Object|null} The seat coordinates or null if no suitable seat is found.
      */
-    findSuitableSeat(exam) {
+    findSuitableSeat(courseId) {
         for (let col = 0; col < this.numCols; col += 1) {
             for (let row = 0; row < this.numRows; row += 1) {
                 if (
                     !this.seatingMatrix[row][col].occupied &&
-                    !this.isAdjacentSeatOccupied(row, col, exam)
+                    !this.isAdjacentSeatOccupied(row, col, courseId)
                 ) {
                     return { row, col };
                 }
@@ -188,7 +191,7 @@ export default class SeatingArrangement {
      * @param {string} exam - The exam the student is taking.
      * @returns {boolean} True if adjacent seats are occupied by the same exam, false otherwise.
      */
-    isAdjacentSeatOccupied(row, col, exam) {
+    isAdjacentSeatOccupied(row, col, courseId) {
         const adjacentOffsets = [
             [0, -1],
             [0, 1],
@@ -206,9 +209,10 @@ export default class SeatingArrangement {
                 newRow >= 0 &&
                 newRow < this.numRows &&
                 this.seatingMatrix[newRow][newCol].occupied &&
-                this.seatingMatrix[newRow][newCol].exam === exam
+                this.seatingMatrix[newRow][newCol].courseId === courseId
             ) {
                 isAdjacentOccupied = true;
+                console.error();
             }
         });
 
@@ -227,5 +231,9 @@ export default class SeatingArrangement {
             );
         }
         this.room.exams.forEach((exam) => console.log(exam));
+    }
+
+    getUnsignedStudents() {
+        return this.students;
     }
 }

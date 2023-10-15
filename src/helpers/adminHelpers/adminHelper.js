@@ -1,5 +1,6 @@
 import { Op, literal } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
+import { fetchExams } from '../seatAssignment/getData.js';
 
 const getStaffs = async (
     query = '',
@@ -386,29 +387,18 @@ const updateRoomAvailability = async ({ roomIds = [] }) => {
 };
 
 const countExamsForDate = async ({ targetDate = new Date() }) => {
+    const data = await fetchExams(targetDate);
     try {
         const count = await models.student.count({
-            include: {
-                model: models.program,
-                include: {
-                    model: models.course,
-                    through: { model: models.programCourse },
-                    include: {
-                        model: models.exam,
-                        include: {
-                            model: models.dateTime,
-                            where: {
-                                date: {
-                                    [Op.eq]: targetDate,
-                                },
-                            },
-                            required: true,
-                        },
-                        required: true,
-                    },
-                    required: true,
-                },
-                required: true,
+            where: {
+                [Op.or]: data.flatMap((dateTime) =>
+                    dateTime.courses.flatMap((course) =>
+                        course.programs.map((program) => ({
+                            programId: program.id,
+                            semester: course.semester,
+                        })),
+                    ),
+                ),
             },
         });
 
