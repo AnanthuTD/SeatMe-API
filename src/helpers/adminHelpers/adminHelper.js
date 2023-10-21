@@ -409,6 +409,37 @@ const countExamsForDate = async ({ targetDate = new Date() }) => {
     }
 };
 
+const createStudents = async (students) => {
+    try {
+        await models.student.bulkCreate(students, {
+            validate: true,
+        });
+        return true;
+    } catch (error) {
+        console.error('Error creating students:', error);
+
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            const violatedRecord = error.errors[0];
+            const obj = {
+                message: violatedRecord.message,
+                value: violatedRecord.value,
+            };
+            return obj;
+        }
+        console.error('Other error:', error);
+        return { message: 'Unhandled error' };
+    }
+};
+
+const updateStudent = async (students = []) => {
+    students.forEach(async (student) => {
+        const result = await models.student.update(student, {
+            where: { id: student.id },
+        });
+        console.log(JSON.stringify(result, null, 2));
+    });
+};
+
 export {
     getStaffs,
     getStaffCount,
@@ -425,4 +456,6 @@ export {
     updateRoomAvailability,
     getExamDateTime,
     countExamsForDate,
+    createStudents,
+    updateStudent,
 };

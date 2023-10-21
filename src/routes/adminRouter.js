@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import express from 'express';
 import { createStaff } from '../helpers/bcryptHelper.js';
 import {
@@ -15,9 +17,12 @@ import {
     updateRoomAvailability,
     getExamDateTime,
     countExamsForDate,
+    createStudents,
+    updateStudent,
 } from '../helpers/adminHelpers/adminHelper.js';
 import { assignSeats } from '../helpers/seatAssignment/assignSeats.js';
 import { createRecord } from '../helpers/adminHelpers/studentSeat.js';
+import getRootDir from '../../getRootDir.js';
 
 const router = express.Router();
 
@@ -272,7 +277,7 @@ router.get('/exam/assign', async (req, res) => {
         return res.status(400).json({ error: 'Invalid orderBy value' });
     }
 
-    const [seating, totalUnassignedStudents] = await assignSeats({
+    const [seating, totalUnassignedStudents, fileName] = await assignSeats({
         date,
         orderBy,
     });
@@ -284,7 +289,70 @@ router.get('/exam/assign', async (req, res) => {
 
     await createRecord(seating);
 
-    return res.sendStatus(201);
+    /*  let modifiedSeating = seating.map((value) => {
+        let length = 0;
+        value.exams.forEach((element) => {
+            length =
+                length < element.examines.length
+                    ? element.examines.length
+                    : element;
+        });
+        let tempArray = [];
+        for (let index = 0; index < length; index += 1) {
+            let element = {};
+            value.exams.map((exam) => {
+                if (exam.examines.length > 0) {
+                    element[`${exam.name}`] = exam.examines.shift();
+                }
+            });
+            console.log(element);
+            tempArray.push(element);
+        }
+        // console.log('modified: ', JSON.stringify(tempArray, null, 2));
+        return tempArray.flat();
+    });
+
+    console.log('modified: ', JSON.stringify(seating, null, 2)); */
+
+    return res.status(201).json({ fileName });
+});
+
+router.get('/public/:fileName', (req, res) => {
+    const { fileName } = req.params;
+    console.log(fileName);
+    const filePath = path.join(getRootDir(), 'public', fileName);
+
+    // Check if the file exists
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        // Handle the case when the file does not exist
+        res.status(404).send('File not found');
+    }
+});
+
+router.post('/student', async (req, res) => {
+    const { students } = req.body;
+
+    if (!students) {
+        return res.status(400).json({ error: 'Missing required data' });
+    }
+
+    const result = await createStudents(students);
+
+    if (result === true)
+        return res.sendStatus(200).statusMessage('successfully created');
+    return res.status(400).json(result);
+});
+
+router.patch('/student', async (req, res) => {
+    const { students } = req.body;
+
+    if (!students) {
+        return res.status(400).json({ error: 'Missing required data' });
+    }
+
+    updateStudent(students);
 });
 
 export default router;
