@@ -409,35 +409,47 @@ const countExamsForDate = async ({ targetDate = new Date() }) => {
     }
 };
 
-const createStudents = async (students) => {
+const findOrCreateStudents = async (students) => {
     try {
-        await models.student.bulkCreate(students, {
-            validate: true,
-        });
-        return true;
-    } catch (error) {
-        console.error('Error creating students:', error);
+        const foundOrCreatedStudents = await Promise.all(
+            students.map(async (student) => {
+                const [foundStudent, created] =
+                    await models.student.findOrCreate({
+                        where: {
+                            id: student.id,
+                        },
+                        defaults: student,
+                    });
 
-        if (error.name === 'SequelizeUniqueConstraintError') {
-            const violatedRecord = error.errors[0];
-            const obj = {
-                message: violatedRecord.message,
-                value: violatedRecord.value,
-            };
-            return obj;
-        }
-        console.error('Other error:', error);
-        return { message: 'Unhandled error' };
+                return { foundStudent, created, student };
+            }),
+        );
+
+        const existingStudent = foundOrCreatedStudents.filter(
+            (studentInfo) => studentInfo.created === false,
+        );
+
+        // console.log(JSON.stringify(existingStudent, null, 2));
+
+        return existingStudent;
+    } catch (error) {
+        console.error('Error finding or creating students:', error);
+        return false;
     }
 };
 
 const updateStudent = async (students = []) => {
+    const notUpdatedStudents = [];
     students.forEach(async (student) => {
-        const result = await models.student.update(student, {
+        const [result] = await models.student.update(student, {
             where: { id: student.id },
         });
-        console.log(JSON.stringify(result, null, 2));
+        if (!result) {
+            notUpdatedStudents.push(student);
+        }
     });
+    // console.log(JSON.stringify(notUpdatedStudents, null, 2));
+    return notUpdatedStudents;
 };
 
 export {
@@ -456,6 +468,6 @@ export {
     updateRoomAvailability,
     getExamDateTime,
     countExamsForDate,
-    createStudents,
+    findOrCreateStudents,
     updateStudent,
 };

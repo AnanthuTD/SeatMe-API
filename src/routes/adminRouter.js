@@ -17,8 +17,8 @@ import {
     updateRoomAvailability,
     getExamDateTime,
     countExamsForDate,
-    createStudents,
     updateStudent,
+    findOrCreateStudents,
 } from '../helpers/adminHelpers/adminHelper.js';
 import { assignSeats } from '../helpers/seatAssignment/assignSeats.js';
 import { createRecord } from '../helpers/adminHelpers/studentSeat.js';
@@ -338,21 +338,22 @@ router.post('/student', async (req, res) => {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
-    const result = await createStudents(students);
+    const result = await findOrCreateStudents(students);
 
-    if (result === true)
-        return res.sendStatus(200).statusMessage('successfully created');
+    if (result) return res.status(200).json(result);
     return res.status(400).json(result);
 });
 
 router.patch('/student', async (req, res) => {
-    const { students } = req.body;
+    const students = req.body;
 
-    if (!students) {
+    if (!students.length) {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
-    updateStudent(students);
+    const notUpdatedStudents = await updateStudent(students);
+
+    return res.status(200).json(notUpdatedStudents);
 });
 
 export default router;
