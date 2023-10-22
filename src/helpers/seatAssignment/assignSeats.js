@@ -1,9 +1,10 @@
 import findRepeatingRegNos from './findRepeatingStudents.js';
 import getData from './getData.js';
-import generateSeatingMatrixHTML from './htmlSeatingMatrix.js';
+// import generateSeatingMatrixHTML from './htmlSeatingMatrix.js';
 import seatCount from './seatCount.js';
 import generateSeatingMatrix from './seatingMatrix.js';
 import SeatingArrangement from './algorithm.js';
+import generateSeatingMatrixPDF from './pdf.js';
 
 /**
  * Assign seats to students for a given date.
@@ -66,20 +67,34 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
             `${totalUnassignedStudents} students are not been assigned`,
         );
 
-    generateSeatingMatrixHTML(
+    date = new Date(date);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const fileName = `${year}-${month}-${day}.pdf`;
+
+    /* generateSeatingMatrixHTML(
         classes,
         date,
         totalStudents,
         totalAssignedSeats,
         totalEmptySeats,
         totalUnassignedStudents,
+    ); */
+
+    generateSeatingMatrixPDF(
+        classes,
+        date,
+        totalStudents,
+        totalAssignedSeats,
+        totalEmptySeats,
+        totalUnassignedStudents,
+        fileName,
     );
 
-    console.log(JSON.stringify(students, null, 4));
-
-    return [classes, totalUnassignedStudents];
+    return [classes, totalUnassignedStudents, fileName];
 }
 
 export { assignSeats };
 
-assignSeats({ date: new Date('2023-10-11') });
+// assignSeats({ date: new Date('2023-10-11') });

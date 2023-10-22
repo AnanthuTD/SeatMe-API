@@ -61,4 +61,57 @@ const createRecord = async (seating) => {
     }
 };
 
-export { createRecord };
+const getTimeTableAndSeating = async (studentId) => {
+    const student = await models.student.findByPk(studentId, {});
+    let data = await models.course.findAll({
+        attributes: ['id', 'name'],
+        where: { semester: student.semester },
+        include: [
+            {
+                model: models.program,
+                through: { attributes: [] },
+                attributes: [],
+                where: { id: student.programId },
+                required: true,
+            },
+            {
+                model: models.exam,
+                attributes: ['dateTimeId', 'id'],
+                include: [
+                    {
+                        model: models.dateTime,
+                        attributes: ['date', 'timeCode'],
+                        order: [['date', 'DESC']], // Order dateTime in descending order
+                    },
+                    {
+                        model: models.studentSeat,
+                        where: { studentId },
+                        required: false,
+                    },
+                ],
+                required: false,
+            },
+        ],
+        // Order courses if needed
+        order: [
+            [models.exam, models.dateTime, 'date', 'DESC'], // Order courses by dateTime date in descending order
+        ],
+    });
+
+    // console.log('data: ', JSON.stringify(data, null, 4));
+    // console.log('student: ', JSON.stringify(student, null, 2));
+
+    data = data.map((value) => {
+        if (value.exams.length > 1) {
+            value.exams.splice(1);
+        }
+        return value;
+    });
+
+    console.log('data: ', JSON.stringify(data, null, 2));
+    return data;
+};
+
+// getTimeTable(70000100061);
+
+export { createRecord, getTimeTableAndSeating };

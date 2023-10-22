@@ -409,6 +409,49 @@ const countExamsForDate = async ({ targetDate = new Date() }) => {
     }
 };
 
+const findOrCreateStudents = async (students) => {
+    try {
+        const foundOrCreatedStudents = await Promise.all(
+            students.map(async (student) => {
+                const [foundStudent, created] =
+                    await models.student.findOrCreate({
+                        where: {
+                            id: student.id,
+                        },
+                        defaults: student,
+                    });
+
+                return { foundStudent, created, student };
+            }),
+        );
+
+        const existingStudent = foundOrCreatedStudents.filter(
+            (studentInfo) => studentInfo.created === false,
+        );
+
+        // console.log(JSON.stringify(existingStudent, null, 2));
+
+        return existingStudent;
+    } catch (error) {
+        console.error('Error finding or creating students:', error);
+        return false;
+    }
+};
+
+const updateStudent = async (students = []) => {
+    const notUpdatedStudents = [];
+    students.forEach(async (student) => {
+        const [result] = await models.student.update(student, {
+            where: { id: student.id },
+        });
+        if (!result) {
+            notUpdatedStudents.push(student);
+        }
+    });
+    // console.log(JSON.stringify(notUpdatedStudents, null, 2));
+    return notUpdatedStudents;
+};
+
 export {
     getStaffs,
     getStaffCount,
@@ -425,4 +468,6 @@ export {
     updateRoomAvailability,
     getExamDateTime,
     countExamsForDate,
+    findOrCreateStudents,
+    updateStudent,
 };
