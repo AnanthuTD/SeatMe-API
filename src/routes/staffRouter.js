@@ -49,4 +49,26 @@ router.get('/attendance/:rid', async (req, res) => {
     return res.json(data);
 });
 
+/*
+ ROuter     :       /attendance
+Dsescription:      To get Students of specified Room id 
+Access      :       PUBLIC
+Parameters  :        rid
+Method      :        POST
+ */
+  
+
+router.post('/attendance', (req, res) => {
+  // Access the data sent in the POST request body (i.e., absentstd)
+  const absentstd = req.body;
+  console.log(absentstd);
+
+ 
+
+  // Send a response indicating the data has been received and processed
+  res.status(200).json({ message: 'Data received and processed successfully' });
+});
+
+
+
 export default router;
