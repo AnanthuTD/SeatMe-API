@@ -265,8 +265,8 @@ router.get('/exam/assign', async (req, res) => {
     const currentDateString = currentDate.toISOString().split('T')[0];
 
     try {
-        console.log(date);
-        const providedDateString = date.split('T')[0];
+        const providedDateString = new Date(date).toISOString().split('T')[0];
+        console.log(providedDateString);
         if (providedDateString < currentDateString) {
             return res
                 .status(400)
