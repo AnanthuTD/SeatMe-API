@@ -3,48 +3,96 @@ import { models } from '../../sequelize/models.js';
 
 async function fetchExams(date) {
     try {
-        const data = await models.dateTime.findAll({
-            where: { date },
-            include: {
-                model: models.course,
-                // through: { attributes: [] },
-                nested: true,
-                attributes: ['id', 'name', 'semester'],
-                include: {
-                    model: models.program,
-                    attributes: ['id', 'name'],
-                    through: {
+        const data = await models.course.findAll({
+            attributes: ['id', 'name', 'semester', 'isOpenCourse'],
+            include: [
+                {
+                    model: models.exam,
+                    include: {
+                        model: models.dateTime,
                         attributes: [],
+                        where: { date },
                     },
+                    required: true,
+                    attributes: ['id'],
                 },
-            },
-            attributes: [],
+                {
+                    model: models.program,
+                    required: true,
+                    attributes: ['id', 'name'],
+                },
+            ],
         });
-        return data;
+
+        // console.log(JSON.stringify(data, null, 2));
+
+        const openCourses = [];
+        const nonOpenCourses = [];
+
+        data.forEach((course) => {
+            const courseDetails = {
+                courseId: course.id,
+                courseName: course.name,
+                semester: course.semester,
+                isOpenCourse: course.isOpenCourse,
+                examId: course.exams[0].id,
+            };
+
+            course.programs.forEach((program) => {
+                const programInfo = {
+                    programId: program.id,
+                    programName: program.name,
+                };
+
+                if (course.isOpenCourse === 1) {
+                    openCourses.push({ ...courseDetails, ...programInfo });
+                } else {
+                    nonOpenCourses.push({ ...courseDetails, ...programInfo });
+                }
+            });
+        });
+
+        // console.log(JSON.stringify(students, null, 2));
+
+        return { openCourses, nonOpenCourses };
     } catch (error) {
         throw new Error(`Error fetching data: ${error.message}`);
     }
 }
 
-async function fetchStudents(data, orderBy = '') {
+// fetchExams(new Date('2023-10-25'));
+
+async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
+    // console.log(JSON.stringify(nonOpenCourses, null, 2));
     try {
-        const students = await models.student.findAll({
+        const students1 = await models.student.findAll({
             where: {
-                [Op.or]: data.flatMap((dateTime) =>
-                    dateTime.courses.flatMap((course) =>
-                        course.programs.map((program) => ({
-                            programId: program.id,
-                            semester: course.semester,
-                        })),
-                    ),
-                ),
+                [Op.or]: nonOpenCourses.map((value) => {
+                    return {
+                        programId: value.programId,
+                        semester: value.semester,
+                    };
+                }),
+            },
+            order: [[orderBy, 'ASC']],
+            attributes: ['name', 'id', 'semester', 'programId', 'rollNumber'],
+            raw: true,
+        });
+        const students2 = await models.student.findAll({
+            where: {
+                [Op.or]: openCourses.map((value) => {
+                    return {
+                        openCourseId: value.courseId,
+                        semester: value.semester,
+                    };
+                }),
             },
             order: [[orderBy, 'ASC']],
             attributes: ['name', 'id', 'semester', 'programId', 'rollNumber'],
             raw: true,
         });
 
-        return students;
+        return [...students1, ...students2];
     } catch (error) {
         throw new Error(`Error fetching students: ${error.message}`);
     }
@@ -53,21 +101,18 @@ async function fetchStudents(data, orderBy = '') {
 // Function to match students with programs and courses
 function matchStudentsWithData(students, data) {
     return students.map((student) => {
-        data.forEach((dateTime) =>
-            dateTime.courses.forEach((course) =>
-                course.programs.forEach((program) => {
-                    if (
-                        program.id === student.programId &&
-                        course.semester === student.semester
-                    ) {
-                        student.programName = program.name;
-                        student.courseName = course.name;
-                        student.courseId = course.id;
-                        student.examId = course.exam.id;
-                    }
-                }),
-            ),
-        );
+        data.forEach((value) => {
+            if (
+                value.programId === student.programId &&
+                value.semester === student.semester
+            ) {
+                student.programName = value.programName;
+                student.courseName = value.courseName;
+                student.courseId = value.courseId;
+                student.examId = value.examId;
+            }
+        });
+
         return student;
     });
 }
@@ -98,15 +143,22 @@ function groupStudentsByCourseId(students) {
 // Main function to execute the code
 export default async function getData(date, orderBy = 'rollNumber') {
     try {
-        const data = await fetchExams(date);
+        const { nonOpenCourses, openCourses } = await fetchExams(date);
         // console.log(JSON.stringify(data, null, 4));
 
-        const students = await fetchStudents(data, orderBy);
+        const students = await fetchStudents({
+            orderBy,
+            nonOpenCourses,
+            openCourses,
+        });
         // console.log(JSON.stringify(students, null, 4));
 
         const totalStudents = students.length;
 
-        const updateStudents = matchStudentsWithData(students, data);
+        const updateStudents = matchStudentsWithData(students, [
+            ...openCourses,
+            ...nonOpenCourses,
+        ]);
         // console.log(JSON.stringify(updateStudents, null, 4));
 
         const groupedStudents = groupStudentsByCourseId(updateStudents);
@@ -119,5 +171,5 @@ export default async function getData(date, orderBy = 'rollNumber') {
         return null;
     }
 }
-// getData(new Date());
+// getData(new Date('2023-10-25'));
 export { fetchExams };
