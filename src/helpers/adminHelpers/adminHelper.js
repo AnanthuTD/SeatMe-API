@@ -96,8 +96,8 @@ const getStudentCount = async () => {
 };
 
 const findStudent = async (
-    query = '',
-    column = 'id',
+    query = [''],
+    columns = 'id',
     offset = 0,
     limit = 10,
     sortField = 'updatedAt',
@@ -105,13 +105,41 @@ const findStudent = async (
 ) => {
     sortOrder = sortOrder.toUpperCase();
 
-    const isNestedColumn = column.includes('.');
+    const nestedColumns = [];
+    const nestedColumnsQuery = [];
+    const nonNestedColumns = [];
+    const nonNestedColumnsQuery = [];
+
+    columns.forEach((column, index) => {
+        if (column.includes('.')) {
+            // This is a nested column
+            nestedColumns.push(column);
+            nestedColumnsQuery.push(query[index]);
+        } else {
+            // This is a non-nested column
+            nonNestedColumns.push(column);
+            nonNestedColumnsQuery.push(query[index]);
+        }
+    });
+
     const isNestedSortField = sortField.includes('.');
 
+    const whereConditionNested = {
+        [Op.and]: nestedColumns.map((col, index) => ({
+            [col.split('.')[1]]: {
+                [Op.like]: `${query[index]}%`,
+            },
+        })),
+    };
     const whereCondition = {
-        [isNestedColumn ? column.split('.')[1] : column]: {
-            [Op.like]: `${query}%`,
-        },
+        [Op.and]: nonNestedColumns.map((col, index) => ({
+            [col]: {
+                [Op.like]:
+                    col === 'programId' || col === 'semester'
+                        ? query[index]
+                        : `${query[index]}%`,
+            },
+        })),
     };
 
     const orderCondition = [];
@@ -129,14 +157,22 @@ const findStudent = async (
     const data = await models.student.findAll({
         limit,
         offset,
-        where: whereCondition,
+        where: nonNestedColumns.length ? whereCondition : undefined,
         order: orderCondition,
-        include: {
-            model: models.program,
-            attributes: ['name'],
-            required: true,
-            where: isNestedColumn ? whereCondition : undefined,
-        },
+        include: [
+            {
+                model: models.program,
+                attributes: ['name', 'isAided'],
+                required: true,
+                where: nestedColumns.length ? whereConditionNested : undefined,
+            },
+            {
+                model: models.course,
+                attributes: ['name'],
+                required: false,
+                where: { isOpenCourse: true },
+            },
+        ],
         attributes: [
             'id',
             'name',
@@ -145,6 +181,7 @@ const findStudent = async (
             'programId',
             'rollNumber',
             'semester',
+            'openCourseId',
         ],
         raw: true,
     });
@@ -177,33 +214,104 @@ const getCourses = async (programId, semester) => {
         // Find the program by programId and include its associated courses
         let program;
         if (semester) {
-            program = await models.program.findByPk(programId, {
+            /*  program = await models.program.findByPk(programId, {
                 include: [
                     {
                         model: models.course,
-                        through: models.programCourse, // Use the through option to specify the join table
-                        where: { semester },
+                        through: {
+                            model: models.programCourse,
+                        },
+                        where: {
+                            semester,
+                            [Op.or]: [
+                                {
+                                    '$courses->programCourse.program_id$': {
+                                        [Op.ne]: programId,
+                                    },
+                                    isOpenCourse: 1,
+                                },
+                                {
+                                    '$courses->programCourse.program_id$': {
+                                        [Op.eq]: programId,
+                                    },
+                                    isOpenCourse: 0,
+                                },
+                            ],
+                        },
                     },
                 ],
+            }); */
+            program = await models.course.findAll({
+                include: {
+                    model: models.programCourse,
+                    where: {
+                        programId: {
+                            [Op.or]: [
+                                { [Op.ne]: programId },
+                                { [Op.eq]: programId },
+                            ],
+                        },
+                    },
+                },
+                where: {
+                    semester,
+                    [Op.or]: [
+                        {
+                            '$programCourses.program_id$': {
+                                [Op.ne]: programId,
+                            },
+                            isOpenCourse: 1,
+                        },
+                        {
+                            '$programCourses.program_id$': {
+                                [Op.eq]: programId,
+                            },
+                            isOpenCourse: 0,
+                        },
+                    ],
+                },
             });
         } else {
-            program = await models.program.findByPk(programId, {
-                include: [
-                    {
-                        model: models.course,
-                        through: models.programCourse, // Use the through option to specify the join table
+            program = await models.course.findAll({
+                include: {
+                    model: models.programCourse,
+                    where: {
+                        programId: {
+                            [Op.or]: [
+                                { [Op.ne]: programId },
+                                { [Op.eq]: programId },
+                            ],
+                        },
                     },
-                ],
+                },
+                where: {
+                    [Op.or]: [
+                        {
+                            '$programCourses.program_id$': {
+                                [Op.ne]: programId,
+                            },
+                            isOpenCourse: 1,
+                        },
+                        {
+                            '$programCourses.program_id$': {
+                                [Op.eq]: programId,
+                            },
+                            isOpenCourse: 0,
+                        },
+                    ],
+                },
             });
         }
 
+        // console.log('program', JSON.stringify(program, null, 2));
         if (!program) {
             return [];
         }
+        // getAvailableOpenCourses(programId, program.isAided);
 
-        const { courses } = program;
+        // const { courses } = program;
 
-        return courses;
+        return program;
     } catch (error) {
         console.error('Error:', error);
         return [];
@@ -440,16 +548,102 @@ const findOrCreateStudents = async (students) => {
 
 const updateStudent = async (students = []) => {
     const notUpdatedStudents = [];
-    students.forEach(async (student) => {
-        const [result] = await models.student.update(student, {
-            where: { id: student.id },
-        });
-        if (!result) {
-            notUpdatedStudents.push(student);
-        }
-    });
-    // console.log(JSON.stringify(notUpdatedStudents, null, 2));
+
+    await Promise.all(
+        students.map(async (student) => {
+            try {
+                const result = await models.student.update(student, {
+                    where: { id: student.id },
+                });
+                if (!result.affectedCount) {
+                    notUpdatedStudents.push(student);
+                }
+            } catch (err) {
+                notUpdatedStudents.push(student);
+                // console.log('Error:', err);
+            }
+        }),
+    );
+
+    // console.log('Not Updated Students:', notUpdatedStudents);
     return notUpdatedStudents;
+};
+
+const deleteStudent = async (studentId) => {
+    try {
+        const deletedStudent = await models.student.destroy({
+            where: {
+                id: studentId,
+            },
+        });
+
+        return deletedStudent;
+    } catch (error) {
+        throw Error(error.message);
+    }
+};
+
+const getAvailableOpenCourses = async (programId, isAided) => {
+    const openCourses = await models.course.findAll({
+        where: { isOpenCourse: 1 },
+        include: {
+            model: models.program,
+            attributes: [],
+            through: { attributes: [] },
+            where: { id: { [Op.ne]: programId }, isAided },
+            required: true,
+        },
+        attributes: ['id', 'name'],
+    });
+
+    return openCourses;
+};
+
+const findStudentsByProgramSem = async (programId, semester = undefined) => {
+    try {
+        const a = {
+            include: [
+                {
+                    model: models.program,
+                    attributes: ['name', 'isAided'],
+                    required: true,
+                },
+                {
+                    model: models.course,
+                    attributes: ['name'],
+                    required: false,
+                    where: { isOpenCourse: true },
+                },
+            ],
+            attributes: [
+                'id',
+                'name',
+                'email',
+                'phone',
+                'programId',
+                'rollNumber',
+                'semester',
+                'openCourseId',
+            ],
+            raw: true,
+        };
+
+        let students;
+        if (semester) {
+            students = await models.student.findAll({
+                where: { programId, semester },
+                ...a,
+            });
+        } else
+            students = await models.student.findAll({
+                where: { programId },
+                ...a,
+            });
+        return students;
+    } catch (error) {
+        console.error('Error querying students:', error);
+        throw error;
+    }
 };
 
 export {
@@ -470,4 +664,7 @@ export {
     countExamsForDate,
     findOrCreateStudents,
     updateStudent,
+    getAvailableOpenCourses,
+    deleteStudent,
+    findStudentsByProgramSem,
 };

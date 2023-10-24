@@ -19,6 +19,9 @@ import {
     countExamsForDate,
     updateStudent,
     findOrCreateStudents,
+    getAvailableOpenCourses,
+    deleteStudent,
+    findStudentsByProgramSem,
 } from '../helpers/adminHelpers/adminHelper.js';
 import { assignSeats } from '../helpers/seatAssignment/assignSeats.js';
 import { createRecord } from '../helpers/adminHelpers/studentSeat.js';
@@ -106,17 +109,17 @@ router.get('/student/list', async (req, res) => {
         'programId',
     ];
 
-    if (!allowedColumns.includes(column)) {
-        column = 'id';
+    if (!column.every((col) => allowedColumns.includes(col))) {
+        column = ['id'];
     }
 
-    query = query || '';
+    query = query || [''];
     sortField = sortField || 'updatedAt';
     sortOrder = sortOrder || 'DESC';
     offset = parseInt(offset, 10) || 0;
     limit = parseInt(limit, 10) || 10;
 
-    console.log('sort order: ', sortOrder);
+    // console.log('sort order: ', sortOrder);
 
     const data = await findStudent(
         query,
@@ -347,6 +350,8 @@ router.post('/student', async (req, res) => {
 router.patch('/student', async (req, res) => {
     const students = req.body;
 
+    // console.log(JSON.stringify(students, null, 2));
+
     if (!students.length) {
         return res.status(400).json({ error: 'Missing required data' });
     }
@@ -354,6 +359,56 @@ router.patch('/student', async (req, res) => {
     const notUpdatedStudents = await updateStudent(students);
 
     return res.status(200).json(notUpdatedStudents);
+});
+
+router.delete('/student', async (req, res) => {
+    const { studentId } = req.query;
+
+    if (!studentId) {
+        return res.status(400).json({ error: 'Missing required data' });
+    }
+
+    try {
+        const deletionCount = await deleteStudent(studentId);
+
+        if (deletionCount > 0) {
+            return res.status(200).json({
+                message: `Student with ID ${studentId} deleted successfully.`,
+            });
+        }
+        return res
+            .status(404)
+            .json({ error: `Student with ID ${studentId} not found` });
+    } catch (error) {
+        console.error('Error deleting student:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.get('/open-courses', async (req, res) => {
+    const { programId, isAided } = req.query;
+
+    if (!programId || !isAided) {
+        return res.status(400).json({ error: 'Missing required data' });
+    }
+
+    const openCourses = await getAvailableOpenCourses(programId, isAided);
+
+    return res.status(200).json(openCourses);
+});
+
+router.get('/students/pro-sem', async (req, res) => {
+    try {
+        const { programId, semester } = req.query;
+
+        // Perform the query to fetch students based on program and semester
+        const students = await findStudentsByProgramSem(programId, semester);
+
+        res.status(200).json(students);
+    } catch (error) {
+        console.error('Error fetching students:', error);
+        res.status(500).json({ error: 'Error fetching students' });
+    }
 });
 
 export default router;
