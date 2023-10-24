@@ -495,18 +495,15 @@ const updateRoomAvailability = async ({ roomIds = [] }) => {
 };
 
 const countExamsForDate = async ({ targetDate = new Date() }) => {
-    const data = await fetchExams(targetDate);
+    const { openCourses, nonOpenCourses } = await fetchExams(targetDate);
+    const data = [...nonOpenCourses, ...openCourses];
     try {
         const count = await models.student.count({
             where: {
-                [Op.or]: data.flatMap((dateTime) =>
-                    dateTime.courses.flatMap((course) =>
-                        course.programs.map((program) => ({
-                            programId: program.id,
-                            semester: course.semester,
-                        })),
-                    ),
-                ),
+                [Op.or]: data.map((value) => ({
+                    programId: value.programId,
+                    semester: value.semester,
+                })),
             },
         });
 

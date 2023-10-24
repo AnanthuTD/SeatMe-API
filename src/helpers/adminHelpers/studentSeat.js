@@ -108,6 +108,10 @@ const getTimeTableAndSeating = async (studentId) => {
                     {
                         model: models.studentSeat,
                         where: { studentId },
+                        include: {
+                            model: models.room,
+                            attributes: ['id', 'floor', 'blockId'],
+                        },
                         required: false,
                     },
                 ],

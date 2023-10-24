@@ -32,6 +32,10 @@ export default (sequelize) => {
                 type: DataTypes.ENUM(['UG', 'PG']),
                 allowNull: false,
             },
+            isAided: {
+                type: DataTypes.TINYINT(1),
+                defaultValue: 1,
+            },
         },
         {
             timestamps: false,

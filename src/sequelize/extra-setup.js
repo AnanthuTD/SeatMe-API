@@ -37,15 +37,21 @@ const applyExtraSetup = (sequelize) => {
     programCourse.belongsTo(course);
 
     // open course
-    /*  department.hasOne(course);
-    course.belongsTo(department);
-    student.belongsTo(course, { foreignKey: 'openCourseId' }); */
+    student.belongsTo(course, {
+        scope: {
+            isOpenCourse: 1,
+        },
+        foreignKey: 'openCourseId',
+    });
+    course.hasMany(student, {
+        foreignKey: 'openCourseId',
+    });
 
     studentSeat.belongsTo(room);
     room.hasMany(studentSeat);
     student.hasMany(studentSeat, { foreignKey: 'studentId' });
     studentSeat.belongsTo(student, { foreignKey: 'studentId' });
-    studentSeat.belongsTo(exam, { foreignKey: 'examId' });
+    studentSeat.belongsTo(exam, { foreignKey: 'examId', onDelete: 'CASCADE' });
     exam.hasMany(studentSeat, { foreignKey: 'examId' });
 
     dateTime.belongsToMany(course, { through: exam });

@@ -1,5 +1,33 @@
 import { models } from '../src/sequelize/models.js';
 
+function generateUniqueID(program, j, i) {
+    const timestamp = new Date().getTime(); // Get the current timestamp in milliseconds.
+    const uniqueID =
+        String(program).padEnd(2, '0') + // Program (2 digits)
+        String(j).padStart(3, '0') + // j (3 digits)
+        String(i).padStart(3, '0') + // i (3 digits)
+        String(timestamp).substr(-4); // Last 4 digits of the timestamp
+    return uniqueID;
+}
+
+function generateUniqueRoll(year, program, i) {
+    const roll = parseInt(
+        year.padEnd(2, '0') +
+            String(program).padStart(2, '0') +
+            String(i).padStart(2, '0'),
+        10,
+    );
+    if (roll > 999999) {
+        console.log(
+            year.padEnd(2, '0'),
+            String(program).padEnd(2, '0'),
+            i,
+            String(i).padEnd(2, '0'),
+        );
+    }
+    return roll;
+}
+
 /**
  * Generates random dummy data for Students and students within specified ranges.
  *
@@ -23,17 +51,9 @@ export default function generateDummyData(minStudents, maxStudents) {
                 minStudents;
             for (let i = 1; i <= studentsNum; i += 1) {
                 const student = {
-                    id:
-                        String(program).padStart(2, '0') + // Program (2 digits)
-                        String(j).padStart(5, '0') + // j (5 digits)
-                        String(i).padStart(5, '0'), // i (5 digits)
+                    id: generateUniqueID(program, j, i),
 
-                    rollNumber: parseInt(
-                        years[j - 1] +
-                            String(program).padStart(2, '0') +
-                            String(i).padStart(2, '0'),
-                        10,
-                    ),
+                    rollNumber: generateUniqueRoll(years[j - 1], program, i),
                     name: `Student_${i}`,
                     email: `Student_${i}@gmail.com`,
                     phone: parseInt(
@@ -54,10 +74,10 @@ export default function generateDummyData(minStudents, maxStudents) {
 
 // Example usage:
 const minStudents = 50;
-const maxStudents = 100;
+const maxStudents = 99;
 
 const dummyData = generateDummyData(minStudents, maxStudents);
 // console.log(dummyData);
-const result = await models.student.bulkCreate(dummyData);
+const result = await models.student.bulkCreate(dummyData, { validate: true });
 console.log(result.length); // 2
 console.log(result[0] instanceof models.student);
