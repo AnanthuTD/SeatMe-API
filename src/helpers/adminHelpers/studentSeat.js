@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { models } from '../../sequelize/models.js';
 
 const createRecord = async (seating) => {
@@ -65,14 +66,35 @@ const getTimeTableAndSeating = async (studentId) => {
     const student = await models.student.findByPk(studentId, {});
     let data = await models.course.findAll({
         attributes: ['id', 'name'],
-        where: { semester: student.semester },
+
+        where: {
+            semester: student.semester,
+            [Op.or]: [
+                {
+                    '$programCourses.program_id$': {
+                        [Op.ne]: student.programId,
+                    },
+                    isOpenCourse: 1,
+                },
+                {
+                    '$programCourses.program_id$': {
+                        [Op.eq]: student.programId,
+                    },
+                    isOpenCourse: 0,
+                },
+            ],
+        },
         include: [
             {
-                model: models.program,
-                through: { attributes: [] },
-                attributes: [],
-                where: { id: student.programId },
-                required: true,
+                model: models.programCourse,
+                where: {
+                    programId: {
+                        [Op.or]: [
+                            { [Op.ne]: student.programId },
+                            { [Op.eq]: student.programId },
+                        ],
+                    },
+                },
             },
             {
                 model: models.exam,
@@ -108,7 +130,7 @@ const getTimeTableAndSeating = async (studentId) => {
         return value;
     });
 
-    console.log('data: ', JSON.stringify(data, null, 2));
+    // console.log('data: ', JSON.stringify(data, null, 2));
     return data;
 };
 
