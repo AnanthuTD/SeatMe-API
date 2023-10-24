@@ -90,7 +90,7 @@ function setupMiddlewares() {
 function setupRoutes() {
     app.use('/', userRouter);
     app.use('/admin', /* authAdminMiddleware, */ adminRouter);
-    app.use('/staff', authStaffMiddleware, staffRouter);
+    app.use('/staff', /* authStaffMiddleware, */ staffRouter);
     app.use('/login', loginRouter);
     app.use('/csrf', generateCsrfToken);
 }
