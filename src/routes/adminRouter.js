@@ -323,7 +323,7 @@ router.get('/exam/assign', async (req, res) => {
 router.get('/public/:fileName', (req, res) => {
     const { fileName } = req.params;
     console.log(fileName);
-    const filePath = path.join(getRootDir(), 'public', fileName);
+    const filePath = path.join(getRootDir(), 'pdf', fileName);
 
     // Check if the file exists
     if (fs.existsSync(filePath)) {
