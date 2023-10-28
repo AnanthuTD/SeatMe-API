@@ -322,15 +322,66 @@ router.get('/exam/assign', async (req, res) => {
 
 router.get('/public/:fileName', (req, res) => {
     const { fileName } = req.params;
-    console.log(fileName);
+
+    // Validate and sanitize the fileName to prevent directory traversal attacks
+    if (fileName.includes('..')) {
+        return res.status(400).send('Invalid file name');
+    }
+
     const filePath = path.join(getRootDir(), 'pdf', fileName);
 
     // Check if the file exists
     if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
+        // Set the Content-Disposition header for download
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename="${fileName}"`,
+        );
+
+        // Stream the file to the response
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
     } else {
         // Handle the case when the file does not exist
         res.status(404).send('File not found');
+    }
+});
+
+router.delete('/public/:fileName', (req, res) => {
+    const { fileName } = req.params;
+
+    // Validate and sanitize the fileName to prevent directory traversal attacks
+    if (fileName.includes('..')) {
+        return res.status(400).send('Invalid file name');
+    }
+
+    const filePath = path.join(getRootDir(), 'pdf', fileName);
+
+    try {
+        // Check if the file exists
+        if (fs.existsSync(filePath)) {
+            // Attempt to remove the file
+            fs.unlinkSync(filePath);
+            res.status(204).send(); // Send a success response with no content
+        } else {
+            // Handle the case when the file does not exist
+            res.status(404).send('File not found');
+        }
+    } catch (error) {
+        console.error('Error removing file:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+router.get('/list-pdfs', async (req, res) => {
+    const pdfDirectory = path.join(getRootDir(), 'pdf');
+    try {
+        const files = await fs.promises.readdir(pdfDirectory);
+        const pdfList = files.filter((file) => file.endsWith('.pdf'));
+        res.json(pdfList);
+    } catch (error) {
+        console.error('Error listing PDFs: ', error);
+        res.status(500).send('Error listing PDFs.');
     }
 });
 
