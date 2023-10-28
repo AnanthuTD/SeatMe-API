@@ -259,19 +259,28 @@ router.patch('/rooms', async (req, res) => {
 });
 
 router.get('/exam/assign', async (req, res) => {
-    const { date, orderBy } = req.query;
-    const currentDate = new Date();
+    const { orderBy, examType } = req.query;
+    let { date } = req.query;
 
+    const currentDate = new Date();
     const currentDateString = currentDate.toISOString().split('T')[0];
+    let fileName = '';
 
     try {
-        const providedDateString = new Date(date).toISOString().split('T')[0];
+        date = new Date(date);
+        const providedDateString = date?.toISOString()?.split('T')[0];
         console.log(providedDateString);
         if (providedDateString < currentDateString) {
             return res
                 .status(400)
                 .json({ error: 'Date should not be in the past' });
         }
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        fileName = `${
+            examType ? `${examType}-` : ''
+        }${year}-${month}-${day}.pdf`;
     } catch (error) {
         return res.status(400).json({ error: 'Invalid date format' });
     }
@@ -280,9 +289,10 @@ router.get('/exam/assign', async (req, res) => {
         return res.status(400).json({ error: 'Invalid orderBy value' });
     }
 
-    const [seating, totalUnassignedStudents, fileName] = await assignSeats({
+    const [seating, totalUnassignedStudents] = await assignSeats({
         date,
         orderBy,
+        fileName,
     });
 
     if (totalUnassignedStudents > 0)
@@ -292,30 +302,7 @@ router.get('/exam/assign', async (req, res) => {
 
     await createRecord(seating);
 
-    /*  let modifiedSeating = seating.map((value) => {
-        let length = 0;
-        value.exams.forEach((element) => {
-            length =
-                length < element.examines.length
-                    ? element.examines.length
-                    : element;
-        });
-        let tempArray = [];
-        for (let index = 0; index < length; index += 1) {
-            let element = {};
-            value.exams.map((exam) => {
-                if (exam.examines.length > 0) {
-                    element[`${exam.name}`] = exam.examines.shift();
-                }
-            });
-            console.log(element);
-            tempArray.push(element);
-        }
-        // console.log('modified: ', JSON.stringify(tempArray, null, 2));
-        return tempArray.flat();
-    });
-
-    console.log('modified: ', JSON.stringify(seating, null, 2)); */
+    console.log(fileName);
 
     return res.status(201).json({ fileName });
 });

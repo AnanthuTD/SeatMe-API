@@ -14,7 +14,11 @@ import generateSeatingMatrixPDF from './pdf.js';
  *   Should be either 'rollNumber' or 'id' (register_number).
  * @returns {Promise} A promise that resolves when seats are successfully assigned.
  */
-async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
+async function assignSeats({
+    date = new Date(),
+    orderBy = 'rollNumber',
+    fileName = 'unnamed',
+}) {
     /** @type {[NestedStudentArray, number]} */
     let [students, totalStudents] = await getData(date, orderBy);
 
@@ -67,12 +71,6 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
             `${totalUnassignedStudents} students are not been assigned`,
         );
 
-    date = new Date(date);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const fileName = `${year}-${month}-${day}.pdf`;
-
     /* generateSeatingMatrixHTML(
         classes,
         date,
@@ -92,7 +90,7 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
         fileName,
     );
 
-    return [classes, totalUnassignedStudents, fileName];
+    return [classes, totalUnassignedStudents];
 }
 
 export { assignSeats };
