@@ -377,8 +377,25 @@ router.get('/list-pdfs', async (req, res) => {
     const pdfDirectory = path.join(getRootDir(), 'pdf');
     try {
         const files = await fs.promises.readdir(pdfDirectory);
-        const pdfList = files.filter((file) => file.endsWith('.pdf'));
-        res.json(pdfList);
+
+        // Use Promise.all to asynchronously get file metadata
+        const pdfListPromises = files.map(async (file) => {
+            const filePath = path.join(pdfDirectory, file);
+            const stats = await fs.promises.stat(filePath);
+
+            return {
+                name: file,
+                created: stats.birthtime,
+            };
+        });
+
+        const pdfList = await Promise.all(pdfListPromises);
+
+        pdfList.sort((a, b) => b.created - a.created);
+
+        const sortedFileNames = pdfList.map((file) => file.name);
+
+        res.json(sortedFileNames);
     } catch (error) {
         console.error('Error listing PDFs: ', error);
         res.status(500).send('Error listing PDFs.');
