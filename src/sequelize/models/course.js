@@ -21,7 +21,7 @@ export default (sequelize) => {
                 allowNull: false,
             },
             isOpenCourse: {
-                type: DataTypes.TINYINT(1),
+                type: DataTypes.BOOLEAN,
                 defaultValue: false,
             },
         },
