@@ -36,6 +36,7 @@ export default (sequelize) => {
                 type: DataTypes.BOOLEAN,
                 defaultValue: 1,
             },
+            
         },
         {
             timestamps: false,
