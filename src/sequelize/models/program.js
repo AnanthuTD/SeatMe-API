@@ -36,6 +36,7 @@ export default (sequelize) => {
                 type: DataTypes.TINYINT(1),
                 defaultValue: 1,
             },
+            
         },
         {
             timestamps: false,

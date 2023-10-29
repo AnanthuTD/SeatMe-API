@@ -12,6 +12,7 @@ import departmentRouter from './routes/departmententRouter.js';
 import courseRouter from './routes/courseRouter.js';
 import blockRouter from './routes/blockRouter.js';
 import datetimeRouter from './routes/datetimeRouter.js';
+import programRouter from './routes/programRouter.js';
 import { sequelize } from './sequelize/connection.js';
 import { cleanBlacklist } from './helpers/jwtHelper.js';
 import {
@@ -93,12 +94,15 @@ function setupMiddlewares() {
  */
 function setupRoutes() {
     app.use('/', userRouter);
+   // app.use('/admin/departmententry', departmentRouter);
+    app.use('/admin/courseentry', courseRouter);
+    app.use('/admin/programentry', programRouter);
     app.use('/admin', /* authAdminMiddleware, */ adminRouter);
     app.use('/staff', /* authStaffMiddleware, */ staffRouter);
     app.use('/login', loginRouter);
     app.use('/csrf', generateCsrfToken);
-    app.use('/departmententry', departmentRouter);
-    app.use('/courseentry', courseRouter);
+    app.use('/admin/departmententry', departmentRouter);
+    app.use('/admin/courseentry', courseRouter);
     app.use('/blockentry', blockRouter);
     app.use('/datetime', datetimeRouter);
 }

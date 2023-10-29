@@ -11,31 +11,33 @@ router.get('/', (req, res) => {
 
     //res.sendFile(p);
 });
-router.post('/course', (req, res) => {
+router.post('/program', (req, res) => {
     console.log('this is called');
     console.log(req.body);
-    let body = req.body.courses;
-    let courses = [];
+    let body = req.body.programs;
+    let programs = [];
     body.forEach((item) => {
         let id = item.id;
         let name = item.name;
-        let semester = item.semester;
-        let isOpenCourse = item.isOpenCourse;
-        courses.push({
+        let duration = item.duration;
+        let level = item.level;
+        let department_id =item.departmentId;
+        programs.push({
             id,
             name,
-            semester,
-            isOpenCourse,
+            duration,
+            level,
+            department_id,
         });
-        console.log(courses);
+        console.log(programs);
     });
 
-    console.log(courses);
+    console.log(programs);
 
-    models.course
-        .bulkCreate(courses)
+    models.program
+        .bulkCreate(programs)
         .then(() => {
-            res.send(courses);
+            res.send(programs);
         })
         .catch((error) => {
             console.error('Error in inserting into DB:', error);
