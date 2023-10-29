@@ -32,9 +32,9 @@ export default (sequelize) => {
                     isEmail: true,
                 },
             },
-            phone: { type: DataTypes.BIGINT, allowNull: false },
+            phone: { type: DataTypes.BIGINT },
             isAdmin: { type: DataTypes.BOOLEAN, defaultValue: false },
-            password: { type: DataTypes.STRING(72), allowNull: false },
+            password: { type: DataTypes.STRING(72) },
             designation: { type: DataTypes.STRING(100), allowNull: false },
         },
         {
