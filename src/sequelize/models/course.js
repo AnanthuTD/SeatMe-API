@@ -20,10 +20,18 @@ export default (sequelize) => {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },
+            isOpenCourse: {
+                type: DataTypes.TINYINT(1),
+                defaultValue: false,
+            },
         },
         {
             timestamps: false,
-            underscored: true,
+            /*  defaultScope: {
+                where: {
+                    isOpenCourse: false,
+                },
+            }, */
         },
     );
 

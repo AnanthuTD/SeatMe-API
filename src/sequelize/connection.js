@@ -13,6 +13,9 @@ const config = {
     host,
     port,
     dialect: 'mysql',
+    dialectOptions: {
+        connectTimeout: 30000,
+    },
 };
 
 const sequelize = new Sequelize(database, username, password, config);

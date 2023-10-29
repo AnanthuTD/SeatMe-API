@@ -15,7 +15,7 @@ export default function generateDummyData() {
                     id: `AB${sem}CDE${String(course).padStart(3, '0')}`,
                     name: `Course_${course}`,
                     semester: sem,
-                    DateTimeId: sem % 2 === 0 ? dateTimeId : null,
+                    dateTimeId: sem % 2 === 0 ? dateTimeId : null,
                 });
                 if (sem % 2 === 0) dateTimeId += 1;
                 if (dateTimeId > 20) dateTimeId = 1;
@@ -28,4 +28,4 @@ export default function generateDummyData() {
 
 const dummyData = generateDummyData();
 // console.log(dummyData);
-models.Course.bulkCreate(dummyData);
+models.course.bulkCreate(dummyData);

@@ -17,6 +17,7 @@ const applyExtraSetup = (sequelize) => {
         teacherSeat,
         supplementary,
         programCourse,
+        exam,
     } = sequelize.models;
 
     authUser.belongsTo(department);
@@ -35,17 +36,30 @@ const applyExtraSetup = (sequelize) => {
     course.hasMany(programCourse);
     programCourse.belongsTo(course);
 
+    // open course
+    student.belongsTo(course, {
+        scope: {
+            isOpenCourse: 1,
+        },
+        foreignKey: 'openCourseId',
+    });
+    course.hasMany(student, {
+        foreignKey: 'openCourseId',
+    });
+
     studentSeat.belongsTo(room);
     room.hasMany(studentSeat);
-    student.hasMany(studentSeat);
-    studentSeat.belongsTo(student);
-    /*    room.belongsToMany(student, { through: studentSeat });
-    student.belongsToMany(room, { through: studentSeat }); */
-    course.hasMany(studentSeat);
-    studentSeat.belongsTo(course);
+    student.hasMany(studentSeat, { foreignKey: 'studentId' });
+    studentSeat.belongsTo(student, { foreignKey: 'studentId' });
+    studentSeat.belongsTo(exam, { foreignKey: 'examId', onDelete: 'CASCADE' });
+    exam.hasMany(studentSeat, { foreignKey: 'examId' });
 
-    dateTime.hasMany(course);
-    course.belongsTo(dateTime);
+    dateTime.belongsToMany(course, { through: exam });
+    course.belongsToMany(dateTime, { through: exam });
+    exam.belongsTo(dateTime);
+    dateTime.hasMany(exam);
+    exam.belongsTo(course);
+    course.hasMany(exam);
 
     room.belongsToMany(authUser, { through: teacherSeat });
     authUser.belongsToMany(room, { through: teacherSeat });

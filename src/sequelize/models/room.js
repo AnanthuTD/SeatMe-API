@@ -22,6 +22,7 @@ export default (sequelize) => {
             isAvailable: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
+                defaultValue: false,
             },
             floor: {
                 type: DataTypes.TINYINT.UNSIGNED,

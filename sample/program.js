@@ -22,7 +22,7 @@ export default function generateDummyData() {
                 name: `Program_${totalPrograms}`,
                 duration: 3,
                 level: 'UG',
-                DepartmentId: blockId,
+                departmentId: blockId,
             });
         }
     }
@@ -32,6 +32,6 @@ export default function generateDummyData() {
 
 const dummyData = generateDummyData();
 console.log(dummyData);
-models.Program.bulkCreate(dummyData);
+models.program.bulkCreate(dummyData);
 // let attr = models.Program.getAttributes();
 // console.log(attr);

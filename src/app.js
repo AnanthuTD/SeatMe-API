@@ -13,7 +13,7 @@ import courseRouter from './routes/courseRouter.js';
 import blockRouter from './routes/blockRouter.js';
 import datetimeRouter from './routes/datetimeRouter.js';
 import { sequelize } from './sequelize/connection.js';
-import { cleanBlacklist } from './utils/jwtUtils.js';
+import { cleanBlacklist } from './helpers/jwtHelper.js';
 import {
     authAdminMiddleware,
     authStaffMiddleware,
@@ -43,8 +43,8 @@ async function assertDatabaseConnectionOk() {
         // initializing models
         import('./sequelize/models.js');
     } catch (error) {
-        console.log('Unable to connect to the database:');
-        console.log(error.message);
+        console.error('Unable to connect to the database:');
+        console.error(error.message);
         throw new Error(
             'Unable to connect to the database. Check your database configuration.',
         );
@@ -93,8 +93,8 @@ function setupMiddlewares() {
  */
 function setupRoutes() {
     app.use('/', userRouter);
-    app.use('/admin', authAdminMiddleware, adminRouter);
-    app.use('/staff', authStaffMiddleware, staffRouter);
+    app.use('/admin', /* authAdminMiddleware, */ adminRouter);
+    app.use('/staff', /* authStaffMiddleware, */ staffRouter);
     app.use('/login', loginRouter);
     app.use('/csrf', generateCsrfToken);
     app.use('/departmententry', departmentRouter);

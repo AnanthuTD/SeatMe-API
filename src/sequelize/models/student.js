@@ -28,6 +28,7 @@ export default (sequelize) => {
                         }
                     },
                 },
+                allowNull: false,
             },
             semester: {
                 type: DataTypes.TINYINT.UNSIGNED,
@@ -39,12 +40,12 @@ export default (sequelize) => {
             },
             email: {
                 type: DataTypes.STRING(320),
-                allowNull: false,
+                allowNull: true,
                 validate: {
                     isEmail: true,
                 },
             },
-            phone: { type: DataTypes.BIGINT.UNSIGNED, allowNull: false },
+            phone: { type: DataTypes.BIGINT.UNSIGNED, allowNull: true },
         },
         {
             underscored: true,

@@ -17,9 +17,9 @@ function generateDummyRoomData() {
             id,
             cols,
             rows,
-            is_available: isAvailable,
+            isAvailable,
             floor,
-            block_id: blockId,
+            blockId,
         });
     }
 
@@ -27,5 +27,5 @@ function generateDummyRoomData() {
 }
 
 const roomData = generateDummyRoomData();
-// console.log(roomData);
-models.Room.bulkCreate(roomData);
+console.log(roomData);
+models.room.bulkCreate(roomData);
