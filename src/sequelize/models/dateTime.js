@@ -7,6 +7,10 @@ export default (sequelize) => {
     const dateTime = sequelize.define(
         'dateTime',
         {
+            id: {
+                type: DataTypes.TINYINT.UNSIGNED,
+                primaryKey: true,
+            },
             date: {
                 type: DataTypes.DATEONLY,
             },

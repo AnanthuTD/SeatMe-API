@@ -8,6 +8,10 @@ import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
 import loginRouter from './routes/loginRouter.js';
+import departmentRouter from './routes/departmententRouter.js';
+import courseRouter from './routes/courseRouter.js';
+import blockRouter from './routes/blockRouter.js';
+import datetimeRouter from './routes/datetimeRouter.js';
 import { sequelize } from './sequelize/connection.js';
 import { cleanBlacklist } from './utils/jwtUtils.js';
 import {
@@ -93,6 +97,10 @@ function setupRoutes() {
     app.use('/staff', authStaffMiddleware, staffRouter);
     app.use('/login', loginRouter);
     app.use('/csrf', generateCsrfToken);
+    app.use('/departmententry', departmentRouter);
+    app.use('/courseentry', courseRouter);
+    app.use('/blockentry', blockRouter);
+    app.use('/datetime', datetimeRouter);
 }
 
 /**
