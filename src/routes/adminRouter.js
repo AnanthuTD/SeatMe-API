@@ -43,10 +43,14 @@ router.get('/', (req, res) => {
  * @param {object} req.body.staffData - The user data for the new staff member.
  * @returns {object} Response object with status and message indicating the result of the operation.
  */
-router.post('/create-staff', async (req, res) => {
-    const { staffData } = req.body;
+router.post('/staff', async (req, res) => {
+    const { staffs } = req.body;
 
-    const result = await createStaff(staffData);
+    console.log(staffs);
+
+    const result = await createStaff(staffs);
+
+    console.log(result);
 
     return res.status(result.status).json(result);
 });
@@ -68,17 +72,17 @@ router.get('/staff/list', async (req, res) => {
         'programId',
     ];
 
-    if (!allowedColumns.includes(column)) {
-        column = 'id';
+    if (!column.every((col) => allowedColumns.includes(col))) {
+        column = ['id'];
     }
 
-    query = query || '';
+    query = query || [''];
     sortField = sortField || 'updatedAt';
     sortOrder = sortOrder || 'DESC';
     offset = parseInt(offset, 10) || 0;
     limit = parseInt(limit, 10) || 10;
 
-    console.log('sort order: ', sortOrder);
+    console.log('query : ', req.query);
 
     const data = await getStaffs(
         query,
@@ -209,7 +213,7 @@ router.get('/exams', async (req, res) => {
     ];
 
     if (!allowedColumns.includes(column)) {
-        column = 'id';
+        column = 'dateTimes.date';
     }
 
     query = query || '';

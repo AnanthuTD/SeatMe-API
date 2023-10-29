@@ -46,20 +46,67 @@ const encrypt = (value) => {
  * @param {object} staffData - The user data for the new staff member.
  * @returns {Promise<object>} A Promise that resolves to an object containing status and message.
  */
-const createStaff = async (staffData) => {
-    console.log(staffData);
+const createStaff = async (staffDataArray) => {
     try {
-        if (await doesUserExist(staffData.email, staffData.id)) {
-            return { status: 409, message: 'Id or Email already exists' };
+        const duplicateStaffs = [];
+        const createdStaff = [];
+        const uncreatedStaffs = [];
+
+        await Promise.all(
+            staffDataArray.map(async (staffData) => {
+                if (await doesUserExist(staffData.email, staffData.id)) {
+                    duplicateStaffs.push(staffData);
+                } else {
+                    if (staffData.password) {
+                        checkPasswordStrength(staffData.password);
+                        staffData.password = await encrypt(staffData.password);
+                    }
+                    try {
+                        await insertUser(staffData);
+                        createdStaff.push(staffData);
+                    } catch (error) {
+                        uncreatedStaffs.push(staffData);
+                    }
+                }
+            }),
+        );
+
+        if (createdStaff.length === staffDataArray.length) {
+            return {
+                status: 201,
+                message: 'Users registered successfully',
+                createdStaff,
+                uncreatedStaffs,
+            };
         }
 
-        checkPasswordStrength(staffData.password);
+        if (duplicateStaffs.length > 0 && uncreatedStaffs.length > 0) {
+            return {
+                status: 409,
+                message:
+                    'Some Email or Id already exist and some error occurred while inserting some staffs',
+                duplicateStaffs,
+                uncreatedStaffs,
+            };
+        }
+        if (duplicateStaffs.length > 0) {
+            return {
+                status: 409,
+                message: 'Emails already exist',
+                duplicateStaffs,
+                uncreatedStaffs,
+            };
+        }
+        if (uncreatedStaffs.length > 0) {
+            return {
+                status: 409,
+                message: 'Error occurred while inserting some staffs',
+                duplicateStaffs,
+                uncreatedStaffs,
+            };
+        }
 
-        staffData.password = await encrypt(staffData.password);
-
-        await insertUser(staffData);
-
-        return { status: 201, message: 'User registered successfully' };
+        return { status: 400, message: 'No valid users to register' };
     } catch (error) {
         console.error(error);
         return {
