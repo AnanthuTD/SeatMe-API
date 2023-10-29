@@ -3,60 +3,94 @@ import { models, sequelize } from '../../sequelize/models.js';
 import { fetchExams } from '../seatAssignment/getData.js';
 
 const getStaffs = async (
-    query = '',
-    column = 'id',
+    query = [''],
+    columns = ['id'],
     offset = 0,
     limit = 10,
     sortField = 'updatedAt',
     sortOrder = 'DESC',
 ) => {
-    sortOrder = sortOrder.toUpperCase();
+    try {
+        sortOrder = sortOrder.toUpperCase();
 
-    const isNestedColumn = column.includes('.');
-    const isNestedSortField = sortField.includes('.');
+        const nestedColumns = [];
+        const nestedColumnsQuery = [];
+        const nonNestedColumns = [];
+        const nonNestedColumnsQuery = [];
 
-    const whereCondition = {
-        [isNestedColumn ? column.split('.')[1] : column]: {
-            [Op.like]: `${query}%`,
-        },
-    };
+        columns.forEach((column, index) => {
+            if (column.includes('.')) {
+                nestedColumns.push(column);
+                nestedColumnsQuery.push(query[index]);
+            } else {
+                nonNestedColumns.push(column);
+                nonNestedColumnsQuery.push(query[index]);
+            }
+        });
 
-    const orderCondition = [];
+        const isNestedSortField = sortField.includes('.');
 
-    if (sortField && sortOrder) {
-        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
+        const whereConditionNested = {
+            [Op.and]: nestedColumns.map((col, index) => ({
+                [col.split('.')[1]]: {
+                    [Op.like]: `${query[index]}%`,
+                },
+            })),
+        };
+        const whereCondition = {
+            [Op.and]: nonNestedColumns.map((col, index) => ({
+                [col]: {
+                    [Op.like]:
+                        col === 'programId' || col === 'semester'
+                            ? query[index]
+                            : `${query[index]}%`,
+                },
+            })),
+        };
 
-        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
-            if (isNestedSortField) {
-                orderCondition.push([models.department, field, sortOrder]);
-            } else orderCondition.push([field, sortOrder]);
+        const orderCondition = [];
+
+        if (sortField && sortOrder) {
+            const field = isNestedSortField
+                ? sortField.split('.')[1]
+                : sortField;
+
+            if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+                if (isNestedSortField) {
+                    orderCondition.push([models.department, field, sortOrder]);
+                } else orderCondition.push([field, sortOrder]);
+            }
         }
+
+        const data = await models.authUser.findAll({
+            limit,
+            offset,
+            where: nonNestedColumns.length ? whereCondition : undefined,
+            order: orderCondition,
+            include: {
+                model: models.department,
+                attributes: ['name'],
+                // required: true,
+                where: nestedColumns.length ? whereConditionNested : undefined,
+            },
+            attributes: [
+                'id',
+                'name',
+                'email',
+                'phone',
+                'designation',
+                'departmentId',
+                'department.name',
+            ],
+            raw: true,
+        });
+
+        return data;
+    } catch (error) {
+        // Handle the error, log it, or throw a custom error if needed
+        console.error('Error in getStaffs:', error);
+        throw new Error('An error occurred while fetching staff data.');
     }
-
-    const data = await models.authUser.findAll({
-        limit,
-        offset,
-        where: whereCondition,
-        order: orderCondition,
-        include: {
-            model: models.department,
-            attributes: ['name'],
-            // required: true,
-            where: isNestedColumn ? whereCondition : undefined,
-        },
-        attributes: [
-            'id',
-            'name',
-            'email',
-            'phone',
-            'designation',
-            'departmentId',
-            'department.name',
-        ],
-        raw: true,
-    });
-
-    return data;
 };
 
 const getStaffCount = async () => {
@@ -97,96 +131,104 @@ const getStudentCount = async () => {
 
 const findStudent = async (
     query = [''],
-    columns = 'id',
+    columns = ['id'],
     offset = 0,
     limit = 10,
     sortField = 'updatedAt',
     sortOrder = 'DESC',
 ) => {
-    sortOrder = sortOrder.toUpperCase();
+    try {
+        sortOrder = sortOrder.toUpperCase();
 
-    const nestedColumns = [];
-    const nestedColumnsQuery = [];
-    const nonNestedColumns = [];
-    const nonNestedColumnsQuery = [];
+        const nestedColumns = [];
+        const nestedColumnsQuery = [];
+        const nonNestedColumns = [];
+        const nonNestedColumnsQuery = [];
 
-    columns.forEach((column, index) => {
-        if (column.includes('.')) {
-            // This is a nested column
-            nestedColumns.push(column);
-            nestedColumnsQuery.push(query[index]);
-        } else {
-            // This is a non-nested column
-            nonNestedColumns.push(column);
-            nonNestedColumnsQuery.push(query[index]);
+        columns.forEach((column, index) => {
+            if (column.includes('.')) {
+                nestedColumns.push(column);
+                nestedColumnsQuery.push(query[index]);
+            } else {
+                nonNestedColumns.push(column);
+                nonNestedColumnsQuery.push(query[index]);
+            }
+        });
+
+        const isNestedSortField = sortField.includes('.');
+
+        const whereConditionNested = {
+            [Op.and]: nestedColumns.map((col, index) => ({
+                [col.split('.')[1]]: {
+                    [Op.like]: `${query[index]}%`,
+                },
+            })),
+        };
+        const whereCondition = {
+            [Op.and]: nonNestedColumns.map((col, index) => ({
+                [col]: {
+                    [Op.like]:
+                        col === 'programId' || col === 'semester'
+                            ? query[index]
+                            : `${query[index]}%`,
+                },
+            })),
+        };
+
+        const orderCondition = [];
+
+        if (sortField && sortOrder) {
+            const field = isNestedSortField
+                ? sortField.split('.')[1]
+                : sortField;
+
+            if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+                if (isNestedSortField) {
+                    orderCondition.push([models.program, field, sortOrder]);
+                } else orderCondition.push([field, sortOrder]);
+            }
         }
-    });
 
-    const isNestedSortField = sortField.includes('.');
+        const data = await models.student.findAll({
+            limit,
+            offset,
+            where: nonNestedColumns.length ? whereCondition : undefined,
+            order: orderCondition,
+            include: [
+                {
+                    model: models.program,
+                    attributes: ['name', 'isAided'],
+                    required: true,
+                    where: nestedColumns.length
+                        ? whereConditionNested
+                        : undefined,
+                },
+                {
+                    model: models.course,
+                    attributes: ['name'],
+                    required: false,
+                    where: { isOpenCourse: true },
+                },
+            ],
+            attributes: [
+                'id',
+                'name',
+                'email',
+                'phone',
+                'programId',
+                'rollNumber',
+                'semester',
+                'openCourseId',
+            ],
+            raw: true,
+        });
 
-    const whereConditionNested = {
-        [Op.and]: nestedColumns.map((col, index) => ({
-            [col.split('.')[1]]: {
-                [Op.like]: `${query[index]}%`,
-            },
-        })),
-    };
-    const whereCondition = {
-        [Op.and]: nonNestedColumns.map((col, index) => ({
-            [col]: {
-                [Op.like]:
-                    col === 'programId' || col === 'semester'
-                        ? query[index]
-                        : `${query[index]}%`,
-            },
-        })),
-    };
-
-    const orderCondition = [];
-
-    if (sortField && sortOrder) {
-        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
-
-        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
-            if (isNestedSortField) {
-                orderCondition.push([models.program, field, sortOrder]);
-            } else orderCondition.push([field, sortOrder]);
-        }
+        return data;
+    } catch (error) {
+        // Handle the error, log it, or throw a custom error if needed
+        console.error('Error in getStudents:', error);
+        throw new Error('An error occurred while fetching students data.');
     }
-
-    const data = await models.student.findAll({
-        limit,
-        offset,
-        where: nonNestedColumns.length ? whereCondition : undefined,
-        order: orderCondition,
-        include: [
-            {
-                model: models.program,
-                attributes: ['name', 'isAided'],
-                required: true,
-                where: nestedColumns.length ? whereConditionNested : undefined,
-            },
-            {
-                model: models.course,
-                attributes: ['name'],
-                required: false,
-                where: { isOpenCourse: true },
-            },
-        ],
-        attributes: [
-            'id',
-            'name',
-            'email',
-            'phone',
-            'programId',
-            'rollNumber',
-            'semester',
-            'openCourseId',
-        ],
-        raw: true,
-    });
-
-    return data;
 };
 
 const getDepartments = async () => {
