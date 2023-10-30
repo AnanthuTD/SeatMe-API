@@ -64,7 +64,7 @@ const authAdminMiddleware = (req, res, next) => {
                 .status(403)
                 .send('Access denied. This token has been blacklisted.');
 
-        if (!verified.is_admin) {
+        if (!verified.isAdmin) {
             return res
                 .status(403)
                 .send('Access denied. You are not authorized as an admin.');
