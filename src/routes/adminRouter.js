@@ -46,11 +46,7 @@ router.get('/', (req, res) => {
 router.post('/staff', async (req, res) => {
     const { staffs } = req.body;
 
-    console.log(staffs);
-
     const result = await createStaff(staffs);
-
-    console.log(result);
 
     return res.status(result.status).json(result);
 });
@@ -81,8 +77,6 @@ router.get('/staff/list', async (req, res) => {
     sortOrder = sortOrder || 'DESC';
     offset = parseInt(offset, 10) || 0;
     limit = parseInt(limit, 10) || 10;
-
-    console.log('query : ', req.query);
 
     const data = await getStaffs(
         query,
@@ -151,7 +145,6 @@ router.get('/programs', async (req, res) => {
 });
 router.get('/courses', async (req, res) => {
     const { programId, semester } = req.query;
-    console.log('semester: ', semester);
     const courses = await getCourses(programId, semester);
     res.json(courses);
 });
@@ -273,7 +266,6 @@ router.get('/exam/assign', async (req, res) => {
     try {
         date = new Date(date);
         const providedDateString = date?.toISOString()?.split('T')[0];
-        console.log(providedDateString);
         if (providedDateString < currentDateString) {
             return res
                 .status(400)
@@ -305,8 +297,6 @@ router.get('/exam/assign', async (req, res) => {
         });
 
     await createRecord(seating);
-
-    console.log(fileName);
 
     return res.status(201).json({ fileName });
 });
