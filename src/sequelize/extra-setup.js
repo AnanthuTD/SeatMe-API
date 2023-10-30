@@ -18,7 +18,11 @@ const applyExtraSetup = (sequelize) => {
         supplementary,
         programCourse,
         exam,
+        refreshToken,
     } = sequelize.models;
+
+    refreshToken.belongsTo(authUser);
+    authUser.hasMany(refreshToken);
 
     authUser.belongsTo(department);
     department.hasMany(authUser);
@@ -74,24 +78,7 @@ const applyExtraSetup = (sequelize) => {
     supplementary.belongsTo(program);
     course.hasMany(supplementary);
     supplementary.belongsTo(course);
-    // programCourse.hasMany(supplementary);
-    /*  supplementary.belongsTo(programCourse, {
-        foreignKey: {
-            name: 'program_id',
-            allowNull: false,
-        },
-        targetKey: 'program_id',
-    });
-    supplementary.belongsTo(programCourse, {
-        foreignKey: {
-            name: 'course_id',
-            allowNull: false,
-        },
-        targetKey: 'course_id',
-    }); */
 
-    // student.belongsToMany(course, { through: programCourse });
-    // course.belongsToMany(student, { through: programCourse });
     program.hasMany(student);
     student.belongsTo(program);
 };
