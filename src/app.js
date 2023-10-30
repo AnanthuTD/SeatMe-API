@@ -7,7 +7,7 @@ import cron from 'node-cron';
 import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
-import loginRouter from './routes/loginRouter.js';
+import authRouter from './routes/authRouter.js';
 import departmentRouter from './routes/departmententRouter.js';
 import courseRouter from './routes/courseRouter.js';
 import blockRouter from './routes/blockRouter.js';
@@ -94,12 +94,12 @@ function setupMiddlewares() {
  */
 function setupRoutes() {
     app.use('/', userRouter);
-   // app.use('/admin/departmententry', departmentRouter);
+    // app.use('/admin/departmententry', departmentRouter);
     app.use('/admin/courseentry', courseRouter);
     app.use('/admin/programentry', programRouter);
-    app.use('/admin', /* authAdminMiddleware, */ adminRouter);
-    app.use('/staff', /* authStaffMiddleware, */ staffRouter);
-    app.use('/login', loginRouter);
+    app.use('/admin', authAdminMiddleware, adminRouter);
+    app.use('/staff', authStaffMiddleware, staffRouter);
+    app.use('/auth', authRouter);
     app.use('/csrf', generateCsrfToken);
     app.use('/admin/departmententry', departmentRouter);
     app.use('/admin/courseentry', courseRouter);

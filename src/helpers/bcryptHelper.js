@@ -117,7 +117,7 @@ const createStaff = async (staffDataArray) => {
 };
 
 const createAdmin = async (adminData) => {
-    console.log(adminData);
+    // console.log(adminData);
     try {
         if (await doesUserExist(adminData.email, adminData.id)) {
             return { status: 409, message: 'Id or Email already exists' };
