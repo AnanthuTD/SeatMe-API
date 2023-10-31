@@ -201,8 +201,8 @@ router.get('/exams', async (req, res) => {
         'id',
         'name',
         'semester',
-        'dateTime.date',
-        'dateTime.timeCode',
+        'dateTimes.date',
+        'dateTimes.timeCode',
     ];
 
     if (!allowedColumns.includes(column)) {
@@ -210,7 +210,7 @@ router.get('/exams', async (req, res) => {
     }
 
     query = query || '';
-    sortField = sortField || 'name';
+    sortField = sortField || 'dateTimes.date';
     sortOrder = sortOrder || 'ASC';
     offset = parseInt(offset, 10) || 0;
     limit = parseInt(limit, 10) || 10;

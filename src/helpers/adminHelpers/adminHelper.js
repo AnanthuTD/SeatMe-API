@@ -417,7 +417,7 @@ const getExams = async ({
     column = 'id',
     offset = 0,
     limit = 10,
-    sortField = 'name',
+    sortField = 'dateTimes.date',
     sortOrder = 'ASC',
 }) => {
     sortOrder = sortOrder.toUpperCase();
@@ -426,9 +426,9 @@ const getExams = async ({
     const isNestedSortField = sortField.includes('.');
 
     const whereCondition = {
-        [isNestedColumn ? column.split('.')[1] : column]: {
+       /*  [isNestedColumn ? column.split('.')[1] : column]: {
             [Op.like]: `${query}%`,
-        },
+        }, */
     };
 
     const orderCondition = [];
