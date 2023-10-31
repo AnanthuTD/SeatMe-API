@@ -46,7 +46,7 @@ const authStaffMiddleware = (req, res, next) => {
         req.user = verified;
         return next();
     } catch (error) {
-        return res.status(400).send('Invalid token.');
+        return res.status(401).send('Invalid token.');
     }
 };
 
