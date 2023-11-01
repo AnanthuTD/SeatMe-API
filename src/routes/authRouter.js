@@ -80,8 +80,10 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.post('/refresh-token', async (req, res) => {
+router.post('/refresh', async (req, res) => {
     const { refreshToken } = req.cookies;
+    console.log(refreshToken);
+    if (!refreshToken) return res.sendStatus(403);
 
     try {
         const { tokenDetails, error, message } = await verifyRefreshToken(

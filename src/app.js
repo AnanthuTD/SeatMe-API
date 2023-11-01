@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -16,14 +17,15 @@ import programRouter from './routes/programRouter.js';
 import { sequelize } from './sequelize/connection.js';
 import { cleanBlacklist } from './helpers/jwtHelper.js';
 import {
-    authAdminMiddleware,
-    authStaffMiddleware,
+    adminAuthMiddleware,
+    staffAuthMiddleware,
 } from './middlewares/authMiddleware.js';
 import {
     csrfProtectionMiddleware,
     generateCsrfToken,
 } from './middlewares/csrfMiddleware.js';
 import getRootDir from '../getRootDir.js';
+import validateENV from './env.js';
 
 const dirname = getRootDir();
 
@@ -97,8 +99,8 @@ function setupRoutes() {
     // app.use('/admin/departmententry', departmentRouter);
     app.use('/admin/courseentry', courseRouter);
     app.use('/admin/programentry', programRouter);
-    app.use('/admin', authAdminMiddleware, adminRouter);
-    app.use('/staff', authStaffMiddleware, staffRouter);
+    app.use('/admin', adminAuthMiddleware, adminRouter);
+    app.use('/staff', staffAuthMiddleware, staffRouter);
     app.use('/auth', authRouter);
     app.use('/csrf', generateCsrfToken);
     app.use('/admin/departmententry', departmentRouter);
@@ -121,6 +123,7 @@ function startServer() {
  * Initialize the application by connecting to the database, setting up middlewares, routes, and starting the server.
  */
 async function init() {
+    validateENV();
     await assertDatabaseConnectionOk();
     setupMiddlewares();
     setupRoutes();
@@ -132,5 +135,7 @@ async function init() {
     });
 }
 
-// Initialize the application
+const folderPath = path.join(getRootDir(), 'pdf');
+if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
+
 init();
