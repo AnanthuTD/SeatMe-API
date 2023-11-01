@@ -56,10 +56,10 @@ router.post('/login', async (req, res) => {
                 console.error(error);
             }
 
-            /*   // Log the decoded token (for demonstration purposes)
-            console.log(jwt.verify(token, secretKey)); */
-
-            const expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60);
+            const currentDate = new Date();
+            const expirationDate = new Date(
+                currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
+            );
 
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
