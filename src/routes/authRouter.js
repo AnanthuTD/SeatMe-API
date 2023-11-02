@@ -110,4 +110,17 @@ router.post('/refresh', async (req, res) => {
     }
 });
 
+router.delete('/logout', async (req, res) => {
+    const { refreshToken } = req.cookies;
+    if (!refreshToken) return res.sendStatus(200);
+    try {
+        models.refreshToken.destroy({ where: { token: refreshToken } });
+        res.clearCookie('refreshToken');
+        return res.sendStatus(200);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 export default router;
