@@ -1,17 +1,28 @@
+// main.js
+
 import SeatingArrangement from './algorithm.js';
 import { assignSeats } from './assignSeats.js';
 
+// Configuration
+const config = {
+    date: new Date(),
+    fileName: 'optimized',
+    primaryCourseIndex: 0,
+};
+
+/**
+ * Main function for the seat assignment optimization process.
+ */
 async function main() {
     try {
         // Get seat assignment data
         const [roomAssignments, unassignedStudentCount, studentData] =
-            await assignSeats({
-                date: new Date(),
-                fileName: 'optimized',
-            });
+            await assignSeats(config);
 
-        // Course IDs of unassigned students
-        const courseIds = studentData.map((student) => student[0].courseId);
+        // Extract course IDs from student data
+        const courseIds = studentData.map(
+            (student) => student[config.primaryCourseIndex].courseId,
+        );
 
         // Filter rooms with empty seats
         const roomsWithEmptySeats = roomAssignments.filter(
@@ -20,12 +31,18 @@ async function main() {
 
         let remainingUnassignedStudents = unassignedStudentCount;
 
+        // Define a logger function for better logging
+        const logger = (message) => {
+            console.log(message);
+        };
+
+        // Iterate through course IDs
         courseIds.forEach((courseId) => {
-            // Loop through room assignments
+            // Iterate through room assignments
             roomAssignments.forEach((roomAssignment) => {
                 let { exams, seatingMatrix } = roomAssignment;
 
-                // Loop through exams in the room
+                // Iterate through exams in the room
                 exams.forEach((exam) => {
                     if (remainingUnassignedStudents <= 0) {
                         return;
@@ -67,7 +84,7 @@ async function main() {
                             // Attempt to assign seats using the optimizer
                             seatingOptimizer.assignSeats();
                         } catch (error) {
-                            console.error(error.message);
+                            logger(`Error: ${error.message}`);
                         }
 
                         // Filter students who couldn't be assigned seats
@@ -82,7 +99,6 @@ async function main() {
                         }
 
                         let studentIndex = 0;
-                        // Create a list of students to replace
                         let studentsToReplace = seatingMatrix.map((row) => {
                             return row.filter((seat) => {
                                 if (
@@ -98,8 +114,9 @@ async function main() {
 
                         // Create a copy of rooms with empty seats to optimize
                         let roomsToOptimize = [...roomsWithEmptySeats];
-                        let studentsAlreadyAssigned = []; // Track students already assigned
+                        let studentsAlreadyAssigned = [];
 
+                        // Iterate through rooms to optimize
                         roomsToOptimize.forEach((roomToOptimize) => {
                             // Filter students that haven't been assigned yet
                             const studentsToAssign = studentsToReplace.filter(
@@ -111,15 +128,17 @@ async function main() {
                                 return; // No more unassigned students to optimize for this room
                             }
 
+                            // Create an optimization attempt
                             const optimizationAttempt = new SeatingArrangement({
                                 students: studentsToAssign, // Assign only unassigned students
                                 room: roomToOptimize,
                             });
 
                             try {
+                                // Attempt to optimize seat assignments for the room
                                 optimizationAttempt.assignSeats();
                             } catch (error) {
-                                console.error(error.message);
+                                logger(`Error: ${error.message}`);
                             }
 
                             // Filter students left unassigned after optimization
@@ -145,7 +164,7 @@ async function main() {
                             studentsLeftUnassigned.length === 0 &&
                             studentsToReplace.length === 0
                         ) {
-                            console.log('Optimization was successful');
+                            logger('Optimization was successful');
                             seatingMatrix = newSeatingMatrix;
 
                             // Update room assignments with optimized rooms
@@ -156,7 +175,7 @@ async function main() {
                                 });
                             });
                         } else {
-                            console.log('Optimization was unsuccessful');
+                            logger('Optimization was unsuccessful');
                         }
                     }
                 });
@@ -164,7 +183,7 @@ async function main() {
         });
 
         // Log the final room assignments
-        console.log(JSON.stringify(roomAssignments, null, 2));
+        logger(JSON.stringify(roomAssignments, null, 2));
     } catch (error) {
         console.error('Error:', error);
     }
