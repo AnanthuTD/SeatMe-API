@@ -98,26 +98,45 @@ async function main() {
 
                         // Create a copy of rooms with empty seats to optimize
                         let roomsToOptimize = [...roomsWithEmptySeats];
+                        let studentsAlreadyAssigned = []; // Track students already assigned
 
                         roomsToOptimize.forEach((roomToOptimize) => {
-                            // Create an optimization attempt for the room
+                            // Filter students that haven't been assigned yet
+                            const studentsToAssign = studentsToReplace.filter(
+                                (student) =>
+                                    !studentsAlreadyAssigned.includes(student),
+                            );
+
+                            if (studentsToAssign.length === 0) {
+                                return; // No more unassigned students to optimize for this room
+                            }
+
                             const optimizationAttempt = new SeatingArrangement({
-                                students: [...studentsToReplace],
+                                students: studentsToAssign, // Assign only unassigned students
                                 room: roomToOptimize,
                             });
 
                             try {
-                                // Attempt to optimize seat assignments for the room
                                 optimizationAttempt.assignSeats();
                             } catch (error) {
                                 console.error(error.message);
                             }
 
                             // Filter students left unassigned after optimization
+                            studentsToReplace = studentsToReplace.filter(
+                                (student) =>
+                                    !studentsAlreadyAssigned.includes(student),
+                            );
                             studentsToReplace = optimizationAttempt
                                 .getUnsignedStudents()
                                 .filter(
                                     (classStudents) => classStudents.length > 0,
+                                );
+
+                            // Update the list of students who have been assigned
+                            studentsAlreadyAssigned =
+                                studentsAlreadyAssigned.concat(
+                                    studentsToAssign,
                                 );
                         });
 
