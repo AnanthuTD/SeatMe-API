@@ -90,7 +90,7 @@ async function assignSeats({
         fileName,
     );
 
-    return [classes, totalUnassignedStudents];
+    return [classes, totalUnassignedStudents, students];
 }
 
 export { assignSeats };
