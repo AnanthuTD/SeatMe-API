@@ -296,7 +296,7 @@ router.get('/exam/assign', async (req, res) => {
 
     await createRecord(seating);
 
-    return res.status(201).json({ fileName });
+    return res.status(201).json({ fileName: `${fileName}.pdf` });
 });
 
 router.get('/public/:fileName', (req, res) => {
