@@ -1,28 +1,26 @@
 // main.js
 
 import SeatingArrangement from './algorithm.js';
-import { assignSeats } from './assignSeats.js';
+// import { assignSeats } from './assignSeats.js';
 
 // Configuration
-const config = {
+/* const config = {
     date: new Date(),
     fileName: 'optimized',
     primaryCourseIndex: 0,
-};
+}; */
 
 /**
  * Main function for the seat assignment optimization process.
  */
-async function main() {
+async function main(roomAssignments, unassignedStudentCount, studentData) {
     try {
         // Get seat assignment data
-        const [roomAssignments, unassignedStudentCount, studentData] =
-            await assignSeats(config);
+        /*   const [roomAssignments, unassignedStudentCount, studentData] =
+            await assignSeats(config); */
 
         // Extract course IDs from student data
-        const courseIds = studentData.map(
-            (student) => student[config.primaryCourseIndex].courseId,
-        );
+        const courseIds = studentData.map((student) => student[0].courseId);
 
         // Filter rooms with empty seats
         const roomsWithEmptySeats = roomAssignments.filter(
@@ -100,16 +98,22 @@ async function main() {
 
                         let studentIndex = 0;
                         let studentsToReplace = seatingMatrix.map((row) => {
-                            return row.filter((seat) => {
-                                if (
-                                    seat.courseId === exam.courseId &&
-                                    studentIndex < unassignedStudentCount
-                                ) {
-                                    studentIndex += 1;
-                                    return true;
-                                }
-                                return false;
-                            });
+                            return row
+                                .map((seat) => {
+                                    if (
+                                        seat.courseId === exam.courseId &&
+                                        studentIndex < unassignedStudentCount
+                                    ) {
+                                        logger(JSON.stringify(exam, null, 2));
+                                        studentIndex += 1;
+                                        seat.programId = exam.id;
+                                        seat.programName = exam.name;
+                                        seat.semester = exam.semester;
+                                        return seat;
+                                    }
+                                    return {}; // Return an empty object for seats that should be filtered out
+                                })
+                                .filter((seat) => Object.keys(seat).length > 0); // Filter out the empty objects in each row
                         });
 
                         // Create a copy of rooms with empty seats to optimize
@@ -182,11 +186,16 @@ async function main() {
             });
         });
 
+        return 0;
+
         // Log the final room assignments
-        logger(JSON.stringify(roomAssignments, null, 2));
+        // logger(JSON.stringify(roomAssignments, null, 2));
     } catch (error) {
         console.error('Error:', error);
+        return unassignedStudentCount;
     }
 }
 
-main();
+// main();
+
+export default main;

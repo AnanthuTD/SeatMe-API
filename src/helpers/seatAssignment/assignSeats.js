@@ -5,6 +5,7 @@ import seatCount from './seatCount.js';
 import generateSeatingMatrix from './seatingMatrix.js';
 import SeatingArrangement from './algorithm.js';
 import generateSeatingMatrixPDF from './pdf.js';
+import optimize from './optimize.js';
 
 /**
  * Assign seats to students for a given date.
@@ -61,7 +62,7 @@ async function assignSeats({
     }
 
     const { totalEmptySeats, totalAssignedSeats } = seatCount(classes);
-    const totalUnassignedStudents = totalStudents - totalAssignedSeats;
+    let totalUnassignedStudents = totalStudents - totalAssignedSeats;
     if (totalAssignedSeats === totalStudents) {
         console.log(
             `All students have been assigned ( ${totalAssignedSeats}  )`,
@@ -79,6 +80,12 @@ async function assignSeats({
         totalEmptySeats,
         totalUnassignedStudents,
     ); */
+
+    totalUnassignedStudents = await optimize(
+        classes,
+        totalUnassignedStudents,
+        students,
+    );
 
     generateSeatingMatrixPDF(
         classes,
