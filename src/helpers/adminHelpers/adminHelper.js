@@ -361,39 +361,44 @@ const getCourses = async (programId, semester) => {
 };
 
 const updateCoursesDateTime = async (data) => {
-    const { courseId, date, timeCode } = data;
-    const [dateTimeRecord] = await models.dateTime.findOrCreate({
-        where: { date, timeCode },
-    });
-
-    const courseExist = await models.course.findByPk(courseId);
-    if (!courseExist) return false;
-
-    const existingExam = await models.exam.findOne({
-        where: {
-            courseId,
-        },
-        include: [
-            {
-                model: models.dateTime,
-                attributes: ['date'],
-                where: { date: { [Op.gt]: new Date() } },
-                require: true,
-            },
-        ],
-    });
-
-    if (existingExam) {
-        // If an existing exam with a future date is found, update its dateTimeId
-        await existingExam.update({ dateTimeId: dateTimeRecord.id });
-    } else {
-        await models.exam.create({
-            dateTimeId: dateTimeRecord.id,
-            courseId,
+    try {
+        const { courseId, date, timeCode } = data;
+        const [dateTimeRecord] = await models.dateTime.findOrCreate({
+            where: { date, timeCode },
         });
-    }
 
-    return true;
+        const courseExist = await models.course.findByPk(courseId);
+        if (!courseExist) return false;
+
+        const existingExam = await models.exam.findOne({
+            where: {
+                courseId,
+            },
+            include: [
+                {
+                    model: models.dateTime,
+                    attributes: ['date'],
+                    where: { date: { [Op.gt]: new Date() } },
+                    require: true,
+                },
+            ],
+        });
+
+        if (existingExam) {
+            // If an existing exam with a future date is found, update its dateTimeId
+            await existingExam.update({ dateTimeId: dateTimeRecord.id });
+        } else {
+            await models.exam.create({
+                dateTimeId: dateTimeRecord.id,
+                courseId,
+            });
+        }
+
+        return true;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
 };
 
 const getExamDateTime = async ({ courseId = undefined }) => {
@@ -418,7 +423,7 @@ const getExams = async ({
     offset = 0,
     limit = 10,
     sortField = 'dateTimes.date',
-    sortOrder = 'ASC',
+    sortOrder = 'DESC',
 }) => {
     sortOrder = sortOrder.toUpperCase();
 
@@ -426,7 +431,7 @@ const getExams = async ({
     const isNestedSortField = sortField.includes('.');
 
     const whereCondition = {
-       /*  [isNestedColumn ? column.split('.')[1] : column]: {
+        /*  [isNestedColumn ? column.split('.')[1] : column]: {
             [Op.like]: `${query}%`,
         }, */
     };
