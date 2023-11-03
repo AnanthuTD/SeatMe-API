@@ -211,7 +211,7 @@ router.get('/exams', async (req, res) => {
 
     query = query || '';
     sortField = sortField || 'dateTimes.date';
-    sortOrder = sortOrder || 'ASC';
+    sortOrder = sortOrder || 'DESC';
     offset = parseInt(offset, 10) || 0;
     limit = parseInt(limit, 10) || 10;
 
@@ -274,9 +274,7 @@ router.get('/exam/assign', async (req, res) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        fileName = `${
-            examType ? `${examType}-` : ''
-        }${year}-${month}-${day}.pdf`;
+        fileName = `${examType ? `${examType}-` : ''}${year}-${month}-${day}`;
     } catch (error) {
         return res.status(400).json({ error: 'Invalid date format' });
     }

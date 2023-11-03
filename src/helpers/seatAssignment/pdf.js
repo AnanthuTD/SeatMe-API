@@ -113,5 +113,5 @@ export default function generateSeatingMatrixPDF(
     }
 
     // Save the PDF
-    doc.save(`${getRootDir()}/pdf/${fileName}`);
+    doc.save(`${getRootDir()}/pdf/${fileName}.pdf`);
 }
