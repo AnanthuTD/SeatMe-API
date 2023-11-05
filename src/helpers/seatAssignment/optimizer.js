@@ -6,8 +6,6 @@ const logger = (message) => {
 };
 
 function optimizationAttempt(students, room) {
-    console.log(JSON.stringify(room, null, 2));
-
     const seatingOptimizer = new SeatingArrangement({
         students,
         room,
