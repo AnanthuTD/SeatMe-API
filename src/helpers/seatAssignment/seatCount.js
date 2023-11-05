@@ -14,6 +14,7 @@ export default function seatCount(classes) {
         .flatMap(({ seatingMatrix }) => seatingMatrix.flat())
         .reduce(
             (counts, seat) => {
+                // console.log(seat);
                 if (seat.occupied) {
                     counts.totalAssignedSeats += 1;
                 } else {
@@ -23,7 +24,7 @@ export default function seatCount(classes) {
             },
             { totalEmptySeats: 0, totalAssignedSeats: 0 },
         );
-
+    // console.log('seatData', seatData);
     return seatData;
 }
 
