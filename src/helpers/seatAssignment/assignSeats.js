@@ -5,7 +5,7 @@ import seatCount from './seatCount.js';
 import generateSeatingMatrix from './seatingMatrix.js';
 import SeatingArrangement from './algorithm.js';
 import generateSeatingMatrixPDF from './pdf.js';
-import optimize from './new.js';
+import optimize from './optimize.js';
 
 /**
  * Assign seats to students for a given date.
