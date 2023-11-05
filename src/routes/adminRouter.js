@@ -256,47 +256,56 @@ router.patch('/rooms', async (req, res) => {
 });
 
 router.get('/exam/assign', async (req, res) => {
-    const { orderBy, examType } = req.query;
-    let { date } = req.query;
-
-    const currentDate = new Date();
-    const currentDateString = currentDate.toISOString().split('T')[0];
-    let fileName = '';
-
     try {
+        const { orderBy, examType } = req.query;
+
+        let { optimize } = req.query;
+        optimize = optimize === 'true' || optimize === '1';
+
+        let { date } = req.query;
+
+        const currentDate = new Date();
+        const currentDateString = currentDate.toISOString().split('T')[0];
+        let fileName = '';
+
         date = new Date(date);
-        const providedDateString = date?.toISOString()?.split('T')[0];
+
+        const providedDateString = date.toISOString().split('T')[0];
         if (providedDateString < currentDateString) {
             return res
                 .status(400)
                 .json({ error: 'Date should not be in the past' });
         }
+
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         fileName = `${examType ? `${examType}-` : ''}${year}-${month}-${day}`;
-    } catch (error) {
-        return res.status(400).json({ error: 'Invalid date format' });
-    }
 
-    if (!['rollNumber', 'id'].includes(orderBy)) {
-        return res.status(400).json({ error: 'Invalid orderBy value' });
-    }
+        if (!['rollNumber', 'id'].includes(orderBy)) {
+            return res.status(400).json({ error: 'Invalid orderBy value' });
+        }
 
-    const [seating, totalUnassignedStudents] = await assignSeats({
-        date,
-        orderBy,
-        fileName,
-    });
-
-    if (totalUnassignedStudents > 0)
-        return res.status(200).json({
-            message: `There are ${totalUnassignedStudents} unassigned students. Please add more rooms to accommodate them and try again. No record has been created.`,
+        const [seating, totalUnassignedStudents] = await assignSeats({
+            date,
+            orderBy,
+            fileName,
+            optimize,
         });
 
-    await createRecord(seating);
+        await createRecord(seating);
 
-    return res.status(201).json({ fileName: `${fileName}.pdf` });
+        if (totalUnassignedStudents > 0) {
+            return res.status(200).json({
+                message: `There are ${totalUnassignedStudents} unassigned students. Please add more rooms to accommodate them and try again. No record has been created.`,
+            });
+        }
+
+        return res.status(201).json({ fileName: `${fileName}.pdf` });
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 router.get('/public/:fileName', (req, res) => {
@@ -319,11 +328,10 @@ router.get('/public/:fileName', (req, res) => {
 
         // Stream the file to the response
         const fileStream = fs.createReadStream(filePath);
-        fileStream.pipe(res);
-    } else {
-        // Handle the case when the file does not exist
-        res.status(404).send('File not found');
+        return fileStream.pipe(res);
     }
+    // Handle the case when the file does not exist
+    return res.status(404).send('File not found');
 });
 
 router.delete('/public/:fileName', (req, res) => {
@@ -341,14 +349,13 @@ router.delete('/public/:fileName', (req, res) => {
         if (fs.existsSync(filePath)) {
             // Attempt to remove the file
             fs.unlinkSync(filePath);
-            res.status(204).send(); // Send a success response with no content
-        } else {
-            // Handle the case when the file does not exist
-            res.status(404).send('File not found');
+            return res.status(204).send(); // Send a success response with no content
         }
+        // Handle the case when the file does not exist
+        return res.status(404).send('File not found');
     } catch (error) {
         console.error('Error removing file:', error);
-        res.status(500).send('Internal Server Error');
+        return res.status(500).send('Internal Server Error');
     }
 });
 

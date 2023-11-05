@@ -5,7 +5,7 @@ import seatCount from './seatCount.js';
 import generateSeatingMatrix from './seatingMatrix.js';
 import SeatingArrangement from './algorithm.js';
 import generateSeatingMatrixPDF from './pdf.js';
-import optimize from './optimize.js';
+import optimizer from './optimizer.js';
 
 /**
  * Assign seats to students for a given date.
@@ -19,6 +19,7 @@ async function assignSeats({
     date = new Date(),
     orderBy = 'rollNumber',
     fileName = 'unnamed',
+    optimize = true,
 }) {
     /** @type {[NestedStudentArray, number]} */
     let [students, totalStudents] = await getData(date, orderBy);
@@ -63,37 +64,40 @@ async function assignSeats({
             `${totalUnassignedStudents} students are not been assigned`,
         );
 
-    if (totalUnassignedStudents > 0)
-        totalUnassignedStudents = await optimize(
+    // optimizing
+    if (optimize && totalUnassignedStudents > 0) {
+        console.log(optimize);
+        totalUnassignedStudents = await optimizer(
             classes,
             totalUnassignedStudents,
             students,
         );
 
-    // console.log(JSON.stringify(classes, null, 2));
-    const { totalEmptySeats: h1, totalAssignedSeats: h2 } = seatCount(classes);
-    console.log(h1, h2);
+        // console.log(JSON.stringify(classes, null, 2));
+        const { totalEmptySeats: h1, totalAssignedSeats: h2 } =
+            seatCount(classes);
+        console.log(h1, h2);
 
-    totalEmptySeats = h1;
-    totalAssignedSeats = h2;
+        totalEmptySeats = h1;
+        totalAssignedSeats = h2;
 
-    totalUnassignedStudents = totalStudents - h2;
-    if (h2 === totalStudents) {
-        console.log(`All students have been assigned ( ${h2}  )`);
-    } else
-        console.warn(
-            `${totalUnassignedStudents} students are not been assigned`,
-        );
+        totalUnassignedStudents = totalStudents - h2;
+        if (h2 === totalStudents) {
+            console.log(`All students have been assigned ( ${h2}  )`);
+        } else
+            console.warn(
+                `${totalUnassignedStudents} students are not been assigned`,
+            );
 
-    const repeatingRegNos = findRepeatingRegNos(classes);
+        const repeatingRegNos = findRepeatingRegNos(classes);
 
-    if (repeatingRegNos.length > 0) {
-        console.log('Repeating registration numbers found:');
-        console.log(repeatingRegNos);
-    } else {
-        console.log('No repeating registration numbers found.');
+        if (repeatingRegNos.length > 0) {
+            console.log('Repeating registration numbers found:');
+            console.log(repeatingRegNos);
+        } else {
+            console.log('No repeating registration numbers found.');
+        }
     }
-
     generateSeatingMatrixPDF(
         classes,
         date,
