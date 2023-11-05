@@ -44,198 +44,273 @@ router.get('/', (req, res) => {
  * @returns {object} Response object with status and message indicating the result of the operation.
  */
 router.post('/staff', async (req, res) => {
-    const { staffs } = req.body;
-
-    const result = await createStaff(staffs);
-
-    return res.status(result.status).json(result);
+    try {
+        const { staffs } = req.body;
+        const result = await createStaff(staffs);
+        res.status(result.status).json(result);
+    } catch (error) {
+        console.error(`Error in POST /staff: ${error.message}`);
+        res.status(500).json({ error: 'Error creating staff members' });
+    }
 });
 
 router.get('/staff/count', async (req, res) => {
-    const count = await getStaffCount();
-    res.json(count);
+    try {
+        const count = await getStaffCount();
+        res.json(count);
+    } catch (error) {
+        console.error(`Error in GET /staff/count: ${error.message}`);
+        res.status(500).json({ error: 'Error counting staff members' });
+    }
 });
 
 router.get('/staff/list', async (req, res) => {
-    let { query, column, offset, limit, sortField, sortOrder } = req.query;
+    try {
+        let { query, column, offset, limit, sortField, sortOrder } = req.query;
 
-    const allowedColumns = [
-        'id',
-        'name',
-        'rollNumber',
-        'semester',
-        'program.name',
-        'programId',
-    ];
+        const allowedColumns = [
+            'id',
+            'name',
+            'rollNumber',
+            'semester',
+            'program.name',
+            'programId',
+        ];
 
-    if (!column.every((col) => allowedColumns.includes(col))) {
-        column = ['id'];
+        // Validate and adjust the 'column' parameter
+        if (
+            !Array.isArray(column) ||
+            !column.every((col) => allowedColumns.includes(col))
+        ) {
+            column = ['id'];
+        }
+
+        query = query || [''];
+        sortField = sortField || 'updatedAt';
+        sortOrder = sortOrder || 'DESC';
+        offset = parseInt(offset, 10) || 0;
+        limit = parseInt(limit, 10) || 10;
+
+        const data = await getStaffs(
+            query,
+            column,
+            offset,
+            limit,
+            sortField,
+            sortOrder,
+        );
+
+        res.json(data);
+    } catch (error) {
+        console.error(`Error in GET /staff/list: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching staff list' });
     }
-
-    query = query || [''];
-    sortField = sortField || 'updatedAt';
-    sortOrder = sortOrder || 'DESC';
-    offset = parseInt(offset, 10) || 0;
-    limit = parseInt(limit, 10) || 10;
-
-    const data = await getStaffs(
-        query,
-        column,
-        offset,
-        limit,
-        sortField,
-        sortOrder,
-    );
-
-    res.json(data);
 });
 
 router.get('/student/count', async (req, res) => {
-    const count = await getStudentCount();
-    res.json(count);
+    try {
+        const count = await getStudentCount();
+        res.json(count);
+    } catch (error) {
+        console.error(`Error in GET /student/count: ${error.message}`);
+        res.status(500).json({ error: 'Error counting students' });
+    }
 });
 
 router.get('/student/list', async (req, res) => {
-    let { query, column, offset, limit, sortField, sortOrder } = req.query;
+    try {
+        let { query, column, offset, limit, sortField, sortOrder } = req.query;
 
-    const allowedColumns = [
-        'id',
-        'name',
-        'rollNumber',
-        'semester',
-        'program.name',
-        'programId',
-    ];
+        const allowedColumns = [
+            'id',
+            'name',
+            'rollNumber',
+            'semester',
+            'program.name',
+            'programId',
+        ];
 
-    if (!column.every((col) => allowedColumns.includes(col))) {
-        column = ['id'];
+        // Validate and adjust the 'column' parameter
+        if (
+            !Array.isArray(column) ||
+            !column.every((col) => allowedColumns.includes(col))
+        ) {
+            column = ['id'];
+        }
+
+        query = query || [''];
+        sortField = sortField || 'updatedAt';
+        sortOrder = sortOrder || 'DESC';
+        offset = parseInt(offset, 10) || 0;
+        limit = parseInt(limit, 10) || 10;
+
+        const data = await findStudent(
+            query,
+            column,
+            offset,
+            limit,
+            sortField,
+            sortOrder,
+        );
+
+        res.json(data);
+    } catch (error) {
+        console.error(`Error in GET /student/list: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching student list' });
     }
-
-    query = query || [''];
-    sortField = sortField || 'updatedAt';
-    sortOrder = sortOrder || 'DESC';
-    offset = parseInt(offset, 10) || 0;
-    limit = parseInt(limit, 10) || 10;
-
-    // console.log('sort order: ', sortOrder);
-
-    const data = await findStudent(
-        query,
-        column,
-        offset,
-        limit,
-        sortField,
-        sortOrder,
-    );
-
-    res.json(data);
 });
 
 router.get('/departments', async (req, res) => {
-    const departments = await getDepartments();
-    res.json(departments);
+    try {
+        const departments = await getDepartments();
+        res.json(departments);
+    } catch (error) {
+        console.error(`Error in GET /departments: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching departments' });
+    }
 });
+
 router.get('/programs', async (req, res) => {
-    let { departmentId } = req.query;
-    departmentId = parseInt(departmentId, 10) || 0;
-
-    const programs = await getPrograms(departmentId);
-
-    res.json(programs);
+    try {
+        let { departmentId } = req.query;
+        departmentId = parseInt(departmentId, 10) || 0;
+        const programs = await getPrograms(departmentId);
+        res.json(programs);
+    } catch (error) {
+        console.error(`Error in GET /programs: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching programs' });
+    }
 });
+
 router.get('/courses', async (req, res) => {
-    const { programId, semester } = req.query;
-    const courses = await getCourses(programId, semester);
-    res.json(courses);
+    try {
+        const { programId, semester } = req.query;
+        const courses = await getCourses(programId, semester);
+        res.json(courses);
+    } catch (error) {
+        console.error(`Error in GET /courses: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching courses' });
+    }
 });
 
 router.post('/timetable', async (req, res) => {
-    const { body } = req;
-    const { courseId, timeCode, date } = body;
-    let { courseName } = body;
+    try {
+        const { body } = req;
+        const { courseId, timeCode, date } = body;
+        let { courseName } = body;
 
-    courseName = courseName || '';
-    const missingProperties = [];
+        courseName = courseName || '';
+        const missingProperties = [];
 
-    if (!courseId) missingProperties.push('courseId');
+        if (!courseId) missingProperties.push('courseId');
+        if (!timeCode) missingProperties.push('timeCode');
+        if (!date) missingProperties.push('date');
 
-    if (!timeCode) missingProperties.push('timeCode');
+        if (missingProperties.length > 0) {
+            const errorMessage = `The following properties are missing: ${missingProperties.join(
+                ', ',
+            )}`;
+            res.status(400).send(errorMessage);
+            return;
+        }
 
-    if (!date) missingProperties.push('date');
-
-    if (missingProperties.length > 0) {
-        const errorMessage = `The following properties are missing: ${missingProperties.join(
-            ', ',
-        )}`;
-
-        res.status(400).send(errorMessage);
-        return;
+        const status = await updateCoursesDateTime(body);
+        if (status)
+            res.status(200).send(
+                `Exam for course ${courseName}(${courseId}) has been set for ${date}.`,
+            );
+        else
+            res.status(404).send(`Course ${courseName}(${courseId}) not found`);
+    } catch (error) {
+        console.error(`Error in POST /timetable: ${error.message}`);
+        res.status(500).json({
+            error: 'Error processing the timetable request',
+        });
     }
-    const status = await updateCoursesDateTime(body);
-    if (status)
-        res.status(200).send(
-            `Exam for course ${courseName}(${courseId}) has been set for ${date}.`,
-        );
-    else res.status(404).send(`Course ${courseName}${courseId} not found`);
 });
 
 router.get('/exams/count', async (req, res) => {
-    const count = await getOngoingExamCount();
-    res.json(count);
+    try {
+        const count = await getOngoingExamCount();
+        res.json(count);
+    } catch (error) {
+        console.error(`Error in GET /exams/count: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching exam count' });
+    }
 });
 
 router.get('/exam', async (req, res) => {
-    const { courseId } = req.query;
-    const examDateTime = await getExamDateTime({ courseId });
-    if (examDateTime) {
-        res.json(examDateTime);
-        return;
+    try {
+        const { courseId } = req.query;
+        const examDateTime = await getExamDateTime({ courseId });
+        if (examDateTime) {
+            res.json(examDateTime);
+        } else {
+            res.sendStatus(204);
+        }
+    } catch (error) {
+        console.error(`Error in GET /exam: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching exam details' });
     }
-    res.sendStatus(204);
 });
 
 router.get('/exams', async (req, res) => {
-    let { query, column, offset, limit, sortField, sortOrder } = req.query;
+    try {
+        let { query, column, offset, limit, sortField, sortOrder } = req.query;
 
-    const allowedColumns = [
-        'id',
-        'name',
-        'semester',
-        'dateTimes.date',
-        'dateTimes.timeCode',
-    ];
+        const allowedColumns = [
+            'id',
+            'name',
+            'semester',
+            'dateTimes.date',
+            'dateTimes.timeCode',
+        ];
 
-    if (!allowedColumns.includes(column)) {
-        column = 'dateTimes.date';
+        if (!allowedColumns.includes(column)) {
+            column = 'dateTimes.date';
+        }
+
+        query = query || '';
+        sortField = sortField || 'dateTimes.date';
+        sortOrder = sortOrder || 'DESC';
+        offset = parseInt(offset, 10) || 0;
+        limit = parseInt(limit, 10) || 10;
+
+        const data = await getExams({
+            query,
+            column,
+            offset,
+            limit,
+            sortField,
+            sortOrder,
+        });
+
+        res.json(data);
+    } catch (error) {
+        console.error(`Error in GET /exams: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching exams' });
     }
-
-    query = query || '';
-    sortField = sortField || 'dateTimes.date';
-    sortOrder = sortOrder || 'DESC';
-    offset = parseInt(offset, 10) || 0;
-    limit = parseInt(limit, 10) || 10;
-
-    const data = await getExams({
-        query,
-        column,
-        offset,
-        limit,
-        sortField,
-        sortOrder,
-    });
-
-    res.json(data);
 });
 
 router.get('/rooms', async (req, res) => {
-    const rooms = await getRooms();
-    res.json(rooms);
+    try {
+        const rooms = await getRooms();
+        res.json(rooms);
+    } catch (error) {
+        console.error('Error fetching rooms:', error);
+        res.status(500).json({ error: 'Error fetching rooms' });
+    }
 });
 
 router.get('/examines-count', async (req, res) => {
     const { date } = req.query;
-    const count = await countExamsForDate({ targetDate: date });
-    res.json(count);
+    try {
+        const count = await countExamsForDate({ targetDate: date });
+        res.json(count);
+    } catch (error) {
+        console.error('Error counting exams for date:', error);
+        res.status(500).json({ error: 'Error counting exams for date' });
+    }
 });
 
 router.patch('/rooms', async (req, res) => {
@@ -249,10 +324,9 @@ router.patch('/rooms', async (req, res) => {
         await updateRoomAvailability({ roomIds });
         res.json({ message: 'Room availability updated successfully' });
     } catch (error) {
-        console.error('Error updating room availability:', error);
+        console.error(`Error in PATCH /rooms: ${error.message}`);
         res.status(500).json({ error: 'Failed to update room availability' });
     }
-    return null;
 });
 
 router.get('/exam/assign', async (req, res) => {
@@ -303,7 +377,7 @@ router.get('/exam/assign', async (req, res) => {
 
         return res.status(201).json({ fileName: `${fileName}.pdf` });
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error in ( /exam/assign ): ', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -312,7 +386,7 @@ router.get('/public/:fileName', (req, res) => {
     const { fileName } = req.params;
 
     // Validate and sanitize the fileName to prevent directory traversal attacks
-    if (fileName.includes('..')) {
+    if (fileName.includes('..') || fileName.includes('/')) {
         return res.status(400).send('Invalid file name');
     }
 
@@ -320,18 +394,32 @@ router.get('/public/:fileName', (req, res) => {
 
     // Check if the file exists
     if (fs.existsSync(filePath)) {
-        // Set the Content-Disposition header for download
-        res.setHeader(
-            'Content-Disposition',
-            `attachment; filename="${fileName}"`,
-        );
+        try {
+            // Set the Content-Disposition header for download
+            res.setHeader(
+                'Content-Disposition',
+                `attachment; filename="${fileName}"`,
+            );
 
-        // Stream the file to the response
-        const fileStream = fs.createReadStream(filePath);
-        return fileStream.pipe(res);
+            // Stream the file to the response
+            const fileStream = fs.createReadStream(filePath);
+
+            // Handle any errors that occur during streaming
+            fileStream.on('error', (error) => {
+                console.error(`Error streaming file: ${error}`);
+                res.status(500).send('Error streaming the file');
+            });
+
+            // Stream the file to the response
+            return fileStream.pipe(res);
+        } catch (error) {
+            console.error(`Error serving file ( /public/:fileName ): ${error}`);
+            return res.status(500).send('Error serving the file');
+        }
+    } else {
+        // Handle the case when the file does not exist
+        return res.status(404).send('File not found');
     }
-    // Handle the case when the file does not exist
-    return res.status(404).send('File not found');
 });
 
 router.delete('/public/:fileName', (req, res) => {
@@ -339,6 +427,8 @@ router.delete('/public/:fileName', (req, res) => {
 
     // Validate and sanitize the fileName to prevent directory traversal attacks
     if (fileName.includes('..')) {
+        const errorMessage = `Error in DELETE /public/${fileName}: Invalid file name - ${fileName}`;
+        console.error(errorMessage);
         return res.status(400).send('Invalid file name');
     }
 
@@ -349,12 +439,16 @@ router.delete('/public/:fileName', (req, res) => {
         if (fs.existsSync(filePath)) {
             // Attempt to remove the file
             fs.unlinkSync(filePath);
+            console.log(`File deleted: ${filePath}`);
             return res.status(204).send(); // Send a success response with no content
         }
         // Handle the case when the file does not exist
+        const errorMessage = `Error in DELETE /public/${fileName}: File not found - ${filePath}`;
+        console.error(errorMessage);
         return res.status(404).send('File not found');
     } catch (error) {
-        console.error('Error removing file:', error);
+        const errorMessage = `Error in DELETE /public/${fileName}: Error removing file - ${error}`;
+        console.error(errorMessage);
         return res.status(500).send('Internal Server Error');
     }
 });
@@ -383,7 +477,8 @@ router.get('/list-pdfs', async (req, res) => {
 
         res.json(sortedFileNames);
     } catch (error) {
-        console.error('Error listing PDFs: ', error);
+        const errorMessage = `Error in GET /list-pdfs: ${error.message}`;
+        console.error(errorMessage);
         res.status(500).send('Error listing PDFs.');
     }
 });
@@ -395,24 +490,32 @@ router.post('/student', async (req, res) => {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
-    const result = await findOrCreateStudents(students);
+    try {
+        const result = await findOrCreateStudents(students);
 
-    if (result) return res.status(200).json(result);
-    return res.status(400).json(result);
+        if (result) return res.status(200).json(result);
+        return res.status(400).json(result);
+    } catch (error) {
+        const errorMessage = `Error in POST /student: ${error.message}`;
+        console.error(errorMessage);
+        return res.status(500).send('Error processing student data.');
+    }
 });
 
 router.patch('/student', async (req, res) => {
     const students = req.body;
 
-    // console.log(JSON.stringify(students, null, 2));
-
     if (!students.length) {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
-    const notUpdatedStudents = await updateStudent(students);
-
-    return res.status(200).json(notUpdatedStudents);
+    try {
+        const notUpdatedStudents = await updateStudent(students);
+        return res.status(200).json(notUpdatedStudents);
+    } catch (error) {
+        console.error(`Error in PATCH /student: ${error.message}`);
+        return res.status(500).json({ error: 'Error updating students' });
+    }
 });
 
 router.delete('/student', async (req, res) => {
@@ -434,7 +537,7 @@ router.delete('/student', async (req, res) => {
             .status(404)
             .json({ error: `Student with ID ${studentId} not found` });
     } catch (error) {
-        console.error('Error deleting student:', error);
+        console.error(`Error in DELETE /student: ${error.message}`);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -446,22 +549,26 @@ router.get('/open-courses', async (req, res) => {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
-    const openCourses = await getAvailableOpenCourses(programId, isAided);
-
-    return res.status(200).json(openCourses);
+    try {
+        const openCourses = await getAvailableOpenCourses(programId, isAided);
+        return res.status(200).json(openCourses);
+    } catch (error) {
+        console.error(`Error in GET /open-courses: ${error.message}`);
+        return res.status(500).json({ error: 'Error fetching open courses' });
+    }
 });
 
 router.get('/students/pro-sem', async (req, res) => {
-    try {
-        const { programId, semester } = req.query;
+    const { programId, semester } = req.query;
 
+    try {
         // Perform the query to fetch students based on program and semester
         const students = await findStudentsByProgramSem(programId, semester);
 
-        res.status(200).json(students);
+        return res.status(200).json(students);
     } catch (error) {
-        console.error('Error fetching students:', error);
-        res.status(500).json({ error: 'Error fetching students' });
+        console.error(`Error in GET /students/pro-sem: ${error.message}`);
+        return res.status(500).json({ error: 'Error fetching students' });
     }
 });
 
