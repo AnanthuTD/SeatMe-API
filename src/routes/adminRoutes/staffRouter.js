@@ -41,13 +41,11 @@ router.get('/list', async (req, res) => {
         const allowedColumns = [
             'id',
             'name',
-            'rollNumber',
-            'semester',
-            'program.name',
-            'programId',
             'email',
             'phone',
             'departmentId',
+            'departmentName',
+            'designation',
         ];
 
         // Validate and adjust the 'column' parameter

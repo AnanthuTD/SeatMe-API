@@ -206,7 +206,7 @@ const findStudent = async (
             include: [
                 {
                     model: models.program,
-                    attributes: ['name', 'isAided'],
+                    attributes: [],
                     required: true,
                     where: nestedColumns.length
                         ? whereConditionNested
@@ -214,7 +214,7 @@ const findStudent = async (
                 },
                 {
                     model: models.course,
-                    attributes: ['name'],
+                    attributes: [],
                     required: false,
                     where: { isOpenCourse: true },
                 },
@@ -228,6 +228,9 @@ const findStudent = async (
                 'rollNumber',
                 'semester',
                 'openCourseId',
+                [sequelize.col('program.isAided'), 'isAided'],
+                [sequelize.col('course.name'), 'openCourseId'],
+                [sequelize.col('program.name'), 'programName'],
             ],
             raw: true,
         });
