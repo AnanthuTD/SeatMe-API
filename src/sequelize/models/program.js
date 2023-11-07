@@ -39,6 +39,7 @@ export default (sequelize) => {
         },
         {
             timestamps: false,
+            underscored: true,
         },
     );
 

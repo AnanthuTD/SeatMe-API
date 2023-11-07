@@ -27,11 +27,7 @@ export default (sequelize) => {
         },
         {
             timestamps: false,
-            /*  defaultScope: {
-                where: {
-                    isOpenCourse: false,
-                },
-            }, */
+            underscored: true,
         },
     );
 
