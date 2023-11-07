@@ -228,7 +228,7 @@ const findStudent = async (
                 'rollNumber',
                 'semester',
                 'openCourseId',
-                [sequelize.col('program.isAided'), 'isAided'],
+                [sequelize.col('program.is_aided'), 'isAided'],
                 [sequelize.col('course.name'), 'openCourseId'],
                 [sequelize.col('program.name'), 'programName'],
             ],
