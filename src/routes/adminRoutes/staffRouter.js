@@ -45,6 +45,9 @@ router.get('/list', async (req, res) => {
             'semester',
             'program.name',
             'programId',
+            'email',
+            'phone',
+            'departmentId',
         ];
 
         // Validate and adjust the 'column' parameter

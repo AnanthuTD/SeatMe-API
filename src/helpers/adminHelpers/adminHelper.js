@@ -67,12 +67,15 @@ const getStaffs = async (
             offset,
             where: nonNestedColumns.length ? whereCondition : undefined,
             order: orderCondition,
-            include: {
-                model: models.department,
-                attributes: ['name'],
-                // required: true,
-                where: nestedColumns.length ? whereConditionNested : undefined,
-            },
+            include: [
+                {
+                    model: models.department,
+                    attributes: [],
+                    where: nestedColumns.length
+                        ? whereConditionNested
+                        : undefined,
+                },
+            ],
             attributes: [
                 'id',
                 'name',
@@ -80,7 +83,13 @@ const getStaffs = async (
                 'phone',
                 'designation',
                 'departmentId',
-                'department.name',
+                [sequelize.col('department.name'), 'departmentName'],
+                [
+                    sequelize.literal(
+                        "CASE WHEN SUBSTRING(authUser.id, 3, 1) = 'A' THEN 'aided' ELSE 'unaided' END",
+                    ),
+                    'aided/unaided',
+                ],
             ],
             raw: true,
         });
