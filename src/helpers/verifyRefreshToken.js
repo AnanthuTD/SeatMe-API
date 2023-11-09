@@ -21,6 +21,7 @@ const verifyRefreshToken = async (refreshToken) => {
             message: 'Valid refresh token',
         };
     } catch (err) {
+        console.error(err);
         return {
             error: true,
             message: 'Invalid refresh token',
