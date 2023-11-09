@@ -4,6 +4,7 @@ import {
     getStaffCount,
     getStaffs,
 } from '../../helpers/adminHelpers/adminHelper.js';
+import { getStaffsByDepartmentId } from '../../helpers/adminHelpers/staffHelper.js';
 
 const router = express.Router();
 
@@ -75,6 +76,25 @@ router.get('/list', async (req, res) => {
     } catch (error) {
         console.error(`Error in GET /staff/list: ${error.message}`);
         res.status(500).json({ error: 'Error fetching staff list' });
+    }
+});
+
+/**
+ * GET staff members by department ID.
+ */
+router.get('/:departmentId', async (req, res) => {
+    try {
+        const { departmentId } = req.params;
+
+        if (!departmentId) res.sendStatus(400);
+
+        const result = await getStaffsByDepartmentId({ departmentId });
+
+        res.json(result);
+    } catch (error) {
+        console.error('Error on GET /:departmentId', error);
+
+        res.status(500).json({ error: true, message: 'An error occurred.' });
     }
 });
 

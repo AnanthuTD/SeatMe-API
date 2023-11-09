@@ -23,6 +23,8 @@ import studentRouter from './adminRoutes/studentRouter.js';
 
 import examRouter from './adminRoutes/examRouter.js';
 
+import { getDateTimeId } from '../helpers/adminHelpers/examHelper.js';
+
 const router = express.Router();
 
 /**
@@ -95,6 +97,17 @@ router.get('/rooms', async (req, res) => {
     } catch (error) {
         console.error('Error fetching rooms:', error);
         res.status(500).json({ error: 'Error fetching rooms' });
+    }
+});
+
+router.get('/date-time-id', async (req, res) => {
+    try {
+        const { date = new Date(), timeCode = 'AN' } = req.query;
+        const dateTime = await getDateTimeId(date, timeCode);
+        res.status(200).json({ dateTimeId: dateTime.id });
+    } catch (error) {
+        console.error('Error getting dateTimeId:', error);
+        res.status(500).json({ error: 'Error fetching dateTimeId' });
     }
 });
 
