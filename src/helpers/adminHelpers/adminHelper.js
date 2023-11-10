@@ -268,33 +268,6 @@ const getCourses = async (programId, semester) => {
         // Find the program by programId and include its associated courses
         let program;
         if (semester) {
-            /*  program = await models.program.findByPk(programId, {
-                include: [
-                    {
-                        model: models.course,
-                        through: {
-                            model: models.programCourse,
-                        },
-                        where: {
-                            semester,
-                            [Op.or]: [
-                                {
-                                    '$courses->programCourse.program_id$': {
-                                        [Op.ne]: programId,
-                                    },
-                                    isOpenCourse: 1,
-                                },
-                                {
-                                    '$courses->programCourse.program_id$': {
-                                        [Op.eq]: programId,
-                                    },
-                                    isOpenCourse: 0,
-                                },
-                            ],
-                        },
-                    },
-                ],
-            }); */
             program = await models.course.findAll({
                 include: {
                     model: models.programCourse,
@@ -431,51 +404,91 @@ const getExamDateTime = async ({ courseId = undefined }) => {
 
 const getExams = async ({
     query = '',
-    column = 'id',
+    column = '',
     offset = 0,
     limit = 10,
-    sortField = 'dateTimes.date',
+    sortField = 'date',
     sortOrder = 'DESC',
 }) => {
-    sortOrder = sortOrder.toUpperCase();
+    try {
+        sortOrder = sortOrder.toUpperCase();
 
-    const isNestedColumn = column.includes('.');
-    const isNestedSortField = sortField.includes('.');
+        let courseWhereCondition = {};
+        let dateTimesWhereCondition = {};
 
-    const whereCondition = {
-        /*  [isNestedColumn ? column.split('.')[1] : column]: {
-            [Op.like]: `${query}%`,
-        }, */
-    };
-
-    const orderCondition = [];
-
-    if (sortField && sortOrder) {
-        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
-
-        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
-            if (isNestedSortField) {
-                orderCondition.push([models.dateTime, field, sortOrder]);
-            } else orderCondition.push([field, sortOrder]);
+        console.log(column);
+        if (['date', 'timeCode'].includes(column)) {
+            dateTimesWhereCondition[column] = {
+                [Op.like]: `${query}%`,
+            };
+        } else if (
+            ['course.id', 'course.name', 'course.semester'].includes(column)
+        ) {
+            courseWhereCondition[column.split('.')[1]] = {
+                [Op.like]: `${query}%`,
+            };
         }
+
+        const orderCondition = [];
+
+        if (sortField && sortOrder) {
+            if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+                if (['date', 'timeCode'].includes(sortField)) {
+                    orderCondition.push([
+                        models.dateTime,
+                        sortField,
+                        sortOrder,
+                    ]);
+                } else if (
+                    ['course.id', 'course.name', 'course.semester'].includes(
+                        sortField,
+                    )
+                )
+                    orderCondition.push([
+                        models.course,
+                        sortField.split('.')[1],
+                        sortOrder,
+                    ]);
+            }
+        }
+
+        console.log(orderCondition);
+
+        const data = await models.exam.findAll({
+            limit,
+            offset,
+            order: orderCondition,
+            include: [
+                {
+                    model: models.dateTime,
+                    attributes: [],
+                    required: true,
+                    where: dateTimesWhereCondition,
+                },
+                {
+                    model: models.course,
+                    required: true,
+                    attributes: ['id', 'name', 'semester'],
+                    where: courseWhereCondition,
+                },
+            ],
+            attributes: [
+                'id',
+                [sequelize.col('dateTime.date'), 'date'],
+                [sequelize.col('dateTime.time_code'), 'timeCode'],
+                /* [sequelize.col('course.id'), 'courseId'],
+                [sequelize.col('course.name'), 'courseName'],
+                [sequelize.col('course.semester'), 'semester'], */
+            ],
+            raw: true,
+        });
+        // console.log(JSON.stringify(data, null, 2));
+        return data;
+    } catch (error) {
+        // Handle the error, log it, or throw a custom error if needed
+        console.error('Error in getExams:', error);
+        throw new Error('An error occurred while fetching exams data.');
     }
-
-    const data = await models.course.findAll({
-        limit,
-        offset,
-        where: whereCondition,
-        order: orderCondition,
-        include: {
-            model: models.dateTime,
-            through: { attributes: [] },
-            attributes: ['date', 'timeCode'],
-            required: true,
-            where: isNestedColumn ? whereCondition : undefined,
-        },
-        raw: true,
-    });
-
-    return data;
 };
 
 const getOngoingExamCount = async () => {

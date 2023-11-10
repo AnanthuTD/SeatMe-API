@@ -31,19 +31,19 @@ router.get('/', async (req, res) => {
         let { query, column, offset, limit, sortField, sortOrder } = req.query;
 
         const allowedColumns = [
-            'id',
-            'name',
-            'semester',
-            'dateTimes.date',
-            'dateTimes.timeCode',
+            'course.id',
+            'course.name',
+            'course.semester',
+            'date',
+            'timeCode',
         ];
 
         if (!allowedColumns.includes(column)) {
-            column = 'dateTimes.date';
+            return res.sendStatus(400);
         }
 
         query = query || '';
-        sortField = sortField || 'dateTimes.date';
+        sortField = sortField || 'date';
         sortOrder = sortOrder || 'DESC';
         offset = parseInt(offset, 10) || 0;
         limit = parseInt(limit, 10) || 10;
