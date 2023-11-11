@@ -1,5 +1,5 @@
 import express from 'express';
-import { createStaff } from '../../helpers/bcryptHelper.js';
+import { createStaff, updatePassword } from '../../helpers/bcryptHelper.js';
 import {
     getStaffCount,
     getStaffs,
@@ -27,13 +27,26 @@ router.post('/', async (req, res) => {
     }
 });
 
+router.patch('/update-password', async (req, res) => {
+    try {
+        const { staffId, newPassword } = req.body;
+
+        const result = await updatePassword(staffId, newPassword);
+
+        return res.status(result.status).json({ message: result.message });
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 router.patch('/:staffId', async (req, res) => {
     try {
         const staff = req.body;
         logger(staff);
         const { id, name, email, phone, departmentId } = staff;
 
-        if (!name || !email || !phone) {
+        if (!name || !email) {
             return res
                 .status(400)
                 .json({ error: 'Invalid input. All fields are required.' });
