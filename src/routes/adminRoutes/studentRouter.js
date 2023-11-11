@@ -31,15 +31,20 @@ router.post('/', async (req, res) => {
 });
 
 router.patch('/', async (req, res) => {
-    const students = req.body;
+    const student = req.body;
 
-    if (!students.length) {
+    if (!student) {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
     try {
-        const notUpdatedStudents = await updateStudent(students);
-        return res.status(200).json(notUpdatedStudents);
+        const updateCount = await updateStudent(student);
+        if (updateCount > 0) {
+            return res.status(200).json({
+                message: `Update successful.`,
+            });
+        }
+        return res.status(404).json({ error: 'Student not found!' });
     } catch (error) {
         console.error(`Error in PATCH /student: ${error.message}`);
         return res.status(500).json({ error: 'Error updating students' });
