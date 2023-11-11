@@ -116,6 +116,33 @@ const createStaff = async (staffDataArray) => {
     }
 };
 
+const updatePassword = async (staffId, newPassword) => {
+    try {
+        if (!staffId || !newPassword)
+            return { status: 400, message: 'Missing parameters!' };
+
+        newPassword = await encrypt(newPassword);
+
+        // Correct the syntax of the update method
+        const [updateCount] = await models.authUser.update(
+            { password: newPassword },
+            { where: { id: staffId } },
+        );
+
+        if (updateCount > 0) {
+            return { status: 200, message: 'Password updated successfully' };
+        }
+
+        return { status: 400, message: 'Staff not found' };
+    } catch (error) {
+        console.error(error);
+        return {
+            status: 500,
+            message: 'An error occurred during updating password!',
+        };
+    }
+};
+
 const createAdmin = async (adminData) => {
     // console.log(adminData);
     try {
@@ -150,4 +177,5 @@ export {
     createAdmin,
     encrypt,
     comparePasswords,
+    updatePassword,
 };
