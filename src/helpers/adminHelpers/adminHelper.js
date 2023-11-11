@@ -652,14 +652,17 @@ const deleteStudent = async (studentId) => {
     }
 };
 
-const getAvailableOpenCourses = async (programId, isAided) => {
+const getAvailableOpenCourses = async (programId) => {
+    const program = await models.program.findByPk(programId, {
+        attributes: ['isAided'],
+    });
     const openCourses = await models.course.findAll({
         where: { isOpenCourse: 1 },
         include: {
             model: models.program,
             attributes: [],
             through: { attributes: [] },
-            where: { id: { [Op.ne]: programId }, isAided },
+            where: { id: { [Op.ne]: programId }, isAided: program.isAided },
             required: true,
         },
         attributes: ['id', 'name'],
