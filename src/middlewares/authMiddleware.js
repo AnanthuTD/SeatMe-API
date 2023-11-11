@@ -11,9 +11,11 @@ passport.use(
     'staff',
     new BearerStrategy((token, done) => {
         try {
-            const { id, exp } = jwt.verify(token, accessTokenPrivateKey, {
+            const decodedToken = jwt.verify(token, accessTokenPrivateKey, {
                 ignoreExpiration: true,
             });
+
+            const { id, exp } = decodedToken;
 
             // Check if the token is in the blacklist
             if (isBlacklisted(id, token)) {
@@ -29,7 +31,7 @@ passport.use(
             // Return the user associated with the token
             // Here you may fetch user data from your database and return it
             // const user = { id, isAdmin };
-            return done(null, token);
+            return done(null, decodedToken);
         } catch (error) {
             // Handle JWT verification errors
             return done(error, false);
@@ -43,13 +45,11 @@ passport.use(
     new BearerStrategy((token, done) => {
         console.log(token);
         try {
-            const { id, isAdmin, exp } = jwt.verify(
-                token,
-                accessTokenPrivateKey,
-                {
-                    ignoreExpiration: true,
-                },
-            );
+            const decodedToken = jwt.verify(token, accessTokenPrivateKey, {
+                ignoreExpiration: true,
+            });
+
+            const { id, isAdmin, exp } = decodedToken;
 
             // Check if the token is in the blacklist
             if (isBlacklisted(id, token)) {
@@ -66,7 +66,7 @@ passport.use(
             if (isAdmin) {
                 // Here you may fetch admin user data from your database and return it
                 // const adminUser = { id, isAdmin };
-                return done(null, token);
+                return done(null, decodedToken);
             }
             return done(null, false);
         } catch (error) {
