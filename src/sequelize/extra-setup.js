@@ -65,9 +65,7 @@ const applyExtraSetup = (sequelize) => {
     exam.belongsTo(course);
     course.hasMany(exam);
 
-    room.belongsToMany(authUser, { through: teacherSeat });
     room.belongsToMany(dateTime, { through: teacherSeat });
-    authUser.belongsToMany(room, { through: teacherSeat });
     dateTime.belongsToMany(room, { through: teacherSeat });
     teacherSeat.belongsTo(room);
     room.hasMany(teacherSeat);
@@ -75,6 +73,8 @@ const applyExtraSetup = (sequelize) => {
     dateTime.hasMany(teacherSeat);
     authUser.hasMany(teacherSeat);
     teacherSeat.belongsTo(dateTime);
+    authUser.hasMany(teacherSeat);
+    teacherSeat.belongsTo(authUser);
 
     student.hasMany(supplementary);
     supplementary.belongsTo(student);
