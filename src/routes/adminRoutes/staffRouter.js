@@ -5,6 +5,8 @@ import {
     getStaffs,
 } from '../../helpers/adminHelpers/adminHelper.js';
 import { getStaffsByDepartmentId } from '../../helpers/adminHelpers/staffHelper.js';
+import { models } from '../../sequelize/models.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 
@@ -22,6 +24,56 @@ router.post('/', async (req, res) => {
     } catch (error) {
         console.error(`Error in POST /staff: ${error.message}`);
         res.status(500).json({ error: 'Error creating staff members' });
+    }
+});
+
+router.patch('/:staffId', async (req, res) => {
+    try {
+        const staff = req.body;
+        logger(staff);
+        const { id, name, email, phone, departmentId } = staff;
+
+        if (!name || !email || !phone) {
+            return res
+                .status(400)
+                .json({ error: 'Invalid input. All fields are required.' });
+        }
+
+        const [updateCount] = await models.authUser.update(
+            { name, email, phone, departmentId },
+            {
+                where: { id },
+            },
+        );
+
+        if (updateCount > 0) {
+            return res.sendStatus(200);
+        }
+
+        return res.status(404).json({ error: 'Staff not found' });
+    } catch (error) {
+        console.error(`Error in PATCH /staff: ${error.message}`);
+        return res.status(500).json({ error: 'Error updating staff' });
+    }
+});
+
+router.delete('/:staffId', async (req, res) => {
+    try {
+        const { staffId } = req.params;
+
+        // Delete the staff member from the database
+        const deletedCount = await models.authUser.destroy({
+            where: { id: staffId },
+        });
+
+        if (deletedCount > 0) {
+            return res.sendStatus(200);
+        }
+
+        return res.status(404).json({ error: 'Staff not found' });
+    } catch (error) {
+        console.error(`Error in DELETE /staff/:staffId: ${error.message}`);
+        return res.status(500).json({ error: 'Error deleting staff' });
     }
 });
 
