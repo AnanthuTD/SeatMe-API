@@ -10,9 +10,11 @@ import { assignSeats } from '../../helpers/seatAssignment/assignSeats.js';
 
 import { createRecord } from '../../helpers/adminHelpers/studentSeat.js';
 
-import { models } from '../../sequelize/models.js';
+import { models, sequelize } from '../../sequelize/models.js';
 
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
+import course from '../../sequelize/models/course.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 
@@ -29,6 +31,8 @@ router.get('/count', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         let { query, column, offset, limit, sortField, sortOrder } = req.query;
+
+        column = column || 'course.id';
 
         const allowedColumns = [
             'course.id',
@@ -204,6 +208,128 @@ router.post('/assign-teacher', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to assign teachers' });
+    }
+});
+
+router.get('/:examId', async (req, res) => {
+    try {
+        const { examId } = req.params;
+
+        // Check if examId is a valid number
+        if (Number.isNaN(examId) || examId <= 0) {
+            return res.status(400).json({ error: 'Invalid examId' });
+        }
+
+        // Use await to wait for the findByPk operation
+        const programs = await models.exam.findByPk(examId, {
+            include: [
+                {
+                    model: models.course,
+                    attributes: ['id', 'semester', 'name'],
+                    include: [
+                        {
+                            model: models.program,
+                            through: {
+                                model: models.programCourse,
+                                attributes: [],
+                            },
+                        },
+                    ],
+                },
+            ],
+            attributes: [],
+        });
+
+        // Handle the result
+        if (programs) {
+            // Exam found, send it in the response
+            res.json(programs);
+        } else {
+            // Exam not found
+            res.status(404).json({ error: 'Exam not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to get exam' });
+    }
+});
+
+router.get('/attendance/:examId/:programId', async (req, res) => {
+    try {
+        const { examId, programId } = req.params;
+
+        const attendance = await models.studentSeat.findAll({
+            where: { examId },
+            include: [
+                {
+                    model: models.student,
+                    where: { programId },
+                },
+            ],
+            order: [[models.student, 'id', 'ASC']],
+            raw: true,
+        });
+
+        if (attendance) {
+            // Exam found, send it in the response
+            res.json(attendance);
+        } else {
+            // Exam not found
+            res.status(404).json({ error: 'Exam not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to get attendance' });
+    }
+});
+
+router.put('/:examId', async (req, res) => {
+    try {
+        const { examId } = req.params;
+        const { date, timeCode } = req.body;
+
+        // Find or create a dateTime record
+        const [dateTimeInstance, created] = await models.dateTime.findOrCreate({
+            where: { date, timeCode },
+        });
+
+        // Update the exam with the new dateTimeId
+        const [updatedCount] = await models.exam.update(
+            { dateTimeId: dateTimeInstance.id },
+            { where: { id: examId } },
+        );
+
+        // Check if the update was successful
+        if (updatedCount > 0) {
+            return res.sendStatus(200);
+        }
+        // If the exam with the given ID doesn't exist
+        return res.status(404).json({ error: 'Exam not found' });
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+router.delete('/:examId', async (req, res) => {
+    try {
+        const { examId } = req.params;
+
+        // Delete the exam with the given ID
+        const deletedCount = await models.exam.destroy({
+            where: { id: examId },
+        });
+
+        if (deletedCount > 0) {
+            // If the exam was deleted successfully
+            return res.sendStatus(200);
+        }
+
+        // If the exam with the given ID doesn't exist
+        return res.status(404).json({ error: 'Exam not found' });
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
