@@ -125,6 +125,8 @@ Method      :        POST
 
 router.post('/attendance', (req, res) => {
     // Access the data sent in the POST request body (i.e., absentstd)
+ 
+   try {
     const absentstd = req.body;
     console.log(absentstd);
     const examIdsArray = absentstd.map((std) => std.examId);
@@ -150,6 +152,14 @@ router.post('/attendance', (req, res) => {
     res.status(200).json({
         message: 'Data received and processed successfully',
     });
+}catch (error) {
+    // Handle any errors that occurred during the update operation
+    console.error('Error updating the database:', error);
+    res.status(500).json({
+        message: 'Internal Server Error',
+    });
+}
+
 });
 
 export default router;
