@@ -75,14 +75,14 @@ router.get('/courses', async (req, res) => {
 });
 
 router.get('/open-courses', async (req, res) => {
-    const { programId, isAided } = req.query;
+    const { programId } = req.query;
 
-    if (!programId || !isAided) {
+    if (!programId) {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
     try {
-        const openCourses = await getAvailableOpenCourses(programId, isAided);
+        const openCourses = await getAvailableOpenCourses(programId);
         return res.status(200).json(openCourses);
     } catch (error) {
         console.error(`Error in GET /open-courses: ${error.message}`);

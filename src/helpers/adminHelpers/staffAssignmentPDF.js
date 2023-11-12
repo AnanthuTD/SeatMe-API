@@ -17,12 +17,12 @@ const generateTeacherDetailsPDF = async (dateTimeId) => {
 
     // Define the table columns and rows
     const columns = [
-        { title: 'Teacher ID', dataKey: 'authUser.id' },
-        { title: 'Name', dataKey: 'authUser.name' },
-        { title: 'Email', dataKey: 'authUser.email' },
-        { title: 'Designation', dataKey: 'authUser.designation' },
-        { title: 'Room ID', dataKey: 'room.id' },
-        { title: 'Block', dataKey: 'room.block.name' },
+        { header: 'Teacher ID', dataKey: 'authUser.id' },
+        { header: 'Name', dataKey: 'authUser.name' },
+        { header: 'Email', dataKey: 'authUser.email' },
+        { header: 'Designation', dataKey: 'authUser.designation' },
+        { header: 'Room ID', dataKey: 'room.id' },
+        { header: 'Block', dataKey: 'room.block.name' },
     ];
 
     const rows = teacherDetails.map((teacher) => ({
@@ -40,7 +40,7 @@ const generateTeacherDetailsPDF = async (dateTimeId) => {
     };
 
     // Add the table to the PDF
-    doc.autoTable(columns, rows, tableOptions);
+    doc.autoTable({ columns, body: rows });
 
     // Save or display the PDF
     doc.save(

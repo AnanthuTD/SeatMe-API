@@ -190,6 +190,7 @@ router.post('/assign-teacher', async (req, res) => {
                         await models.teacherSeat.create(insertData);
                     }
                 } catch (error) {
+                    console.error(error);
                     failedAssignments.push({ roomId, authUserId });
                 }
             }),
@@ -198,7 +199,7 @@ router.post('/assign-teacher', async (req, res) => {
         await generateTeacherDetailsPDF(dateTimeId);
 
         if (failedAssignments.length > 0) {
-            res.status(500).json({
+            res.status(200).json({
                 error: 'Some assignments failed to update or create',
                 failedAssignments,
             });
@@ -289,7 +290,7 @@ router.put('/:examId', async (req, res) => {
         const { date, timeCode } = req.body;
 
         // Find or create a dateTime record
-        const [dateTimeInstance, created] = await models.dateTime.findOrCreate({
+        const [dateTimeInstance] = await models.dateTime.findOrCreate({
             where: { date, timeCode },
         });
 
