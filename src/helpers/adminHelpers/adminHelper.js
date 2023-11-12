@@ -615,27 +615,12 @@ const findOrCreateStudents = async (students) => {
     }
 };
 
-const updateStudent = async (students = []) => {
-    const notUpdatedStudents = [];
+const updateStudent = async (student) => {
+    const [updateCount] = await models.student.update(student, {
+        where: { id: student.id },
+    });
 
-    await Promise.all(
-        students.map(async (student) => {
-            try {
-                const result = await models.student.update(student, {
-                    where: { id: student.id },
-                });
-                if (!result.affectedCount) {
-                    notUpdatedStudents.push(student);
-                }
-            } catch (err) {
-                notUpdatedStudents.push(student);
-                // console.log('Error:', err);
-            }
-        }),
-    );
-
-    // console.log('Not Updated Students:', notUpdatedStudents);
-    return notUpdatedStudents;
+    return updateCount;
 };
 
 const deleteStudent = async (studentId) => {
