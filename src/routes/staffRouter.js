@@ -4,8 +4,60 @@ import { models } from '../sequelize/models.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    res.send('staff page');
+router.get('/', async (req, res) => {
+    try {
+        const staffId = req.user.id;
+        let onDuty;
+        const currentDate = new Date();
+        const today = currentDate.toISOString().split('T')[0];
+    
+        // Use await with findOne to wait for the query to complete
+        const dateEntry = await models.dateTime.findOne({
+            where: {
+                date: today,
+            },
+        });
+    
+        let examDetails = [];
+    
+        if (dateEntry) {
+            // Use await with findAll to wait for the query to complete
+            examDetails = await models.teacherSeat.findAll({
+                where: {
+                    date_time_id: dateEntry.id,
+                    auth_user_id: staffId,
+                },
+                include: [
+                    {
+                        model: models.room,
+                        attributes: ['rows', 'cols', 'floor', 'block_id'],
+                        include: {
+                            model: models.block,
+                            attributes: ['name'],
+                        },
+                    },
+                ],
+            });
+    
+            if (examDetails.length > 0) {
+                onDuty = true;
+            } else {
+                onDuty = false;
+            }
+    
+            console.log(examDetails);
+        } else {
+            onDuty = false;
+            console.log('No dateTime entry found for today');
+        }
+    
+        console.log(examDetails, onDuty);
+        res.json({ onDuty, examDetails });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).send('Internal Server Error');
+    } 
+  
 });
 
 /*
