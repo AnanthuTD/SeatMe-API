@@ -37,7 +37,9 @@ router.post('/department', (req, res) => {
         })
         .catch((error) => {
             console.error('Error in inserting into DB:', error);
-            res.status(500).send('Error inserting values into DB');
+
+            // Sending SQL error message to frontend
+            res.status(500).json({ error: 'Error inserting values into DB', sqlError: error.message });
         });
 });
 

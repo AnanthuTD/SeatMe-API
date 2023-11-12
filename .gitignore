@@ -33,3 +33,5 @@ build/
 
 # Debug logs
 debug.log
+
+src/views

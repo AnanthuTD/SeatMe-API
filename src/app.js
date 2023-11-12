@@ -94,7 +94,7 @@ function setupMiddlewares() {
  */
 function setupRoutes() {
     app.use('/', userRouter);
-   // app.use('/admin/departmententry', departmentRouter);
+    app.use('/admin/departmententry', departmentRouter);
     app.use('/admin/courseentry', courseRouter);
     app.use('/admin/programentry', programRouter);
     app.use('/admin', /* authAdminMiddleware, */ adminRouter);
