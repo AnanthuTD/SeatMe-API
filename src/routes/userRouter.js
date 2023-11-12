@@ -1,5 +1,10 @@
 import express from 'express';
-import { getTimeTableAndSeating } from '../helpers/adminHelpers/studentSeat.js';
+import {
+    getUpcomingExams,
+    getUpcomingExamsFromDB,
+    retrieveStudentDetails,
+} from '../helpers/adminHelpers/studentSeat.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
@@ -13,27 +18,51 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         const { studentId } = req.query;
-        const data = await getTimeTableAndSeating(studentId);
+        const seatingInfo = await retrieveStudentDetails(studentId);
 
-        if (!data) {
-            return res.status(404).json({ error: 'Data not found' });
+        if (!seatingInfo) {
+            return res.status(404).json({ error: 'Student details not found' });
         }
 
-        const restructuredData = data.map((item) => ({
-            courseId: item.id,
-            courseName: item.name,
-            programId: item.programCourses[0]?.programId || null,
-            date: item.exams[0]?.dateTime.date || null,
-            timeCode: item.exams[0]?.dateTime.timeCode || null,
-            seatNumber: item.exams[0]?.studentSeats[0]?.seatNumber || null,
-            studentId: item.exams[0]?.studentSeats[0]?.studentId || null,
-            isPresent: item.exams[0]?.studentSeats[0]?.isPresent || null,
-            roomId: item.exams[0]?.studentSeats[0]?.room?.id || null,
-            floor: item.exams[0]?.studentSeats[0]?.room?.floor || null,
-            blockId: item.exams[0]?.studentSeats[0]?.room?.blockId || null,
-        }));
+        return res.json({ seatingInfo });
+    } catch (error) {
+        console.error('An error occurred:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
-        return res.json(restructuredData);
+router.get('/exams', async (req, res) => {
+    try {
+        const { programId, semester, openCourseId } = req.query;
+
+        let upcomingExams = [];
+
+        if (programId && semester) {
+            upcomingExams = await getUpcomingExams(
+                programId,
+                semester,
+                openCourseId,
+            );
+        }
+
+        return res
+            .status(upcomingExams.length > 0 ? 200 : 204)
+            .json(upcomingExams);
+    } catch (error) {
+        console.error('An error occurred:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+router.get('/exams/:studentId', async (req, res) => {
+    try {
+        const { studentId } = req.params;
+
+        const upcomingExams = await getUpcomingExamsFromDB(studentId);
+
+        return res
+            .status(upcomingExams.length > 0 ? 200 : 204)
+            .json(upcomingExams);
     } catch (error) {
         console.error('An error occurred:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
