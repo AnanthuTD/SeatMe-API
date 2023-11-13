@@ -6,6 +6,8 @@ dotenv.config();
 const redisClient = new Redis({
     port: process.env.REDIS_PORT,
     host: process.env.REDIS_HOST,
+    password: process.env.REDIS_PASSWORD,
+    connectTimeout: 2000,
 });
 
 // Event handler for error event
