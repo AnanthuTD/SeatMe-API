@@ -20,6 +20,7 @@ async function assignSeats({
     orderBy = 'rollNumber',
     fileName = 'unnamed',
     optimize = true,
+    examType = 'internal',
 }) {
     /** @type {[NestedStudentArray, number]} */
     let [students, totalStudents] = await getData(date, orderBy);
@@ -27,7 +28,7 @@ async function assignSeats({
     console.log(`total subjects : ${students.length}`);
     console.log(`Generated ${totalStudents} students`);
 
-    const { classes, totalSeats } = await generateSeatingMatrix();
+    const { classes, totalSeats } = await generateSeatingMatrix(examType);
 
     console.log(
         `Generated ${classes.length} classes with a total of ${totalSeats} seats.`,

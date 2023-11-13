@@ -10,10 +10,10 @@ import { assignSeats } from '../../helpers/seatAssignment/assignSeats.js';
 
 import { createRecord } from '../../helpers/adminHelpers/studentSeat.js';
 
-import { models, sequelize } from '../../sequelize/models.js';
+import { models } from '../../sequelize/models.js';
 
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
-import course from '../../sequelize/models/course.js';
+
 import logger from '../../helpers/logger.js';
 
 const router = express.Router();
@@ -61,10 +61,10 @@ router.get('/', async (req, res) => {
             sortOrder,
         });
 
-        res.json(data);
+        return res.json(data);
     } catch (error) {
         console.error(`Error in GET /exams: ${error.message}`);
-        res.status(500).json({ error: 'Error fetching exams' });
+        return res.status(500).json({ error: 'Error fetching exams' });
     }
 });
 
@@ -104,6 +104,7 @@ router.get('/assign', async (req, res) => {
             orderBy,
             fileName,
             optimize,
+            examType,
         });
 
         await createRecord(seating);
@@ -244,14 +245,13 @@ router.get('/:examId', async (req, res) => {
         // Handle the result
         if (programs) {
             // Exam found, send it in the response
-            res.json(programs);
-        } else {
-            // Exam not found
-            res.status(404).json({ error: 'Exam not found' });
+            return res.json(programs);
         }
+        // Exam not found
+        return res.status(404).json({ error: 'Exam not found' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Failed to get exam' });
+        return res.status(500).json({ error: 'Failed to get exam' });
     }
 });
 

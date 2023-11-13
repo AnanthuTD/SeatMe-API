@@ -90,9 +90,10 @@ router.get('/open-courses', async (req, res) => {
     }
 });
 
-router.get('/rooms', async (req, res) => {
+router.get('/rooms/:examType', async (req, res) => {
+    const { examType } = req.params;
     try {
-        const rooms = await getRooms();
+        const rooms = await getRooms({ examType });
         res.json(rooms);
     } catch (error) {
         console.error('Error fetching rooms:', error);

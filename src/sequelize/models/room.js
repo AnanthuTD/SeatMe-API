@@ -11,11 +11,19 @@ export default (sequelize) => {
                 type: DataTypes.INTEGER.UNSIGNED,
                 primaryKey: true,
             },
-            cols: {
+            internalRows: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },
-            rows: {
+            internalCols: {
+                type: DataTypes.TINYINT.UNSIGNED,
+                allowNull: false,
+            },
+            finalRows: {
+                type: DataTypes.TINYINT.UNSIGNED,
+                allowNull: false,
+            },
+            finalCols: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },

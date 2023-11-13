@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
                     },
                     {
                         model: models.room,
-                        attributes: ['rows', 'cols', 'floor', 'block_id'],
+                        attributes: ['floor', 'block_id'],
                         include: {
                             model: models.block,
                             attributes: ['name'],

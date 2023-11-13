@@ -512,17 +512,28 @@ const getOngoingExamCount = async () => {
     return totalCount;
 };
 
-const getRooms = async () => {
+const getRooms = async ({ examType = 'final' }) => {
+    let rowsAndCols = [];
+    if (examType === 'final')
+        rowsAndCols = [
+            ['final_rows', 'rows'],
+            ['final_cols', 'cols'],
+        ];
+    else
+        rowsAndCols = [
+            ['internal_rows', 'rows'],
+            ['internal_cols', 'cols'],
+        ];
+
     try {
         const rooms = await models.room.findAll({
             attributes: [
                 'id',
-                'rows',
-                'cols',
+                ...rowsAndCols,
                 'blockId',
                 'isAvailable',
                 'floor',
-                [literal('`rows` * `cols`'), 'seats'],
+                [literal(`${rowsAndCols[0][0]}*${rowsAndCols[1][0]}`), 'seats'],
             ],
         });
         return rooms;
