@@ -18,6 +18,11 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         const { studentId } = req.query;
+
+        if (!studentId) {
+            return res.status(400).json({ error: 'Student ID is required.' });
+        }
+
         const seatingInfo = await retrieveStudentDetails(studentId);
 
         if (!seatingInfo) {
