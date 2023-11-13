@@ -26,6 +26,10 @@ import {
 } from './middlewares/csrfMiddleware.js';
 import getRootDir from '../getRootDir.js';
 import validateENV from './env.js';
+import {
+    retrieveAndStoreExamsInRedis,
+    retrieveAndStoreInRedis,
+} from './helpers/adminHelpers/studentSeat.js';
 
 const dirname = getRootDir();
 
@@ -119,6 +123,13 @@ function startServer() {
     });
 }
 
+function populateRedis() {
+    // retrieve student seating arrangement for today  and store it in redis.
+    retrieveAndStoreInRedis();
+    // retrieve exams
+    retrieveAndStoreExamsInRedis();
+}
+
 /**
  * Initialize the application by connecting to the database, setting up middlewares, routes, and starting the server.
  */
@@ -128,7 +139,7 @@ async function init() {
     setupMiddlewares();
     setupRoutes();
     startServer();
-
+    populateRedis();
     // Schedule the jwt blacklist cleanup task to run every day at midnight (adjust as needed)
     cron.schedule('0 0 * * *', () => {
         cleanBlacklist();

@@ -3,7 +3,7 @@ import express from 'express';
 import {
     getOngoingExamCount,
     getExams,
-    updateCoursesDateTime,
+    setExam,
 } from '../../helpers/adminHelpers/adminHelper.js';
 
 import { assignSeats } from '../../helpers/seatAssignment/assignSeats.js';
@@ -143,7 +143,7 @@ router.post('/timetable', async (req, res) => {
             return;
         }
 
-        const status = await updateCoursesDateTime(body);
+        const status = await setExam(body);
         if (status)
             res.status(200).send(
                 `Exam for course ${courseName}(${courseId}) has been set for ${date}.`,

@@ -1,6 +1,7 @@
 import { Op, literal } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
 import { fetchExams } from '../seatAssignment/getData.js';
+import { retrieveAndStoreExamsInRedis } from './studentSeat.js';
 
 const getStaffs = async (
     query = [''],
@@ -345,7 +346,7 @@ const getCourses = async (programId, semester) => {
     }
 };
 
-const updateCoursesDateTime = async (data) => {
+const setExam = async (data) => {
     try {
         const { courseId, date, timeCode } = data;
         const [dateTimeRecord] = await models.dateTime.findOrCreate({
@@ -378,6 +379,8 @@ const updateCoursesDateTime = async (data) => {
                 courseId,
             });
         }
+
+        retrieveAndStoreExamsInRedis();
 
         return true;
     } catch (error) {
@@ -723,7 +726,7 @@ export {
     getDepartments,
     getCourses,
     getPrograms,
-    updateCoursesDateTime,
+    setExam,
     getOngoingExamCount,
     getExams,
     getRooms,
