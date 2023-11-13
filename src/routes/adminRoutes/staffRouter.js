@@ -43,7 +43,6 @@ router.patch('/update-password', async (req, res) => {
 router.patch('/:staffId', async (req, res) => {
     try {
         const staff = req.body;
-        logger(staff);
         const { id, name, email, phone, departmentId } = staff;
 
         if (!name || !email) {

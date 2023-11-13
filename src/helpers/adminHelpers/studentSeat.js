@@ -237,8 +237,6 @@ const getUpcomingExamsById = async (studentId) => {
     return data;
 };
 
-getUpcomingExamsById(100030614890);
-
 const getUpcomingExamsFromDB = async () => {
     const currentDate = new Date();
 
