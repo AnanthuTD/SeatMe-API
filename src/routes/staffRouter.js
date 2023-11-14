@@ -53,7 +53,6 @@ router.get('/', async (req, res) => {
             console.log('No dateTime entry found for today');
         }
 
-        console.log(examDetails, onDuty);
         res.json({ onDuty, examDetails });
     } catch (error) {
         console.error('Error:', error);
