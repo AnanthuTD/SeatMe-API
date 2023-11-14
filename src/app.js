@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -7,7 +8,7 @@ import cron from 'node-cron';
 import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
-import loginRouter from './routes/loginRouter.js';
+import authRouter from './routes/authRouter.js';
 import departmentRouter from './routes/departmententRouter.js';
 import courseRouter from './routes/courseRouter.js';
 import blockRouter from './routes/blockRouter.js';
@@ -16,14 +17,15 @@ import programRouter from './routes/programRouter.js';
 import { sequelize } from './sequelize/connection.js';
 import { cleanBlacklist } from './helpers/jwtHelper.js';
 import {
-    authAdminMiddleware,
-    authStaffMiddleware,
+    adminAuthMiddleware,
+    staffAuthMiddleware,
 } from './middlewares/authMiddleware.js';
 import {
     csrfProtectionMiddleware,
     generateCsrfToken,
 } from './middlewares/csrfMiddleware.js';
 import getRootDir from '../getRootDir.js';
+import validateENV from './env.js';
 
 const dirname = getRootDir();
 
@@ -94,12 +96,16 @@ function setupMiddlewares() {
  */
 function setupRoutes() {
     app.use('/', userRouter);
+<<<<<<< HEAD
     app.use('/admin/departmententry', departmentRouter);
+=======
+    // app.use('/admin/departmententry', departmentRouter);
+>>>>>>> a62d0540b8814f02d5c5d70ce2d809075ae6bc23
     app.use('/admin/courseentry', courseRouter);
     app.use('/admin/programentry', programRouter);
-    app.use('/admin', /* authAdminMiddleware, */ adminRouter);
-    app.use('/staff', /* authStaffMiddleware, */ staffRouter);
-    app.use('/login', loginRouter);
+    app.use('/admin', adminAuthMiddleware, adminRouter);
+    app.use('/staff', staffAuthMiddleware, staffRouter);
+    app.use('/auth', authRouter);
     app.use('/csrf', generateCsrfToken);
     app.use('/admin/departmententry', departmentRouter);
     app.use('/admin/courseentry', courseRouter);
@@ -121,6 +127,7 @@ function startServer() {
  * Initialize the application by connecting to the database, setting up middlewares, routes, and starting the server.
  */
 async function init() {
+    validateENV();
     await assertDatabaseConnectionOk();
     setupMiddlewares();
     setupRoutes();
@@ -132,5 +139,7 @@ async function init() {
     });
 }
 
-// Initialize the application
+const folderPath = path.join(getRootDir(), 'pdf');
+if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
+
 init();

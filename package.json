@@ -26,8 +26,11 @@
         "jsonwebtoken": "^9.0.0",
         "jspdf": "^2.5.1",
         "jspdf-autotable": "^3.7.0",
+        "lodash": "^4.17.21",
         "mysql2": "^3.6.0",
         "node-cron": "^3.0.2",
+        "passport": "^0.6.0",
+        "passport-http-bearer": "^1.0.1",
         "sequelize": "^6.32.1",
         "zxcvbn": "^4.4.2"
     },

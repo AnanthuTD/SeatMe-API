@@ -3,60 +3,103 @@ import { models, sequelize } from '../../sequelize/models.js';
 import { fetchExams } from '../seatAssignment/getData.js';
 
 const getStaffs = async (
-    query = '',
-    column = 'id',
+    query = [''],
+    columns = ['id'],
     offset = 0,
     limit = 10,
     sortField = 'updatedAt',
     sortOrder = 'DESC',
 ) => {
-    sortOrder = sortOrder.toUpperCase();
+    try {
+        sortOrder = sortOrder.toUpperCase();
 
-    const isNestedColumn = column.includes('.');
-    const isNestedSortField = sortField.includes('.');
+        const nestedColumns = [];
+        const nestedColumnsQuery = [];
+        const nonNestedColumns = [];
+        const nonNestedColumnsQuery = [];
 
-    const whereCondition = {
-        [isNestedColumn ? column.split('.')[1] : column]: {
-            [Op.like]: `${query}%`,
-        },
-    };
+        columns.forEach((column, index) => {
+            if (column.includes('.')) {
+                nestedColumns.push(column);
+                nestedColumnsQuery.push(query[index]);
+            } else {
+                nonNestedColumns.push(column);
+                nonNestedColumnsQuery.push(query[index]);
+            }
+        });
 
-    const orderCondition = [];
+        const isNestedSortField = sortField.includes('.');
 
-    if (sortField && sortOrder) {
-        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
+        const whereConditionNested = {
+            [Op.and]: nestedColumns.map((col, index) => ({
+                [col.split('.')[1]]: {
+                    [Op.like]: `${query[index]}%`,
+                },
+            })),
+        };
+        const whereCondition = {
+            [Op.and]: nonNestedColumns.map((col, index) => ({
+                [col]: {
+                    [Op.like]:
+                        col === 'programId' || col === 'semester'
+                            ? query[index]
+                            : `${query[index]}%`,
+                },
+            })),
+        };
 
-        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
-            if (isNestedSortField) {
-                orderCondition.push([models.department, field, sortOrder]);
-            } else orderCondition.push([field, sortOrder]);
+        const orderCondition = [];
+
+        if (sortField && sortOrder) {
+            const field = isNestedSortField
+                ? sortField.split('.')[1]
+                : sortField;
+
+            if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+                if (isNestedSortField) {
+                    orderCondition.push([models.department, field, sortOrder]);
+                } else orderCondition.push([field, sortOrder]);
+            }
         }
+
+        const data = await models.authUser.findAll({
+            limit,
+            offset,
+            where: nonNestedColumns.length ? whereCondition : undefined,
+            order: orderCondition,
+            include: [
+                {
+                    model: models.department,
+                    attributes: [],
+                    where: nestedColumns.length
+                        ? whereConditionNested
+                        : undefined,
+                },
+            ],
+            attributes: [
+                'id',
+                'name',
+                'email',
+                'phone',
+                'designation',
+                'departmentId',
+                [sequelize.col('department.name'), 'departmentName'],
+                [
+                    sequelize.literal(
+                        "CASE WHEN SUBSTRING(authUser.id, 3, 1) = 'A' THEN 'aided' ELSE 'unaided' END",
+                    ),
+                    'aided/unaided',
+                ],
+            ],
+            raw: true,
+        });
+
+        return data;
+    } catch (error) {
+        // Handle the error, log it, or throw a custom error if needed
+        console.error('Error in getStaffs:', error);
+        throw new Error('An error occurred while fetching staff data.');
     }
-
-    const data = await models.authUser.findAll({
-        limit,
-        offset,
-        where: whereCondition,
-        order: orderCondition,
-        include: {
-            model: models.department,
-            attributes: ['name'],
-            // required: true,
-            where: isNestedColumn ? whereCondition : undefined,
-        },
-        attributes: [
-            'id',
-            'name',
-            'email',
-            'phone',
-            'designation',
-            'departmentId',
-            'department.name',
-        ],
-        raw: true,
-    });
-
-    return data;
 };
 
 const getStaffCount = async () => {
@@ -97,96 +140,107 @@ const getStudentCount = async () => {
 
 const findStudent = async (
     query = [''],
-    columns = 'id',
+    columns = ['id'],
     offset = 0,
     limit = 10,
     sortField = 'updatedAt',
     sortOrder = 'DESC',
 ) => {
-    sortOrder = sortOrder.toUpperCase();
+    try {
+        sortOrder = sortOrder.toUpperCase();
 
-    const nestedColumns = [];
-    const nestedColumnsQuery = [];
-    const nonNestedColumns = [];
-    const nonNestedColumnsQuery = [];
+        const nestedColumns = [];
+        const nestedColumnsQuery = [];
+        const nonNestedColumns = [];
+        const nonNestedColumnsQuery = [];
 
-    columns.forEach((column, index) => {
-        if (column.includes('.')) {
-            // This is a nested column
-            nestedColumns.push(column);
-            nestedColumnsQuery.push(query[index]);
-        } else {
-            // This is a non-nested column
-            nonNestedColumns.push(column);
-            nonNestedColumnsQuery.push(query[index]);
+        columns.forEach((column, index) => {
+            if (column.includes('.')) {
+                nestedColumns.push(column);
+                nestedColumnsQuery.push(query[index]);
+            } else {
+                nonNestedColumns.push(column);
+                nonNestedColumnsQuery.push(query[index]);
+            }
+        });
+
+        const isNestedSortField = sortField.includes('.');
+
+        const whereConditionNested = {
+            [Op.and]: nestedColumns.map((col, index) => ({
+                [col.split('.')[1]]: {
+                    [Op.like]: `${query[index]}%`,
+                },
+            })),
+        };
+        const whereCondition = {
+            [Op.and]: nonNestedColumns.map((col, index) => ({
+                [col]: {
+                    [Op.like]:
+                        col === 'programId' || col === 'semester'
+                            ? query[index]
+                            : `${query[index]}%`,
+                },
+            })),
+        };
+
+        const orderCondition = [];
+
+        if (sortField && sortOrder) {
+            const field = isNestedSortField
+                ? sortField.split('.')[1]
+                : sortField;
+
+            if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+                if (isNestedSortField) {
+                    orderCondition.push([models.program, field, sortOrder]);
+                } else orderCondition.push([field, sortOrder]);
+            }
         }
-    });
 
-    const isNestedSortField = sortField.includes('.');
+        const data = await models.student.findAll({
+            limit,
+            offset,
+            where: nonNestedColumns.length ? whereCondition : undefined,
+            order: orderCondition,
+            include: [
+                {
+                    model: models.program,
+                    attributes: [],
+                    required: true,
+                    where: nestedColumns.length
+                        ? whereConditionNested
+                        : undefined,
+                },
+                {
+                    model: models.course,
+                    attributes: [],
+                    required: false,
+                    where: { isOpenCourse: true },
+                },
+            ],
+            attributes: [
+                'id',
+                'name',
+                'email',
+                'phone',
+                'programId',
+                'rollNumber',
+                'semester',
+                'openCourseId',
+                [sequelize.col('program.is_aided'), 'isAided'],
+                [sequelize.col('course.name'), 'openCourseId'],
+                [sequelize.col('program.name'), 'programName'],
+            ],
+            raw: true,
+        });
 
-    const whereConditionNested = {
-        [Op.and]: nestedColumns.map((col, index) => ({
-            [col.split('.')[1]]: {
-                [Op.like]: `${query[index]}%`,
-            },
-        })),
-    };
-    const whereCondition = {
-        [Op.and]: nonNestedColumns.map((col, index) => ({
-            [col]: {
-                [Op.like]:
-                    col === 'programId' || col === 'semester'
-                        ? query[index]
-                        : `${query[index]}%`,
-            },
-        })),
-    };
-
-    const orderCondition = [];
-
-    if (sortField && sortOrder) {
-        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
-
-        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
-            if (isNestedSortField) {
-                orderCondition.push([models.program, field, sortOrder]);
-            } else orderCondition.push([field, sortOrder]);
-        }
+        return data;
+    } catch (error) {
+        // Handle the error, log it, or throw a custom error if needed
+        console.error('Error in getStudents:', error);
+        throw new Error('An error occurred while fetching students data.');
     }
-
-    const data = await models.student.findAll({
-        limit,
-        offset,
-        where: nonNestedColumns.length ? whereCondition : undefined,
-        order: orderCondition,
-        include: [
-            {
-                model: models.program,
-                attributes: ['name', 'isAided'],
-                required: true,
-                where: nestedColumns.length ? whereConditionNested : undefined,
-            },
-            {
-                model: models.course,
-                attributes: ['name'],
-                required: false,
-                where: { isOpenCourse: true },
-            },
-        ],
-        attributes: [
-            'id',
-            'name',
-            'email',
-            'phone',
-            'programId',
-            'rollNumber',
-            'semester',
-            'openCourseId',
-        ],
-        raw: true,
-    });
-
-    return data;
 };
 
 const getDepartments = async () => {
@@ -214,33 +268,6 @@ const getCourses = async (programId, semester) => {
         // Find the program by programId and include its associated courses
         let program;
         if (semester) {
-            /*  program = await models.program.findByPk(programId, {
-                include: [
-                    {
-                        model: models.course,
-                        through: {
-                            model: models.programCourse,
-                        },
-                        where: {
-                            semester,
-                            [Op.or]: [
-                                {
-                                    '$courses->programCourse.program_id$': {
-                                        [Op.ne]: programId,
-                                    },
-                                    isOpenCourse: 1,
-                                },
-                                {
-                                    '$courses->programCourse.program_id$': {
-                                        [Op.eq]: programId,
-                                    },
-                                    isOpenCourse: 0,
-                                },
-                            ],
-                        },
-                    },
-                ],
-            }); */
             program = await models.course.findAll({
                 include: {
                     model: models.programCourse,
@@ -319,39 +346,44 @@ const getCourses = async (programId, semester) => {
 };
 
 const updateCoursesDateTime = async (data) => {
-    const { courseId, date, timeCode } = data;
-    const [dateTimeRecord] = await models.dateTime.findOrCreate({
-        where: { date, timeCode },
-    });
-
-    const courseExist = await models.course.findByPk(courseId);
-    if (!courseExist) return false;
-
-    const existingExam = await models.exam.findOne({
-        where: {
-            courseId,
-        },
-        include: [
-            {
-                model: models.dateTime,
-                attributes: ['date'],
-                where: { date: { [Op.gt]: new Date() } },
-                require: true,
-            },
-        ],
-    });
-
-    if (existingExam) {
-        // If an existing exam with a future date is found, update its dateTimeId
-        await existingExam.update({ dateTimeId: dateTimeRecord.id });
-    } else {
-        await models.exam.create({
-            dateTimeId: dateTimeRecord.id,
-            courseId,
+    try {
+        const { courseId, date, timeCode } = data;
+        const [dateTimeRecord] = await models.dateTime.findOrCreate({
+            where: { date, timeCode },
         });
-    }
 
-    return true;
+        const courseExist = await models.course.findByPk(courseId);
+        if (!courseExist) return false;
+
+        const existingExam = await models.exam.findOne({
+            where: {
+                courseId,
+            },
+            include: [
+                {
+                    model: models.dateTime,
+                    attributes: ['date'],
+                    where: { date: { [Op.gt]: new Date() } },
+                    require: true,
+                },
+            ],
+        });
+
+        if (existingExam) {
+            // If an existing exam with a future date is found, update its dateTimeId
+            await existingExam.update({ dateTimeId: dateTimeRecord.id });
+        } else {
+            await models.exam.create({
+                dateTimeId: dateTimeRecord.id,
+                courseId,
+            });
+        }
+
+        return true;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
 };
 
 const getExamDateTime = async ({ courseId = undefined }) => {
@@ -372,51 +404,91 @@ const getExamDateTime = async ({ courseId = undefined }) => {
 
 const getExams = async ({
     query = '',
-    column = 'id',
+    column = '',
     offset = 0,
     limit = 10,
-    sortField = 'name',
-    sortOrder = 'ASC',
+    sortField = 'date',
+    sortOrder = 'DESC',
 }) => {
-    sortOrder = sortOrder.toUpperCase();
+    try {
+        sortOrder = sortOrder.toUpperCase();
 
-    const isNestedColumn = column.includes('.');
-    const isNestedSortField = sortField.includes('.');
+        let courseWhereCondition = {};
+        let dateTimesWhereCondition = {};
 
-    const whereCondition = {
-        [isNestedColumn ? column.split('.')[1] : column]: {
-            [Op.like]: `${query}%`,
-        },
-    };
-
-    const orderCondition = [];
-
-    if (sortField && sortOrder) {
-        const field = isNestedSortField ? sortField.split('.')[1] : sortField;
-
-        if (sortOrder === 'ASC' || sortOrder === 'DESC') {
-            if (isNestedSortField) {
-                orderCondition.push([models.dateTime, field, sortOrder]);
-            } else orderCondition.push([field, sortOrder]);
+        console.log(column);
+        if (['date', 'timeCode'].includes(column)) {
+            dateTimesWhereCondition[column] = {
+                [Op.like]: `${query}%`,
+            };
+        } else if (
+            ['course.id', 'course.name', 'course.semester'].includes(column)
+        ) {
+            courseWhereCondition[column.split('.')[1]] = {
+                [Op.like]: `${query}%`,
+            };
         }
+
+        const orderCondition = [];
+
+        if (sortField && sortOrder) {
+            if (sortOrder === 'ASC' || sortOrder === 'DESC') {
+                if (['date', 'timeCode'].includes(sortField)) {
+                    orderCondition.push([
+                        models.dateTime,
+                        sortField,
+                        sortOrder,
+                    ]);
+                } else if (
+                    ['course.id', 'course.name', 'course.semester'].includes(
+                        sortField,
+                    )
+                )
+                    orderCondition.push([
+                        models.course,
+                        sortField.split('.')[1],
+                        sortOrder,
+                    ]);
+            }
+        }
+
+        console.log(orderCondition);
+
+        const data = await models.exam.findAll({
+            limit,
+            offset,
+            order: orderCondition,
+            include: [
+                {
+                    model: models.dateTime,
+                    attributes: [],
+                    required: true,
+                    where: dateTimesWhereCondition,
+                },
+                {
+                    model: models.course,
+                    required: true,
+                    attributes: ['id', 'name', 'semester'],
+                    where: courseWhereCondition,
+                },
+            ],
+            attributes: [
+                'id',
+                [sequelize.col('dateTime.date'), 'date'],
+                [sequelize.col('dateTime.time_code'), 'timeCode'],
+                /* [sequelize.col('course.id'), 'courseId'],
+                [sequelize.col('course.name'), 'courseName'],
+                [sequelize.col('course.semester'), 'semester'], */
+            ],
+            raw: true,
+        });
+        // console.log(JSON.stringify(data, null, 2));
+        return data;
+    } catch (error) {
+        // Handle the error, log it, or throw a custom error if needed
+        console.error('Error in getExams:', error);
+        throw new Error('An error occurred while fetching exams data.');
     }
-
-    const data = await models.course.findAll({
-        limit,
-        offset,
-        where: whereCondition,
-        order: orderCondition,
-        include: {
-            model: models.dateTime,
-            through: { attributes: [] },
-            attributes: ['date', 'timeCode'],
-            required: true,
-            where: isNestedColumn ? whereCondition : undefined,
-        },
-        raw: true,
-    });
-
-    return data;
 };
 
 const getOngoingExamCount = async () => {
@@ -580,14 +652,17 @@ const deleteStudent = async (studentId) => {
     }
 };
 
-const getAvailableOpenCourses = async (programId, isAided) => {
+const getAvailableOpenCourses = async (programId) => {
+    const program = await models.program.findByPk(programId, {
+        attributes: ['isAided'],
+    });
     const openCourses = await models.course.findAll({
         where: { isOpenCourse: 1 },
         include: {
             model: models.program,
             attributes: [],
             through: { attributes: [] },
-            where: { id: { [Op.ne]: programId }, isAided },
+            where: { id: { [Op.ne]: programId }, isAided: program.isAided },
             required: true,
         },
         attributes: ['id', 'name'],

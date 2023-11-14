@@ -21,7 +21,7 @@ router.post('/program', (req, res) => {
         let name = item.name;
         let duration = item.duration;
         let level = item.level;
-        let department_id =item.departmentId;
+        let department_id = item.departmentId;
         programs.push({
             id,
             name,

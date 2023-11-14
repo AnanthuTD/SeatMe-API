@@ -51,7 +51,7 @@ const createRecord = async (seating) => {
             // Execute all update promises concurrently
             try {
                 await Promise.all(updatePromises);
-                console.log('All records updated successfully');
+                // console.log('All records updated successfully');
             } catch (updateError) {
                 console.error('Error updating records:', updateError);
             }

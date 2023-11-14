@@ -5,6 +5,7 @@ import seatCount from './seatCount.js';
 import generateSeatingMatrix from './seatingMatrix.js';
 import SeatingArrangement from './algorithm.js';
 import generateSeatingMatrixPDF from './pdf.js';
+import optimizer from './optimizer.js';
 
 /**
  * Assign seats to students for a given date.
@@ -14,7 +15,12 @@ import generateSeatingMatrixPDF from './pdf.js';
  *   Should be either 'rollNumber' or 'id' (register_number).
  * @returns {Promise} A promise that resolves when seats are successfully assigned.
  */
-async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
+async function assignSeats({
+    date = new Date(),
+    orderBy = 'rollNumber',
+    fileName = 'unnamed',
+    optimize = true,
+}) {
     /** @type {[NestedStudentArray, number]} */
     let [students, totalStudents] = await getData(date, orderBy);
 
@@ -47,17 +53,8 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
         classesIndex += 1;
     }
 
-    const repeatingRegNos = findRepeatingRegNos(classes);
-
-    if (repeatingRegNos.length > 0) {
-        console.log('Repeating registration numbers found:');
-        console.log(repeatingRegNos);
-    } else {
-        console.log('No repeating registration numbers found.');
-    }
-
-    const { totalEmptySeats, totalAssignedSeats } = seatCount(classes);
-    const totalUnassignedStudents = totalStudents - totalAssignedSeats;
+    let { totalEmptySeats, totalAssignedSeats } = seatCount(classes);
+    let totalUnassignedStudents = totalStudents - totalAssignedSeats;
     if (totalAssignedSeats === totalStudents) {
         console.log(
             `All students have been assigned ( ${totalAssignedSeats}  )`,
@@ -67,21 +64,40 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
             `${totalUnassignedStudents} students are not been assigned`,
         );
 
-    date = new Date(date);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const fileName = `${year}-${month}-${day}.pdf`;
+    // optimizing
+    if (optimize && totalUnassignedStudents > 0) {
+        console.log(optimize);
+        totalUnassignedStudents = await optimizer(
+            classes,
+            totalUnassignedStudents,
+            students,
+        );
 
-    /* generateSeatingMatrixHTML(
-        classes,
-        date,
-        totalStudents,
-        totalAssignedSeats,
-        totalEmptySeats,
-        totalUnassignedStudents,
-    ); */
+        // console.log(JSON.stringify(classes, null, 2));
+        const { totalEmptySeats: h1, totalAssignedSeats: h2 } =
+            seatCount(classes);
+        console.log(h1, h2);
 
+        totalEmptySeats = h1;
+        totalAssignedSeats = h2;
+
+        totalUnassignedStudents = totalStudents - h2;
+        if (h2 === totalStudents) {
+            console.log(`All students have been assigned ( ${h2}  )`);
+        } else
+            console.warn(
+                `${totalUnassignedStudents} students are not been assigned`,
+            );
+
+        const repeatingRegNos = findRepeatingRegNos(classes);
+
+        if (repeatingRegNos.length > 0) {
+            console.log('Repeating registration numbers found:');
+            console.log(repeatingRegNos);
+        } else {
+            console.log('No repeating registration numbers found.');
+        }
+    }
     generateSeatingMatrixPDF(
         classes,
         date,
@@ -92,7 +108,7 @@ async function assignSeats({ date = new Date(), orderBy = 'rollNumber' }) {
         fileName,
     );
 
-    return [classes, totalUnassignedStudents, fileName];
+    return [classes, totalUnassignedStudents, students];
 }
 
 export { assignSeats };

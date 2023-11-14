@@ -4,22 +4,18 @@ export default (sequelize) => {
     // Check if the sequelize parameter is a valid Sequelize instance
     if (!(sequelize instanceof Sequelize)) return null;
 
-    const dateTime = sequelize.define(
-        'dateTime',
+    const refreshToken = sequelize.define(
+        'refreshToken',
         {
-            date: {
-                type: DataTypes.DATEONLY,
-            },
-            timeCode: {
-                type: DataTypes.ENUM('AN', 'FN'),
+            token: {
+                type: DataTypes.STRING,
                 allowNull: false,
             },
         },
         {
-            timestamps: false,
             underscored: true,
         },
     );
 
-    return dateTime;
+    return refreshToken;
 };

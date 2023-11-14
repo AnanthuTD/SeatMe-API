@@ -19,8 +19,14 @@ export default class SeatingArrangement {
         this.extraStudentsNeeded =
             this.classCapacity - this.numStudentsEachExam * this.numExams;
         this.unassignedStudents = [];
-        this.occupiedSeatsCount = 0;
-        this.unOccupiedSeatsCount = this.classCapacity;
+        this.occupiedSeatsCount =
+            this.room?.unOccupiedSeatsCount > 0
+                ? this.classCapacity - this.room.unOccupiedSeatsCount
+                : 0;
+        this.unOccupiedSeatsCount =
+            this.room?.unOccupiedSeatsCount > 0
+                ? this.room.unOccupiedSeatsCount
+                : this.classCapacity;
         this.try = true;
     }
 
@@ -92,6 +98,7 @@ export default class SeatingArrangement {
                         examId,
                         programName,
                         semester,
+                        courseId,
                     );
                 } else {
                     this.unassignedStudents.push(
@@ -136,9 +143,17 @@ export default class SeatingArrangement {
 
             this.assignSeats();
         }
+        this.room.unOccupiedSeatsCount = this.unOccupiedSeatsCount;
     }
 
-    updateExamines(programId, studentId, examId, programName, semester) {
+    updateExamines(
+        programId,
+        studentId,
+        examId,
+        programName,
+        semester,
+        courseId,
+    ) {
         let found = false;
 
         this.room.exams = this.room.exams.map((element) => {
@@ -157,6 +172,7 @@ export default class SeatingArrangement {
                 examines: [studentId],
                 name: programName,
                 semester,
+                courseId,
             });
         }
     }

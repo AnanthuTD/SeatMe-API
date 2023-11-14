@@ -21,17 +21,13 @@ export default (sequelize) => {
                 allowNull: false,
             },
             isOpenCourse: {
-                type: DataTypes.TINYINT(1),
+                type: DataTypes.BOOLEAN,
                 defaultValue: false,
             },
         },
         {
             timestamps: false,
-            /*  defaultScope: {
-                where: {
-                    isOpenCourse: false,
-                },
-            }, */
+            underscored: true,
         },
     );
 

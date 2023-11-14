@@ -1,79 +1,82 @@
+import passport from 'passport';
+import { Strategy as BearerStrategy } from 'passport-http-bearer';
 import jwt from 'jsonwebtoken';
 import { isBlacklisted } from '../helpers/jwtHelper.js';
+import env from '../env.js';
 
-// Retrieve the secret key from environment variables
-const secretKey = process.env.SECRET_KEY;
+const config = env();
+const accessTokenPrivateKey = config.ACCESS_TOKEN_PRIVATE_KEY;
 
-/**
- * Middleware for authenticating staff users.
- * @param {object} req - The Express request object.
- * @param {object} res - The Express response object.
- * @param {function} next - The next function in the middleware chain.
- * @returns {object|null} If authentication fails, an error response is sent. Otherwise, the next middleware is invoked.
- */
-const authStaffMiddleware = (req, res, next) => {
-    const { token } = req.cookies;
+passport.use(
+    'staff',
+    new BearerStrategy((token, done) => {
+        try {
+            const decodedToken = jwt.verify(token, accessTokenPrivateKey, {
+                ignoreExpiration: true,
+            });
 
-    if (!token) {
-        return res
-            .status(401)
-            .send(
-                'Access denied. You need a valid token to access this route.',
-            );
-    }
+            const { id, exp } = decodedToken;
 
-    try {
-        const verified = jwt.verify(token, secretKey);
+            // Check if the token is in the blacklist
+            if (isBlacklisted(id, token)) {
+                return done(null, false);
+            }
 
-        // checking if the token is in the blacklist
-        if (isBlacklisted(verified.id, token))
-            return res
-                .status(403)
-                .send('Access denied. This token has been blacklisted.');
+            // Now, you can manually check the token's expiration
+            const currentTimestamp = Math.floor(Date.now() / 1000);
+            if (exp < currentTimestamp) {
+                return done(null, false);
+            }
 
-        req.user = verified;
-        return next();
-    } catch (error) {
-        return res.status(400).send('Invalid token.');
-    }
-};
-
-/**
- * Middleware for authenticating admin users.
- * @param {object} req - The Express request object.
- * @param {object} res - The Express response object.
- * @param {function} next - The next function in the middleware chain.
- * @returns {object|null} If authentication fails, an error response is sent. Otherwise, the next middleware is invoked.
- */
-const authAdminMiddleware = (req, res, next) => {
-    const { token } = req.cookies;
-
-    if (!token) {
-        return res
-            .status(401)
-            .send(
-                'Access denied. You need a valid token to access this route.',
-            );
-    }
-
-    try {
-        const verified = jwt.verify(token, secretKey);
-        // checking if the token is in the blacklist
-        if (isBlacklisted(verified.id, token))
-            return res
-                .status(403)
-                .send('Access denied. This token has been blacklisted.');
-
-        if (!verified.is_admin) {
-            return res
-                .status(403)
-                .send('Access denied. You are not authorized as an admin.');
+            // Return the user associated with the token
+            // Here you may fetch user data from your database and return it
+            // const user = { id, isAdmin };
+            return done(null, decodedToken);
+        } catch (error) {
+            // Handle JWT verification errors
+            return done(error, false);
         }
-        req.admin = verified;
-        return next();
-    } catch (error) {
-        return res.status(400).send('Invalid token.');
-    }
-};
+    }),
+);
 
-export { authStaffMiddleware, authAdminMiddleware };
+// Strategy for administrators
+passport.use(
+    'admin',
+    new BearerStrategy((token, done) => {
+        console.log(token);
+        try {
+            const decodedToken = jwt.verify(token, accessTokenPrivateKey, {
+                ignoreExpiration: true,
+            });
+
+            const { id, isAdmin, exp } = decodedToken;
+
+            // Check if the token is in the blacklist
+            if (isBlacklisted(id, token)) {
+                return done(null, false);
+            }
+
+            // Now, you can manually check the token's expiration
+            const currentTimestamp = Math.floor(Date.now() / 1000);
+            if (exp < currentTimestamp) {
+                return done(null, false);
+            }
+
+            // Check if the user is an administrator
+            if (isAdmin) {
+                // Here you may fetch admin user data from your database and return it
+                // const adminUser = { id, isAdmin };
+                return done(null, decodedToken);
+            }
+            return done(null, false);
+        } catch (error) {
+            // Handle JWT verification errors
+            return done(error, false);
+        }
+    }),
+);
+
+const adminAuthMiddleware = passport.authenticate('admin', { session: false });
+const staffAuthMiddleware = passport.authenticate('staff', { session: false });
+
+export { adminAuthMiddleware, staffAuthMiddleware };

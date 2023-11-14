@@ -52,8 +52,11 @@ async function generateSeatingMatrix() {
                 seatingMatrix: Array.from({ length: room.rows }, () =>
                     Array.from({ length: room.cols }, () => ({
                         occupied: false,
-                        exam: null,
-                        regno: null,
+                        courseName: null,
+                        courseId: null,
+                        id: null,
+                        name: null,
+                        examId: null,
                     })),
                 ),
                 exams: [],

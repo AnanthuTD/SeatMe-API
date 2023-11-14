@@ -33,10 +33,9 @@ export default (sequelize) => {
                 allowNull: false,
             },
             isAided: {
-                type: DataTypes.TINYINT(1),
+                type: DataTypes.BOOLEAN,
                 defaultValue: 1,
             },
-            
         },
         {
             timestamps: false,
