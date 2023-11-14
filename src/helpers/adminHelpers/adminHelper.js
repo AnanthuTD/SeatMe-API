@@ -2,6 +2,7 @@ import { Op, literal } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
 import { fetchExams } from '../seatAssignment/getData.js';
 import { retrieveAndStoreExamsInRedis } from './studentSeat.js';
+import logger from '../logger.js';
 
 const getStaffs = async (
     query = [''],
@@ -331,13 +332,9 @@ const getCourses = async (programId, semester) => {
             });
         }
 
-        // console.log('program', JSON.stringify(program, null, 2));
         if (!program) {
             return [];
         }
-        // getAvailableOpenCourses(programId, program.isAided);
-
-        // const { courses } = program;
 
         return program;
     } catch (error) {
@@ -353,32 +350,10 @@ const setExam = async (data) => {
             where: { date, timeCode },
         });
 
-        const courseExist = await models.course.findByPk(courseId);
-        if (!courseExist) return false;
-
-        const existingExam = await models.exam.findOne({
-            where: {
-                courseId,
-            },
-            include: [
-                {
-                    model: models.dateTime,
-                    attributes: ['date'],
-                    where: { date: { [Op.gt]: new Date() } },
-                    require: true,
-                },
-            ],
+        await models.exam.upsert({
+            dateTimeId: dateTimeRecord.id,
+            courseId,
         });
-
-        if (existingExam) {
-            // If an existing exam with a future date is found, update its dateTimeId
-            await existingExam.update({ dateTimeId: dateTimeRecord.id });
-        } else {
-            await models.exam.create({
-                dateTimeId: dateTimeRecord.id,
-                courseId,
-            });
-        }
 
         retrieveAndStoreExamsInRedis();
 
