@@ -70,7 +70,7 @@ router.get('/', async (req, res) => {
 
 router.get('/assign', async (req, res) => {
     try {
-        const { orderBy, examType } = req.query;
+        const { orderBy, examType, timeCode = 'AN' } = req.query;
 
         let { optimize } = req.query;
         optimize = optimize === 'true' || optimize === '1';
@@ -93,7 +93,9 @@ router.get('/assign', async (req, res) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        fileName = `${examType ? `${examType}-` : ''}${year}-${month}-${day}`;
+        fileName = `${
+            examType ? `${examType}-` : ''
+        }${year}-${month}-${day}-${timeCode}`;
 
         if (!['rollNumber', 'id'].includes(orderBy)) {
             return res.status(400).json({ error: 'Invalid orderBy value' });
@@ -101,6 +103,7 @@ router.get('/assign', async (req, res) => {
 
         const [seating, totalUnassignedStudents] = await assignSeats({
             date,
+            timeCode,
             orderBy,
             fileName,
             optimize,

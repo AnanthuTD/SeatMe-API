@@ -17,13 +17,14 @@ import optimizer from './optimizer.js';
  */
 async function assignSeats({
     date = new Date(),
+    timeCode = 'AN',
     orderBy = 'rollNumber',
     fileName = 'unnamed',
     optimize = true,
     examType = 'internal',
 }) {
     /** @type {[NestedStudentArray, number]} */
-    let [students, totalStudents] = await getData(date, orderBy);
+    let [students, totalStudents] = await getData({date, orderBy, timeCode});
 
     console.log(`total subjects : ${students.length}`);
     console.log(`Generated ${totalStudents} students`);

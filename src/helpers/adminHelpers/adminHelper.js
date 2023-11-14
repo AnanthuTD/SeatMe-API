@@ -555,8 +555,14 @@ const updateRoomAvailability = async ({ roomIds = [] }) => {
     }
 };
 
-const countExamsForDate = async ({ targetDate = new Date() }) => {
-    const { openCourses, nonOpenCourses } = await fetchExams(targetDate);
+const countExamsForDate = async ({
+    targetDate = new Date(),
+    timeCode = 'AN',
+}) => {
+    const { openCourses, nonOpenCourses } = await fetchExams(
+        targetDate,
+        timeCode,
+    );
     const data = [...nonOpenCourses, ...openCourses];
     try {
         const count = await models.student.count({

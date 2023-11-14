@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { models } from '../../sequelize/models.js';
 
-async function fetchExams(date) {
+async function fetchExams(date, timeCode) {
     try {
         const data = await models.course.findAll({
             attributes: ['id', 'name', 'semester', 'isOpenCourse'],
@@ -11,7 +11,7 @@ async function fetchExams(date) {
                     include: {
                         model: models.dateTime,
                         attributes: [],
-                        where: { date },
+                        where: { date, timeCode },
                     },
                     required: true,
                     attributes: ['id'],
@@ -141,9 +141,16 @@ function groupStudentsByCourseId(students) {
 }
 
 // Main function to execute the code
-export default async function getData(date, orderBy = 'rollNumber') {
+export default async function getData({
+    date,
+    timeCode,
+    orderBy = 'rollNumber',
+}) {
     try {
-        const { nonOpenCourses, openCourses } = await fetchExams(date);
+        const { nonOpenCourses, openCourses } = await fetchExams(
+            date,
+            timeCode,
+        );
         // console.log(JSON.stringify(data, null, 4));
 
         const students = await fetchStudents({

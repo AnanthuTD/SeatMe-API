@@ -146,9 +146,9 @@ router.get('/exam', async (req, res) => {
 });
 
 router.get('/examines-count', async (req, res) => {
-    const { date } = req.query;
+    const { date, timeCode } = req.query;
     try {
-        const count = await countExamsForDate({ targetDate: date });
+        const count = await countExamsForDate({ targetDate: date, timeCode });
         res.json(count);
     } catch (error) {
         console.error('Error counting exams for date:', error);
