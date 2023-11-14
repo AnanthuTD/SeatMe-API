@@ -10,23 +10,31 @@ const redisClient = new Redis({
     connectTimeout: 2000,
 });
 
-// Event handler for error event
-redisClient.on('error', (err) => {
-    console.error(`Redis Error: ${err}`);
+redisClient.on('connecting', () => {
+    console.log('Connecting to Redis server...');
 });
 
-// Check if the Redis client is ready after initialization
+redisClient.on('reconnecting', () => {
+    console.log('Reconnecting to Redis server...');
+});
+
 redisClient.on('ready', () => {
     console.log('Connected to Redis server');
 });
 
-// Check if the Redis client encountered a connection issue during initialization
-if (
-    redisClient.status === 'connecting' ||
-    redisClient.status === 'reconnecting'
-) {
-    console.error('Failed to connect to Redis server during initialization');
-    // Handle the failure appropriately, such as exiting the application or taking corrective actions
+redisClient.on('error', (err) => {
+    console.error('Redis Error:', err);
+});
+
+async function isRedisAvailable() {
+    try {
+        await redisClient.ping();
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
+
+export { isRedisAvailable };
 
 export default redisClient;
