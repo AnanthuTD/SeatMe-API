@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
         const seatingInfo = await retrieveStudentDetails(studentId);
 
         if (!seatingInfo) {
-            return res.status(404).json({ error: 'Student details not found' });
+            return res.status(204).json({ error: 'Student details not found' });
         }
 
         const { programId, semester, openCourseId } = seatingInfo;
