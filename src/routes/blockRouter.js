@@ -12,13 +12,18 @@ router.get('/', (req, res) => {
     res.sendFile(p);
 });
 router.post('/block', (req, res) => {
-    let body = req.body;
-    let id = body.id;
-    let name = body.name;
+    console.log('this is called')
+    let body = req.body.blocks;
     let blocks = [];
-    blocks.push({
-        id,
-        name,
+    body.forEach((item) => {
+        let id = item.id;
+        let name = item.name;
+        blocks.push({
+            id,
+            name,
+        });
+        console.log(blocks);
+        console.log(`ID: ${item.id}, Name: ${item.name}`);
     });
 
     models.block

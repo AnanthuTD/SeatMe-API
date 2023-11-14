@@ -247,6 +247,10 @@ const getDepartments = async () => {
     const department = await models.department.findAll();
     return department;
 };
+const getBlocks = async () => {
+    const block = await models.block.findAll();
+    return block;
+};
 
 const getPrograms = async (departmentId) => {
     if (departmentId) {
@@ -725,6 +729,7 @@ export {
     getStudents,
     findStudent,
     getDepartments,
+    getBlocks,
     getCourses,
     getPrograms,
     updateCoursesDateTime,
