@@ -11,35 +11,39 @@ router.get('/', (req, res) => {
 
     //res.sendFile(p);
 });
-router.post('/department', (req, res) => {
+router.post('/room', (req, res) => {
     console.log('this is called');
     console.log(req.body);
-    let body = req.body.departments;
-    let deps = [];
+    let body = req.body.rooms;
+    let rooms = [];
     body.forEach((item) => {
         let id = item.id;
-        let name = item.name;
-        deps.push({
+        let cols = item.cols;
+        let rows = item.rows;
+        let isAvailable = item.isAvailable;
+        let floor = item.floor;
+        let blockId = item.block;
+        rooms.push({
             id,
-            name,
+            cols,
+            rows,
+            isAvailable,
+            floor,
+            blockId,
         });
-        console.log(deps);
-        console.log(`ID: ${item.id}, Name: ${item.name}`);
+        console.log(rooms);
     });
-    let name = req.body.name;
 
-    console.log(deps);
+    console.log(rooms);
 
-    models.department
-        .bulkCreate(deps, { validate: true })
+    models.room
+        .bulkCreate(rooms)
         .then(() => {
-            res.send(deps);
+            res.send(rooms);
         })
         .catch((error) => {
             console.error('Error in inserting into DB:', error);
-
-            // Sending SQL error message to frontend
-            res.status(500).json({ error: 'Error inserting values into DB', sqlError: error.message });
+            res.status(500).send('Error inserting values into DB');
         });
 });
 

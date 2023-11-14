@@ -6,6 +6,7 @@ import express from 'express';
 
 import {
     getDepartments,
+    getBlocks,
     getPrograms,
     getCourses,
     getRooms,
@@ -50,6 +51,16 @@ router.get('/departments', async (req, res) => {
         res.status(500).json({ error: 'Error fetching departments' });
     }
 });
+router.get('/blocks', async (req, res) => {
+    try {
+        const blocks = await getBlocks();
+        res.json(blocks);
+    } catch (error) {
+        console.error(`Error in GET /blocks: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching departments' });
+    }
+});
+
 
 router.get('/programs', async (req, res) => {
     try {

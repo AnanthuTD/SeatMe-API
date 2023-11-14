@@ -14,6 +14,7 @@ import courseRouter from './routes/courseRouter.js';
 import blockRouter from './routes/blockRouter.js';
 import datetimeRouter from './routes/datetimeRouter.js';
 import programRouter from './routes/programRouter.js';
+import roomRouter from './routes/roomRouter.js';
 import { sequelize } from './sequelize/connection.js';
 import { cleanBlacklist } from './helpers/jwtHelper.js';
 import {
@@ -121,8 +122,12 @@ function setupMiddlewares() {
  */
 function setupRoutes() {
     app.use('/', userRouter);
+
+    app.use('/admin/blockentry', blockRouter);
+    app.use('/admin/departmententry', departmentRouter);
     // app.use('/admin/departmententry', departmentRouter);
     app.use('/admin/courseentry', courseRouter);
+    app.use('/admin/roomentry', roomRouter);
     app.use('/admin/programentry', programRouter);
     app.use('/admin', adminAuthMiddleware, adminRouter);
     app.use('/staff', staffAuthMiddleware, staffRouter);
