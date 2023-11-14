@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import express from 'express';
 import { Op } from 'sequelize';
-import { models } from '../sequelize/models.js';
+import { models, sequelize } from '../sequelize/models.js';
 
 const router = express.Router();
 
@@ -48,8 +48,6 @@ router.get('/', async (req, res) => {
             } else {
                 onDuty = false;
             }
-
-            console.log(examDetails);
         } else {
             onDuty = false;
             console.log('No dateTime entry found for today');
@@ -70,18 +68,19 @@ Access      :       PUBLIC
 Parameters  :        rid
 Method      :        GET
  */
-router.get('/attendance/:rid/:dateid', async (req, res) => {
+router.get('/attendance/:roomId/:dateTimeId', async (req, res) => {
+    const { roomId, dateTimeId } = req.params;
+
     const exams = await models.exam.findAll({
         where: {
-            date_time_id: req.params.dateid,
+            date_time_id: dateTimeId,
         },
     });
     const examIdsArray = exams.map((exam) => exam.id);
-    console.log(examIdsArray);
 
     const data = await models.studentSeat.findAll({
         where: {
-            room_id: req.params.rid,
+            room_id: roomId,
             exam_id: {
                 [Op.in]: examIdsArray,
             },
@@ -123,43 +122,57 @@ Parameters  :        null
 Method      :        POST
  */
 
-router.post('/attendance', (req, res) => {
-    // Access the data sent in the POST request body (i.e., absentstd)
- 
-   try {
-    const absentstd = req.body;
-    console.log(absentstd);
-    const examIdsArray = absentstd.map((std) => std.examId);
-    const studentIdsArray = absentstd.map((std) => std.studentId);
-    console.log(studentIdsArray, examIdsArray);
+router.post('/attendance/:teacherSeatId', async (req, res) => {
+    try {
+        const absentees = req.body;
 
-    models.studentSeat.update(
-        { isPresent: false},
-        { where: { 
-            student_id : {
-                [Op.in] : studentIdsArray
-            },
-            exam_id : {
-                [Op.in] : examIdsArray
-            },
-        } }
-      );
-      
+        const { teacherSeatId } = req.params;
+        const examIdsArray = absentees.map((std) => std.examId);
+        const studentIdsArray = absentees.map((std) => std.studentId);
 
+        await sequelize.transaction(async (t) => {
+            const [updateCount] = await models.teacherSeat.update(
+                { attendanceSubmitted: true },
+                {
+                    where: { id: teacherSeatId, attendanceSubmitted: false },
+                    transaction: t,
+                },
+            );
 
+            if (updateCount === 0) {
+                await t.rollback();
+                res.status(400).json({
+                    message: 'Attendance already submitted.',
+                });
+                return;
+            }
 
-    // Send a response indicating the data has been received and processed
-    res.status(200).json({
-        message: 'Data received and processed successfully',
-    });
-}catch (error) {
-    // Handle any errors that occurred during the update operation
-    console.error('Error updating the database:', error);
-    res.status(500).json({
-        message: 'Internal Server Error',
-    });
-}
+            await models.studentSeat.update(
+                { isPresent: false },
+                {
+                    where: {
+                        student_id: {
+                            [Op.in]: studentIdsArray,
+                        },
+                        exam_id: {
+                            [Op.in]: examIdsArray,
+                        },
+                    },
+                    transaction: t,
+                },
+            );
 
+            res.status(200).json({
+                message: 'Attendance submitted successfully.',
+            });
+        });
+    } catch (error) {
+        console.error('Error updating the database:', error);
+        res.status(500).json({
+            message: 'Internal Server Error',
+            error: error.message,
+        });
+    }
 });
 
 export default router;
