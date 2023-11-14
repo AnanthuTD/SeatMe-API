@@ -7,18 +7,32 @@ export default (sequelize) => {
     const teacherSeat = sequelize.define(
         'teacherSeat',
         {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+            },
             roomId: {
                 type: DataTypes.INTEGER.UNSIGNED,
-                primaryKey: true,
             },
             dateTimeId: {
                 type: DataTypes.INTEGER,
-                primaryKey: true,
+            },
+            attendanceSubmitted: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
             },
         },
         {
             timestamps: false,
             underscored: true,
+            indexes: [
+                {
+                    unique: true,
+                    fields: ['room_id', 'date_time_id'],
+                },
+            ],
         },
     );
 

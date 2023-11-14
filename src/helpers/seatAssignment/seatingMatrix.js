@@ -6,7 +6,7 @@ import { models, sequelize } from '../../sequelize/models.js';
  * - `classes` (Array<Class>): An array of classes, each with a seating matrix.
  * - `totalSeats` (number): The total number of seats across all classes.
  */
-async function generateSeatingMatrix() {
+async function generateSeatingMatrix(examType) {
     /**
      * Represents a class with a seating matrix.
      * @typedef {Object} Class
@@ -24,6 +24,18 @@ async function generateSeatingMatrix() {
      * @property {string} name - The name of the block.
      */
 
+    let rowsAndCols = [];
+    if (examType === 'final')
+        rowsAndCols = [
+            ['final_rows', 'rows'],
+            ['final_cols', 'cols'],
+        ];
+    else
+        rowsAndCols = [
+            ['internal_rows', 'rows'],
+            ['internal_cols', 'cols'],
+        ];
+
     try {
         const rooms = await models.room.findAll({
             where: { isAvailable: true },
@@ -31,10 +43,14 @@ async function generateSeatingMatrix() {
             raw: true,
             attributes: [
                 'id',
-                'cols',
-                'rows',
+                ...rowsAndCols,
                 'floor',
-                [sequelize.literal('room.cols * room.rows'), 'seats'],
+                [
+                    sequelize.literal(
+                        `${rowsAndCols[0][0]}*${rowsAndCols[1][0]}`,
+                    ),
+                    'seats',
+                ],
             ],
         });
 

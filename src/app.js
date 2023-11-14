@@ -27,6 +27,11 @@ import {
 } from './middlewares/csrfMiddleware.js';
 import getRootDir from '../getRootDir.js';
 import validateENV from './env.js';
+import {
+    retrieveAndStoreExamsInRedis,
+    retrieveAndStoreInRedis,
+} from './helpers/adminHelpers/studentSeat.js';
+import { isRedisAvailable } from './redis/config.js';
 
 const dirname = getRootDir();
 
@@ -39,19 +44,39 @@ const app = express();
  * Initializes models after successful connection.
  * @throws {Error} If unable to connect to the database.
  */
-async function assertDatabaseConnectionOk() {
-    console.log(`Checking database connection...`);
-    try {
-        await sequelize.authenticate();
-        console.log('Database connection OK!');
-        // initializing models
-        import('./sequelize/models.js');
-    } catch (error) {
-        console.error('Unable to connect to the database:');
-        console.error(error.message);
-        throw new Error(
-            'Unable to connect to the database. Check your database configuration.',
-        );
+async function assertDatabaseConnectionOk({ retryDelay = 5000 }) {
+    let retries = 0;
+
+    async function attemptConnection() {
+        console.log(`Checking database connection... Attempt ${retries + 1}`);
+        try {
+            await sequelize.authenticate();
+            console.log('Database connection OK!');
+            // initializing models
+            import('./sequelize/models.js');
+            return true; // Connection successful
+        } catch (error) {
+            console.error('Unable to connect to the database:');
+            console.error(error.message);
+            return false; // Connection failed
+        }
+    }
+
+    while (true) {
+        // eslint-disable-next-line no-await-in-loop
+        const connectionSuccessful = await attemptConnection();
+        if (connectionSuccessful) {
+            return; // Exit the function if the connection is successful
+        }
+
+        retries += 1;
+        console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise((resolve) => {
+            setTimeout(() => {
+                resolve(); // No implicit return
+            }, retryDelay);
+        });
     }
 }
 
@@ -124,16 +149,37 @@ function startServer() {
     });
 }
 
+async function assertRedisConnectionOk() {
+    if (!(await isRedisAvailable())) {
+        console.log('Redis is not available. Retrying in 5 seconds...');
+        // Return the result of the recursive call inside the setTimeout callback
+        return new Promise((resolve) => {
+            setTimeout(async () => {
+                resolve(await assertRedisConnectionOk());
+            }, 5000);
+        });
+    }
+    return true;
+}
+
+function populateRedis() {
+    // retrieve student seating arrangement for today  and store it in redis.
+    retrieveAndStoreInRedis();
+    // retrieve exams
+    retrieveAndStoreExamsInRedis();
+}
+
 /**
  * Initialize the application by connecting to the database, setting up middlewares, routes, and starting the server.
  */
 async function init() {
     validateENV();
-    await assertDatabaseConnectionOk();
+    await assertDatabaseConnectionOk({ retryDelay: 5000 });
+    await assertRedisConnectionOk();
     setupMiddlewares();
     setupRoutes();
     startServer();
-
+    populateRedis();
     // Schedule the jwt blacklist cleanup task to run every day at midnight (adjust as needed)
     cron.schedule('0 0 * * *', () => {
         cleanBlacklist();

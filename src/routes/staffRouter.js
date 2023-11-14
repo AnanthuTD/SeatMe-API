@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import express from 'express';
-import { models } from '../sequelize/models.js';
+import { Op } from 'sequelize';
+import { models, sequelize } from '../sequelize/models.js';
 
 const router = express.Router();
 
@@ -10,16 +11,16 @@ router.get('/', async (req, res) => {
         let onDuty;
         const currentDate = new Date();
         const today = currentDate.toISOString().split('T')[0];
-    
+
         // Use await with findOne to wait for the query to complete
         const dateEntry = await models.dateTime.findOne({
             where: {
                 date: today,
             },
         });
-    
+
         let examDetails = [];
-    
+
         if (dateEntry) {
             // Use await with findAll to wait for the query to complete
             examDetails = await models.teacherSeat.findAll({
@@ -29,8 +30,11 @@ router.get('/', async (req, res) => {
                 },
                 include: [
                     {
+                        model: models.dateTime,
+                    },
+                    {
                         model: models.room,
-                        attributes: ['rows', 'cols', 'floor', 'block_id'],
+                        attributes: ['floor', 'block_id'],
                         include: {
                             model: models.block,
                             attributes: ['name'],
@@ -38,26 +42,22 @@ router.get('/', async (req, res) => {
                     },
                 ],
             });
-    
+
             if (examDetails.length > 0) {
                 onDuty = true;
             } else {
                 onDuty = false;
             }
-    
-            console.log(examDetails);
         } else {
             onDuty = false;
             console.log('No dateTime entry found for today');
         }
-    
-        console.log(examDetails, onDuty);
+
         res.json({ onDuty, examDetails });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).send('Internal Server Error');
-    } 
-  
+    }
 });
 
 /*
@@ -67,10 +67,22 @@ Access      :       PUBLIC
 Parameters  :        rid
 Method      :        GET
  */
-router.get('/attendance/:rid', async (req, res) => {
+router.get('/attendance/:roomId/:dateTimeId', async (req, res) => {
+    const { roomId, dateTimeId } = req.params;
+
+    const exams = await models.exam.findAll({
+        where: {
+            date_time_id: dateTimeId,
+        },
+    });
+    const examIdsArray = exams.map((exam) => exam.id);
+
     const data = await models.studentSeat.findAll({
         where: {
-            room_id: req.params.rid,
+            room_id: roomId,
+            exam_id: {
+                [Op.in]: examIdsArray,
+            },
         },
         include: [
             {
@@ -103,21 +115,63 @@ router.get('/attendance/:rid', async (req, res) => {
 
 /*
  ROuter     :       /attendance
-Dsescription:      To get Students of specified Room id 
+Dsescription:      To update attendance of student 
 Access      :       PUBLIC
-Parameters  :        rid
+Parameters  :        null
 Method      :        POST
  */
 
-router.post('/attendance', (req, res) => {
-    // Access the data sent in the POST request body (i.e., absentstd)
-    const absentstd = req.body;
-    console.log(absentstd);
+router.post('/attendance/:teacherSeatId', async (req, res) => {
+    try {
+        const absentees = req.body;
 
-    // Send a response indicating the data has been received and processed
-    res.status(200).json({
-        message: 'Data received and processed successfully',
-    });
+        const { teacherSeatId } = req.params;
+        const examIdsArray = absentees.map((std) => std.examId);
+        const studentIdsArray = absentees.map((std) => std.studentId);
+
+        await sequelize.transaction(async (t) => {
+            const [updateCount] = await models.teacherSeat.update(
+                { attendanceSubmitted: true },
+                {
+                    where: { id: teacherSeatId, attendanceSubmitted: false },
+                    transaction: t,
+                },
+            );
+
+            if (updateCount === 0) {
+                await t.rollback();
+                res.status(400).json({
+                    message: 'Attendance already submitted.',
+                });
+                return;
+            }
+
+            await models.studentSeat.update(
+                { isPresent: false },
+                {
+                    where: {
+                        student_id: {
+                            [Op.in]: studentIdsArray,
+                        },
+                        exam_id: {
+                            [Op.in]: examIdsArray,
+                        },
+                    },
+                    transaction: t,
+                },
+            );
+
+            res.status(200).json({
+                message: 'Attendance submitted successfully.',
+            });
+        });
+    } catch (error) {
+        console.error('Error updating the database:', error);
+        res.status(500).json({
+            message: 'Internal Server Error',
+            error: error.message,
+        });
+    }
 });
 
 export default router;

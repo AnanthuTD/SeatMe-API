@@ -1,6 +1,8 @@
 import { Op, literal } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
 import { fetchExams } from '../seatAssignment/getData.js';
+import { retrieveAndStoreExamsInRedis } from './studentSeat.js';
+import logger from '../logger.js';
 
 const getStaffs = async (
     query = [''],
@@ -334,13 +336,9 @@ const getCourses = async (programId, semester) => {
             });
         }
 
-        // console.log('program', JSON.stringify(program, null, 2));
         if (!program) {
             return [];
         }
-        // getAvailableOpenCourses(programId, program.isAided);
-
-        // const { courses } = program;
 
         return program;
     } catch (error) {
@@ -349,39 +347,19 @@ const getCourses = async (programId, semester) => {
     }
 };
 
-const updateCoursesDateTime = async (data) => {
+const setExam = async (data) => {
     try {
         const { courseId, date, timeCode } = data;
         const [dateTimeRecord] = await models.dateTime.findOrCreate({
             where: { date, timeCode },
         });
 
-        const courseExist = await models.course.findByPk(courseId);
-        if (!courseExist) return false;
-
-        const existingExam = await models.exam.findOne({
-            where: {
-                courseId,
-            },
-            include: [
-                {
-                    model: models.dateTime,
-                    attributes: ['date'],
-                    where: { date: { [Op.gt]: new Date() } },
-                    require: true,
-                },
-            ],
+        await models.exam.upsert({
+            dateTimeId: dateTimeRecord.id,
+            courseId,
         });
 
-        if (existingExam) {
-            // If an existing exam with a future date is found, update its dateTimeId
-            await existingExam.update({ dateTimeId: dateTimeRecord.id });
-        } else {
-            await models.exam.create({
-                dateTimeId: dateTimeRecord.id,
-                courseId,
-            });
-        }
+        retrieveAndStoreExamsInRedis();
 
         return true;
     } catch (error) {
@@ -516,17 +494,28 @@ const getOngoingExamCount = async () => {
     return totalCount;
 };
 
-const getRooms = async () => {
+const getRooms = async ({ examType = 'final' }) => {
+    let rowsAndCols = [];
+    if (examType === 'final')
+        rowsAndCols = [
+            ['final_rows', 'rows'],
+            ['final_cols', 'cols'],
+        ];
+    else
+        rowsAndCols = [
+            ['internal_rows', 'rows'],
+            ['internal_cols', 'cols'],
+        ];
+
     try {
         const rooms = await models.room.findAll({
             attributes: [
                 'id',
-                'rows',
-                'cols',
+                ...rowsAndCols,
                 'blockId',
                 'isAvailable',
                 'floor',
-                [literal('`rows` * `cols`'), 'seats'],
+                [literal(`${rowsAndCols[0][0]}*${rowsAndCols[1][0]}`), 'seats'],
             ],
         });
         return rooms;
@@ -619,27 +608,12 @@ const findOrCreateStudents = async (students) => {
     }
 };
 
-const updateStudent = async (students = []) => {
-    const notUpdatedStudents = [];
+const updateStudent = async (student) => {
+    const [updateCount] = await models.student.update(student, {
+        where: { id: student.id },
+    });
 
-    await Promise.all(
-        students.map(async (student) => {
-            try {
-                const result = await models.student.update(student, {
-                    where: { id: student.id },
-                });
-                if (!result.affectedCount) {
-                    notUpdatedStudents.push(student);
-                }
-            } catch (err) {
-                notUpdatedStudents.push(student);
-                // console.log('Error:', err);
-            }
-        }),
-    );
-
-    // console.log('Not Updated Students:', notUpdatedStudents);
-    return notUpdatedStudents;
+    return updateCount;
 };
 
 const deleteStudent = async (studentId) => {
@@ -732,7 +706,7 @@ export {
     getBlocks,
     getCourses,
     getPrograms,
-    updateCoursesDateTime,
+    setExam,
     getOngoingExamCount,
     getExams,
     getRooms,

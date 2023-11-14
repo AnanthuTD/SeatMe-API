@@ -31,7 +31,7 @@ router.post('/department', (req, res) => {
     console.log(deps);
 
     models.department
-        .bulkCreate(deps)
+        .bulkCreate(deps, { validate: true })
         .then(() => {
             res.send(deps);
         })

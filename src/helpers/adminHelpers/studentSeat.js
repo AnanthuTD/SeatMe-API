@@ -1,66 +1,341 @@
 import { Op } from 'sequelize';
-import { models } from '../../sequelize/models.js';
+import { models, sequelize } from '../../sequelize/models.js';
+import redisClient from '../../redis/config.js';
+import logger from '../logger.js';
 
-const createRecord = async (seating) => {
+const retrieveAndStoreInRedis = async () => {
+    try {
+        const currentDate = new Date();
+
+        const seatingData = await models.studentSeat.findAll({
+            attributes: [
+                'id',
+                'seatNumber',
+                'examId',
+                'roomId',
+                [sequelize.col('room.floor'), 'floor'],
+                [sequelize.col('room.block.id'), 'blockId'],
+                [sequelize.col('room.block.name'), 'blockName'],
+                [sequelize.col('exam.course.id'), 'courseId'],
+                [sequelize.col('exam.course.name'), 'courseName'],
+            ],
+            include: [
+                {
+                    model: models.exam,
+                    attributes: [],
+                    required: true,
+                    include: [
+                        {
+                            model: models.dateTime,
+                            where: { date: { [Op.eq]: currentDate } },
+                            required: true,
+                            attributes: ['date', 'timeCode'],
+                        },
+                        {
+                            model: models.course,
+                            required: true,
+                            attributes: ['name', 'id'],
+                        },
+                    ],
+                },
+                {
+                    model: models.student,
+                    attributes: [
+                        'id',
+                        'name',
+                        'rollNumber',
+                        'programId',
+                        'semester',
+                        'openCourseId',
+                    ],
+                },
+                {
+                    model: models.room,
+                    include: [
+                        {
+                            model: models.block,
+                            attributes: [],
+                        },
+                    ],
+                    attributes: [],
+                },
+            ],
+        });
+
+        // logger(seatingData)
+
+        await redisClient.del('seatingInfo');
+
+        // Store the entire seating information in Redis
+        await Promise.all(
+            seatingData.map(async (record) => {
+                const key = record.student.id.toString();
+                await redisClient.hset(
+                    'seatingInfo',
+                    key,
+                    JSON.stringify(record),
+                );
+            }),
+        );
+
+        console.log('Seating information stored in Redis successfully');
+    } catch (error) {
+        console.error(
+            'Error retrieving or storing seating information:',
+            error,
+        );
+    }
+};
+
+const retrieveStudentDetails = async (studentId) => {
+    try {
+        const studentDetailsStr = await redisClient.hget(
+            'seatingInfo',
+            studentId.toString(),
+        );
+
+        if (!studentDetailsStr) {
+            console.log(`Student with ID ${studentId} not found in Redis`);
+            return null;
+        }
+
+        const studentDetails = JSON.parse(studentDetailsStr);
+
+        return studentDetails;
+    } catch (error) {
+        console.error('Error retrieving student details from Redis:', error);
+        return null;
+    }
+};
+
+const generateRecords = (seating) => {
     const records = [];
-    await seating.forEach((room) => {
+
+    seating.forEach((room) => {
         const { id, seatingMatrix } = room;
         const numRows = seatingMatrix.length;
         const numCols = seatingMatrix[0].length;
 
         for (let row = 0; row < numRows; row += 1) {
             for (let col = 0; col < numCols; col += 1) {
-                // eslint-disable-next-line no-continue
-                if (!seatingMatrix[row][col].occupied) continue;
-                const serialNumber = row * numCols + col + 1;
-                const { examId } = seatingMatrix[row][col];
-                const studentId = seatingMatrix[row][col].id;
+                if (seatingMatrix[row][col].occupied) {
+                    const serialNumber = row * numCols + col + 1;
+                    const { examId } = seatingMatrix[row][col];
+                    const studentId = seatingMatrix[row][col].id;
 
-                // console.log(seatingMatrix[row][col]);
+                    const record = {
+                        seatNumber: serialNumber,
+                        roomId: id,
+                        studentId,
+                        examId,
+                    };
 
-                const record = {
-                    seatNumber: serialNumber,
-                    roomId: id,
-                    studentId,
-                    examId,
-                };
-
-                records.push(record); // Push the record object into the array
+                    records.push(record);
+                }
             }
         }
     });
 
-    // console.log(JSON.stringify(records, null, 2));
+    return records;
+};
+
+const createRecord = async (seating) => {
+    const records = generateRecords(seating);
+
     try {
-        await models.studentSeat.bulkCreate(records);
+        await models.studentSeat.bulkCreate(records, {
+            updateOnDuplicate: ['seatNumber', 'roomId'],
+        });
+
+        // retrieve and store data into redis
+        retrieveAndStoreInRedis();
     } catch (error) {
-        if (error.name === 'SequelizeUniqueConstraintError') {
-            // Handle unique constraint violation
-            console.error('Unique constraint violation occurred.');
-
-            // Create an array of promises to update the violating records
-            const updatePromises = records.map((record) => {
-                return models.studentSeat.update(record, {
-                    where: {
-                        studentId: record.studentId,
-                        examId: record.examId,
-                    },
-                });
-            });
-
-            // Execute all update promises concurrently
-            try {
-                await Promise.all(updatePromises);
-                // console.log('All records updated successfully');
-            } catch (updateError) {
-                console.error('Error updating records:', updateError);
-            }
-        } else {
-            // Handle other errors
-            console.error('Error during bulk insert of studentSeat:', error);
-        }
+        console.error(
+            'Error during bulk insert or update of studentSeat:',
+            error,
+        );
     }
 };
+
+async function removeAllSetsWithPattern(pattern) {
+    const keysToDelete = await redisClient.keys(`${pattern}'*'`);
+
+    if (keysToDelete.length > 0) {
+        await redisClient.del(keysToDelete);
+        console.log('Sets removed:', keysToDelete);
+    } else {
+        console.log('No sets found with the specified pattern.');
+    }
+}
+
+const getUpcomingExamsById = async (studentId) => {
+    const student = await models.student.findByPk(studentId, {});
+    const currentDate = new Date();
+
+    let data = await models.course.findAll({
+        attributes: [
+            ['id', 'courseId'],
+            ['name', 'courseName'],
+            'semester',
+            'isOpenCourse',
+            [sequelize.col('exams.date_time_id'), 'dateTimeId'],
+            [sequelize.col('exams.dateTime.date'), 'date'],
+            [sequelize.col('exams.dateTime.time_code'), 'timeCode'],
+            // [sequelize.col('course.name'), 'courseName'],
+            // [sequelize.col('course.semester'), 'semester'],
+            // [sequelize.col('course.is_open_course'), 'isOpenCourse'],
+            [sequelize.col('programCourses.program_id'), 'programId'],
+        ],
+
+        where: {
+            semester: student.semester,
+            [Op.or]: [
+                {
+                    id: {
+                        [Op.eq]: student.openCourseId,
+                    },
+                },
+                {
+                    '$programCourses.program_id$': {
+                        [Op.eq]: student.programId,
+                    },
+                    isOpenCourse: 0,
+                },
+            ],
+        },
+        include: [
+            {
+                model: models.programCourse,
+                where: {
+                    programId: {
+                        [Op.or]: [
+                            { [Op.ne]: student.programId },
+                            { [Op.eq]: student.programId },
+                        ],
+                    },
+                },
+                attributes: [],
+            },
+            {
+                model: models.exam,
+                attributes: [],
+                include: [
+                    {
+                        model: models.dateTime,
+                        attributes: [],
+                        where: { date: { [Op.gte]: currentDate } },
+                        required: true,
+                    },
+                ],
+                required: true,
+            },
+        ],
+        raw: true,
+    });
+
+    // logger(data);
+    return data;
+};
+
+const getUpcomingExamsFromDB = async () => {
+    const currentDate = new Date();
+
+    const upcomingExams = await models.exam.findAll({
+        attributes: [
+            'id',
+            'dateTimeId',
+            'courseId',
+            [sequelize.col('dateTime.date'), 'date'],
+            [sequelize.col('dateTime.time_code'), 'timeCode'],
+            [sequelize.col('course.name'), 'courseName'],
+            [sequelize.col('course.semester'), 'semester'],
+            [sequelize.col('course.is_open_course'), 'isOpenCourse'],
+            [sequelize.col('course.programCourses.program_id'), 'programId'],
+        ],
+        include: [
+            {
+                model: models.dateTime,
+                where: {
+                    date: { [Op.gte]: currentDate },
+                },
+                required: true,
+                attributes: [],
+            },
+            {
+                model: models.course,
+                required: true,
+                attributes: [],
+                include: [
+                    {
+                        model: models.programCourse,
+                        required: true,
+                        attributes: [],
+                    },
+                ],
+            },
+        ],
+        raw: true,
+    });
+    return upcomingExams;
+};
+
+const retrieveAndStoreExamsInRedis = async () => {
+    const upcomingExams = await getUpcomingExamsFromDB();
+
+    await removeAllSetsWithPattern('courses:program:');
+    redisClient.del('examOpenCourses');
+
+    upcomingExams.map(async (exam) => {
+        if (exam.isOpenCourse === 1) {
+            const key = `${exam.courseId}-${exam.semester}`;
+            redisClient.hset('examOpenCourses', key, JSON.stringify(exam));
+        } else {
+            const key = `courses:program:${exam.programId}:${exam.semester}`;
+            redisClient.sadd(key, JSON.stringify(exam));
+        }
+    });
+};
+
+const getUpcomingExams = async (
+    programId,
+    semester,
+    openCourseId = undefined,
+) => {
+    try {
+        let key = `courses:program:${programId}:${semester}`;
+        const members = await redisClient.smembers(key);
+        const examDataNormal = members.map((member) => JSON.parse(member));
+        console.log('Retrieved normal exam data:', examDataNormal);
+
+        const combinedResults = [...examDataNormal];
+
+        if (openCourseId) {
+            key = `${openCourseId}-${semester}`;
+
+            const examOpenCourseData = await redisClient.hget(
+                'examOpenCourses',
+                key,
+            );
+
+            if (examOpenCourseData) {
+                const parsedExam = JSON.parse(examOpenCourseData);
+                console.log('Retrieved exam data for open course:', parsedExam);
+                combinedResults.push(parsedExam);
+            } else {
+                console.log(`No data found for key: ${key}`);
+            }
+        }
+
+        console.log(combinedResults);
+
+        return combinedResults;
+    } catch (err) {
+        console.error('Error retrieving exam data:', err);
+        throw err; // Re-throw the error to handle it at a higher level if needed.
+    }
+};
+
+// getUpcomingExams(1, 6, 'OC1CDE001');
 
 const getTimeTableAndSeating = async (studentId) => {
     const student = await models.student.findByPk(studentId, {});
@@ -138,6 +413,12 @@ const getTimeTableAndSeating = async (studentId) => {
     return data;
 };
 
-// getTimeTable(70000100061);
-
-export { createRecord, getTimeTableAndSeating };
+export {
+    createRecord,
+    getTimeTableAndSeating,
+    retrieveAndStoreInRedis,
+    retrieveStudentDetails,
+    retrieveAndStoreExamsInRedis,
+    getUpcomingExams,
+    getUpcomingExamsFromDB,
+};
