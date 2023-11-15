@@ -1,9 +1,6 @@
 import fs from 'fs';
-
 import path from 'path';
-
 import express from 'express';
-
 import {
     getDepartments,
     getBlocks,
@@ -15,18 +12,15 @@ import {
     countExamsForDate,
     getExamDateTime,
 } from '../../helpers/adminHelpers/adminHelper.js';
-
 import getRootDir from '../../../getRootDir.js';
-
 import staffRouter from './staffRouter.js';
-
 import studentRouter from './studentRouter.js';
-
 import examRouter from './examRouter.js';
-
 import configRouter from './configRouter.js';
-
 import { getDateTimeId } from '../../helpers/adminHelpers/examHelper.js';
+import { models } from '../../sequelize/models.js';
+import { checkCredentialsAndRetrieveData } from '../../helpers/commonHelper.js';
+import { encrypt } from '../../helpers/bcryptHelper.js';
 
 const router = express.Router();
 
@@ -268,6 +262,60 @@ router.get('/list-pdfs', async (req, res) => {
         const errorMessage = `Error in GET /list-pdfs: ${error.message}`;
         console.error(errorMessage);
         res.status(500).send('Error listing PDFs.');
+    }
+});
+
+router.patch('/profile', async (req, res) => {
+    const profileInfo = req.body;
+
+    if (!profileInfo || !profileInfo.password) {
+        return res.status(400).send('Invalid request data');
+    }
+
+    try {
+        const { password, ...otherProfileFields } = profileInfo;
+        const { email } = req.user;
+
+        // Check credentials and retrieve user data
+        const userData = await checkCredentialsAndRetrieveData(email, password);
+
+        if (userData) {
+            // Construct the update object based on provided values
+            const updateObject = {};
+
+            // Add password to updateObject if provided
+            if (otherProfileFields.newPassword) {
+                const hashedPassword = await encrypt(
+                    otherProfileFields.newPassword,
+                );
+                updateObject.password = hashedPassword;
+            }
+
+            // Add other profile fields to updateObject if provided
+            Object.keys(otherProfileFields).forEach((field) => {
+                if (otherProfileFields[field]) {
+                    updateObject[field] = otherProfileFields[field];
+                }
+            });
+
+            // Update the user's profile fields if there's anything to update
+            if (Object.keys(updateObject).length > 0) {
+                const [updatedCount] = await models.authUser.update(
+                    updateObject,
+                    { where: { email } },
+                );
+
+                if (updatedCount > 0) {
+                    return res.status(200).send('Profile updated successfully');
+                }
+            }
+        }
+
+        // Authentication failed or user not found
+        return res.status(403).send('Invalid credentials or not authorized.');
+    } catch (error) {
+        console.error('Error updating profile!', error);
+        return res.status(500).send('Internal Server Error');
     }
 });
 
