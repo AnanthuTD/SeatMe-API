@@ -3,9 +3,58 @@ import { models, sequelize } from '../../sequelize/models.js';
 import redisClient from '../../redis/config.js';
 import logger from '../logger.js';
 
-const retrieveAndStoreInRedis = async () => {
+const getTimeCodeForNow = async (seatingTimes) => {
+    const currentTime = new Date();
+
+    logger(seatingTimes, 'seating times');
+
+    const matchingConfig = seatingTimes.find((config) => {
+        const configStartTime = new Date(`1970-01-01T${config.startTime}`);
+        const configEndTime = new Date(`1970-01-01T${config.endTime}`);
+
+        const isAfterStartTime =
+            currentTime.getHours() > configStartTime.getHours() ||
+            (currentTime.getHours() === configStartTime.getHours() &&
+                currentTime.getMinutes() >= configStartTime.getMinutes());
+
+        const isBeforeEndTime =
+            currentTime.getHours() < configEndTime.getHours() ||
+            (currentTime.getHours() === configEndTime.getHours() &&
+                currentTime.getMinutes() < configEndTime.getMinutes());
+
+        console.log(isAfterStartTime, isBeforeEndTime);
+
+        // Check if the current time is within the range of config.startTime and config.endTime
+        return isAfterStartTime && isBeforeEndTime;
+    });
+
+    return matchingConfig ? matchingConfig.timeCode : null;
+};
+
+const retrieveAndStoreSeatingInfoInRedis = async () => {
     try {
         const currentDate = new Date();
+        const currentDayOfWeek = currentDate.getDay();
+
+        const daysOfWeek = [
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+        ];
+
+        const day = daysOfWeek[currentDayOfWeek];
+
+        console.log(day);
+
+        const seatingTimes = await models.seatingTimeConfig.findAll({
+            where: { day },
+        });
+
+        const timeCode = await getTimeCodeForNow(seatingTimes);
 
         const seatingData = await models.studentSeat.findAll({
             attributes: [
@@ -18,6 +67,7 @@ const retrieveAndStoreInRedis = async () => {
                 [sequelize.col('room.block.name'), 'blockName'],
                 [sequelize.col('exam.course.id'), 'courseId'],
                 [sequelize.col('exam.course.name'), 'courseName'],
+                [sequelize.col('exam.dateTime.time_code'), 'timeCode'],
             ],
             include: [
                 {
@@ -27,9 +77,9 @@ const retrieveAndStoreInRedis = async () => {
                     include: [
                         {
                             model: models.dateTime,
-                            where: { date: { [Op.eq]: currentDate } },
+                            where: { date: { [Op.eq]: currentDate }, timeCode },
                             required: true,
-                            attributes: ['date', 'timeCode'],
+                            attributes: [],
                         },
                         {
                             model: models.course,
@@ -62,7 +112,7 @@ const retrieveAndStoreInRedis = async () => {
             ],
         });
 
-        // logger(seatingData)
+        // logger(seatingData);
 
         await redisClient.del('seatingInfo');
 
@@ -81,7 +131,7 @@ const retrieveAndStoreInRedis = async () => {
         console.log('Seating information stored in Redis successfully');
     } catch (error) {
         console.error(
-            'Error retrieving or storing seating information:',
+            'Error retrieving or storing seating information in (retrieveAndStoreSeatingInfoInRedis)\n',
             error,
         );
     }
@@ -148,7 +198,7 @@ const createRecord = async (seating) => {
         });
 
         // retrieve and store data into redis
-        retrieveAndStoreInRedis();
+        // retrieveAndStoreSeatingInfoInRedis();
     } catch (error) {
         console.error(
             'Error during bulk insert or update of studentSeat:',
@@ -416,7 +466,7 @@ const getTimeTableAndSeating = async (studentId) => {
 export {
     createRecord,
     getTimeTableAndSeating,
-    retrieveAndStoreInRedis,
+    retrieveAndStoreSeatingInfoInRedis,
     retrieveStudentDetails,
     retrieveAndStoreExamsInRedis,
     getUpcomingExams,
