@@ -5,7 +5,18 @@ import { loadSeatingAvailabilityTimesToRedis } from '../../redis/loadSeatingAvai
 
 const router = express.Router();
 
-router.post('/seating-availability', async (req, res) => {
+router.get('/seating-availability-schedule', async (req, res) => {
+    try {
+        const seatingAvailabilitySchedule =
+            await models.seatingTimeConfig.findAll();
+        res.json(seatingAvailabilitySchedule);
+    } catch (error) {
+        console.error('Error retrieving seating arrangement time:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+router.post('/seating-availability-schedule', async (req, res) => {
     try {
         const { day, startTime, endTime, timeCode } = req.body;
 
