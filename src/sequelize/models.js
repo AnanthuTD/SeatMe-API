@@ -14,6 +14,7 @@ import dateTime from './models/dateTime.js';
 import teacherSeat from './models/teacherSeat.js';
 import exam from './models/exam.js';
 import refreshToken from './models/refreshToken.js';
+import seatingTimeConfig from './models/seatingTimeConfig.js';
 
 const models = {
     department: department(sequelize),
@@ -30,6 +31,7 @@ const models = {
     teacherSeat: teacherSeat(sequelize),
     exam: exam(sequelize),
     refreshToken: refreshToken(sequelize),
+    seatingTimeConfig: seatingTimeConfig(sequelize),
 };
 
 applyExtraSetup(sequelize);
