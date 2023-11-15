@@ -43,7 +43,6 @@ passport.use(
 passport.use(
     'admin',
     new BearerStrategy((token, done) => {
-        console.log(token);
         try {
             const decodedToken = jwt.verify(token, accessTokenPrivateKey, {
                 ignoreExpiration: true,
