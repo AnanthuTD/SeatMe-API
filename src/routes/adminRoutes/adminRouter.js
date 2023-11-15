@@ -21,6 +21,7 @@ import { getDateTimeId } from '../../helpers/adminHelpers/examHelper.js';
 import { models } from '../../sequelize/models.js';
 import { checkCredentialsAndRetrieveData } from '../../helpers/commonHelper.js';
 import { encrypt } from '../../helpers/bcryptHelper.js';
+import { setNewRefreshToken } from '../../helpers/tokenHelpers/index.js';
 
 const router = express.Router();
 
@@ -272,9 +273,11 @@ router.patch('/profile', async (req, res) => {
         return res.status(400).send('Invalid request data');
     }
 
+    console.log(req.user);
+
     try {
         const { password, ...otherProfileFields } = profileInfo;
-        const { email } = req.user;
+        const { email, id } = req.user;
 
         // Check credentials and retrieve user data
         const userData = await checkCredentialsAndRetrieveData(email, password);
@@ -306,7 +309,29 @@ router.patch('/profile', async (req, res) => {
                 );
 
                 if (updatedCount > 0) {
-                    return res.status(200).send('Profile updated successfully');
+                    const user = await models.authUser.findOne({
+                        where: {
+                            id,
+                        },
+                        attributes: [
+                            'id',
+                            'name',
+                            'designation',
+                            'isAdmin',
+                            'password',
+                            'email',
+                            'phone',
+                        ],
+                    });
+
+                    // Credentials match and user is authorized
+                    const updatedUserData = user.get();
+
+                    // Set a new refresh token
+                    if (await setNewRefreshToken(res, updatedUserData)) {
+                        return res.json({ user: updatedUserData });
+                    }
+                    throw new Error('Failed to set a new refresh token');
                 }
             }
         }
