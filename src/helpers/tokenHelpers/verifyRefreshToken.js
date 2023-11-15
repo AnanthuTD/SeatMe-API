@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { models } from '../sequelize/models.js';
+import { models } from '../../sequelize/models.js';
 
 const verifyRefreshToken = async (refreshToken) => {
     const privateKey = process.env.REFRESH_TOKEN_PRIVATE_KEY;
