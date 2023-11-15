@@ -14,17 +14,19 @@ import {
     getAvailableOpenCourses,
     countExamsForDate,
     getExamDateTime,
-} from '../helpers/adminHelpers/adminHelper.js';
+} from '../../helpers/adminHelpers/adminHelper.js';
 
-import getRootDir from '../../getRootDir.js';
+import getRootDir from '../../../getRootDir.js';
 
-import staffRouter from './adminRoutes/staffRouter.js';
+import staffRouter from './staffRouter.js';
 
-import studentRouter from './adminRoutes/studentRouter.js';
+import studentRouter from './studentRouter.js';
 
-import examRouter from './adminRoutes/examRouter.js';
+import examRouter from './examRouter.js';
 
-import { getDateTimeId } from '../helpers/adminHelpers/examHelper.js';
+import configRouter from './configRouter.js';
+
+import { getDateTimeId } from '../../helpers/adminHelpers/examHelper.js';
 
 const router = express.Router();
 
@@ -41,6 +43,8 @@ router.use('/staff', staffRouter);
 router.use('/student', studentRouter);
 
 router.use('/exams', examRouter);
+
+router.use('/config', configRouter);
 
 router.get('/departments', async (req, res) => {
     try {
@@ -60,7 +64,6 @@ router.get('/blocks', async (req, res) => {
         res.status(500).json({ error: 'Error fetching departments' });
     }
 });
-
 
 router.get('/programs', async (req, res) => {
     try {
