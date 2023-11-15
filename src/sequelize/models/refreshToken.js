@@ -8,7 +8,7 @@ export default (sequelize) => {
         'refreshToken',
         {
             token: {
-                type: DataTypes.STRING,
+                type: DataTypes.TEXT,
                 allowNull: false,
             },
         },
