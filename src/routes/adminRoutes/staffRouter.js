@@ -6,7 +6,6 @@ import {
 } from '../../helpers/adminHelpers/adminHelper.js';
 import { getStaffsByDepartmentId } from '../../helpers/adminHelpers/staffHelper.js';
 import { models } from '../../sequelize/models.js';
-import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 
