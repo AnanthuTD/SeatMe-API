@@ -4,6 +4,10 @@ import {
     getUpcomingExamsFromDB,
     retrieveStudentDetails,
 } from '../helpers/adminHelpers/studentSeat.js';
+import {
+    checkSameStudent,
+    checkSeatingAvailability,
+} from '../middlewares/userMiddleware.js';
 
 const router = express.Router();
 
@@ -14,42 +18,42 @@ const router = express.Router();
  * @returns {object} - The timetable and seating information.
  * @throws {object} - Returns an error object if any error occurs.
  */
-router.get('/', async (req, res) => {
-    try {
-        const { studentId } = req.query;
+router.get(
+    '/',
+    checkSameStudent,
+    checkSeatingAvailability,
+    async (req, res) => {
+        try {
+            const { studentId } = req.query;
 
-        const existingStudentId = req.cookies.studentId;
-        if (existingStudentId && existingStudentId !== studentId) {
-            res.clearCookie('studentId');
-            res.clearCookie('programId');
-            res.clearCookie('semester');
-            res.clearCookie('openCourse');
+            const seatingInfo = await retrieveStudentDetails(studentId);
+
+            if (!seatingInfo) {
+                return res
+                    .status(204)
+                    .json({ error: 'Student details not found' });
+            }
+
+            console.log(seatingInfo.timeCode, req.timeCode);
+
+            if (seatingInfo.timeCode !== req.timeCode)
+                return res.status(403).json({
+                    error: 'Seating arrangement not available at this time.',
+                });
+
+            const { programId, semester, openCourseId } = seatingInfo;
+
+            res.cookie('programId', programId);
+            res.cookie('semester', semester);
+            res.cookie('openCourseId', openCourseId);
+
+            return res.json({ seatingInfo });
+        } catch (error) {
+            console.error('An error occurred:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
         }
-
-        res.cookie('studentId', studentId);
-
-        if (!studentId) {
-            return res.status(400).json({ error: 'Student ID is required.' });
-        }
-
-        const seatingInfo = await retrieveStudentDetails(studentId);
-
-        if (!seatingInfo) {
-            return res.status(204).json({ error: 'Student details not found' });
-        }
-
-        const { programId, semester, openCourseId } = seatingInfo;
-
-        res.cookie('programId', programId);
-        res.cookie('semester', semester);
-        res.cookie('openCourseId', openCourseId);
-
-        return res.json({ seatingInfo });
-    } catch (error) {
-        console.error('An error occurred:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
+    },
+);
 
 router.get('/exams', async (req, res) => {
     try {
