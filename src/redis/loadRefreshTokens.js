@@ -1,5 +1,6 @@
 import { models } from '../sequelize/models.js';
 import redisClient from './config.js';
+import keyNames from './keyNames.js';
 
 const loadRefreshTokensToRedis = async () => {
     try {
@@ -9,13 +10,16 @@ const loadRefreshTokensToRedis = async () => {
         await Promise.all(
             nonExpiredTokens.map(async (token) => {
                 const currentTime = Math.floor(Date.now() / 1000);
+                const expirationTimeUnix = Math.floor(
+                    token.expirationTime.getTime() / 1000,
+                );
                 const remainingTime = Math.max(
                     0,
-                    Math.floor((token.expirationTime - currentTime) / 1000),
+                    expirationTimeUnix - currentTime,
                 );
 
                 await redisClient.set(
-                    `refreshToken:${token.authUserId}`,
+                    `${keyNames.refreshToken}:${token.authUserId}`,
                     token.token,
                     'EX',
                     remainingTime,
@@ -31,7 +35,7 @@ const loadRefreshTokensToRedis = async () => {
 
 const removeRefreshTokenFromRedis = async (authUserId) => {
     try {
-        await redisClient.del(`refreshToken:${authUserId}`);
+        await redisClient.del(`${keyNames.refreshToken}:${authUserId}`);
     } catch (error) {
         console.error('Error removing refresh token from Redis:', error);
     }
