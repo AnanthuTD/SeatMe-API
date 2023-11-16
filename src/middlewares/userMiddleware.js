@@ -1,4 +1,5 @@
 import redisClient from '../redis/config.js';
+import keyNames from '../redis/keyNames.js';
 
 const checkSameStudent = (req, res, next) => {
     try {
@@ -48,7 +49,7 @@ const checkSeatingAvailability = async (req, res, next) => {
 
     // Retrieve seating arrangement times from Redis
     const seatingConfigList = await redisClient.hget(
-        'seating_availability_times',
+        keyNames.seatingAvailabilityTimes,
         day,
     );
 

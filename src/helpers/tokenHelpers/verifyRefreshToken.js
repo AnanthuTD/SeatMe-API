@@ -1,10 +1,13 @@
 import jwt from 'jsonwebtoken';
 import redisClient from '../../redis/config.js';
+import keyNames from '../../redis/keyNames.js';
 
 const getRefreshTokenFromRedis = async (userId) => {
     try {
         // Retrieve the refresh token from Redis using the user ID
-        const refreshToken = await redisClient.get(`refreshToken:${userId}`);
+        const refreshToken = await redisClient.get(
+            `${keyNames.refreshToken}:${userId}`,
+        );
         return refreshToken;
     } catch (error) {
         console.error('Error retrieving refresh token from Redis:', error);

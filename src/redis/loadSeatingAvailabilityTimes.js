@@ -1,5 +1,6 @@
 import { models } from '../sequelize/models.js';
 import redisClient from './config.js';
+import keyNames from './keyNames.js';
 
 const loadSeatingAvailabilityTimesToRedis = async () => {
     const configs = await models.seatingTimeConfig.findAll();
@@ -25,7 +26,7 @@ const loadSeatingAvailabilityTimesToRedis = async () => {
     const redisInsertions = Object.entries(groupedConfigs).map(
         async ([day, configurations]) => {
             await redisClient.hset(
-                'seating_availability_times',
+                keyNames.seatingAvailabilityTimes,
                 day,
                 JSON.stringify(configurations),
             );

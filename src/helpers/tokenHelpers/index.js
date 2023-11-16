@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import env from '../../env.js';
 import { models } from '../../sequelize/models.js';
 import redisClient from '../../redis/config.js';
+import keyNames from '../../redis/keyNames.js';
 
 const setNewRefreshToken = async (res, userData) => {
     const config = env();
@@ -35,13 +36,13 @@ const setNewRefreshToken = async (res, userData) => {
         );
 
         await redisClient.set(
-            `refreshToken:${userData.id}`,
+            `${keyNames.refreshToken}:${userData.id}`,
             refreshToken,
             'EX',
             expiryInSec,
         );
 
-        res.cookie('refreshToken', refreshToken, {
+        res.cookie(`${keyNames.refreshToken}`, refreshToken, {
             httpOnly: true,
             secure: true,
             expires: expirationDate,

@@ -6,6 +6,7 @@ import { models } from '../sequelize/models.js';
 import verifyRefreshToken from '../helpers/tokenHelpers/verifyRefreshToken.js';
 import { setNewRefreshToken } from '../helpers/tokenHelpers/index.js';
 import { removeRefreshTokenFromRedis } from '../redis/loadRefreshTokens.js';
+import keyNames from '../redis/keyNames.js';
 
 const router = express.Router();
 
@@ -90,7 +91,7 @@ router.delete('/logout', async (req, res) => {
 
         removeRefreshTokenFromRedis(decodedToken.id);
 
-        res.clearCookie('refreshToken');
+        res.clearCookie(keyNames.refreshToken);
 
         return res.sendStatus(200);
     } catch (error) {
