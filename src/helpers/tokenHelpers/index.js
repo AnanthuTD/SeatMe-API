@@ -5,11 +5,18 @@ import { models, sequelize } from '../../sequelize/models.js';
 const setNewRefreshToken = async (res, userData) => {
     const config = env();
     const refreshTokenPrivateKey = config.REFRESH_TOKEN_PRIVATE_KEY;
-    const refreshToken = jwt.sign(userData, refreshTokenPrivateKey, {
-        expiresIn: '30d',
-    });
 
     try {
+        const payload = {
+            id: userData.id,
+            isAdmin: userData.isAdmin,
+            email: userData.email,
+        };
+
+        const refreshToken = jwt.sign(payload, refreshTokenPrivateKey, {
+            expiresIn: '30d',
+        });
+
         await sequelize.transaction(async (t) => {
             await models.refreshToken.destroy({
                 where: { authUserId: userData.id },
