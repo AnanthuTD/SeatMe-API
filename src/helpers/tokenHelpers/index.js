@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import env from '../../env.js';
-import { models, sequelize } from '../../sequelize/models.js';
+import { models } from '../../sequelize/models.js';
+import redisClient from '../../redis/config.js';
 
 const setNewRefreshToken = async (res, userData) => {
     const config = env();
@@ -17,25 +18,27 @@ const setNewRefreshToken = async (res, userData) => {
             expiresIn: '30d',
         });
 
-        await sequelize.transaction(async (t) => {
-            await models.refreshToken.destroy({
-                where: { authUserId: userData.id },
-                transaction: t,
-            });
-
-            // Create a new refresh token
-            await models.refreshToken.create(
-                {
-                    authUserId: userData.id,
-                    token: refreshToken,
-                },
-                { transaction: t },
-            );
-        });
+        const expiryInSec = 30 * 24 * 60 * 60;
 
         const currentDate = new Date();
         const expirationDate = new Date(
-            currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
+            currentDate.getTime() + expiryInSec * 1000,
+        );
+
+        await models.refreshToken.upsert(
+            {
+                authUserId: userData.id,
+                token: refreshToken,
+                expirationTime: expirationDate,
+            },
+            { where: { authUserId: userData.id } },
+        );
+
+        await redisClient.set(
+            `refreshToken:${userData.id}`,
+            refreshToken,
+            'EX',
+            expiryInSec,
         );
 
         res.cookie('refreshToken', refreshToken, {
