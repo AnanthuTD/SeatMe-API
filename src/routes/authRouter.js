@@ -57,18 +57,15 @@ router.post('/refresh', async (req, res) => {
         const { tokenDetails, error, message } = await verifyRefreshToken(
             refreshToken,
         );
-
         if (error) {
             return res.status(401).json({ error: message });
         }
         const payload = {
             id: tokenDetails.id,
-            designation: tokenDetails.designation,
             isAdmin: tokenDetails.isAdmin,
-            name: tokenDetails.name,
             email: tokenDetails.email,
-            phone: tokenDetails.phone,
         };
+        await setNewRefreshToken(res, payload);
         const newAccessToken = jwt.sign(payload, accessTokenPrivateKey, {
             expiresIn: '15m',
         });
