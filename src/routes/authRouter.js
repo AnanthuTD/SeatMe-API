@@ -5,6 +5,7 @@ import env from '../env.js';
 import { models } from '../sequelize/models.js';
 import verifyRefreshToken from '../helpers/tokenHelpers/verifyRefreshToken.js';
 import { setNewRefreshToken } from '../helpers/tokenHelpers/index.js';
+import { removeRefreshTokenFromRedis } from '../redis/loadRefreshTokens.js';
 
 const router = express.Router();
 
@@ -80,9 +81,17 @@ router.post('/refresh', async (req, res) => {
 router.delete('/logout', async (req, res) => {
     const { refreshToken } = req.cookies;
     if (!refreshToken) return res.sendStatus(200);
+    const privateKey = process.env.REFRESH_TOKEN_PRIVATE_KEY;
+
     try {
-        models.refreshToken.destroy({ where: { token: refreshToken } });
+        const decodedToken = jwt.verify(refreshToken, privateKey);
+
+        models.refreshToken.destroy({ where: { authUserId: decodedToken.id } });
+
+        removeRefreshTokenFromRedis(decodedToken.id);
+
         res.clearCookie('refreshToken');
+
         return res.sendStatus(200);
     } catch (error) {
         console.error(error);
