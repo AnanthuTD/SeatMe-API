@@ -1,13 +1,13 @@
 /**
  * Check for repeating registration numbers in the Classes array.
- * @param {Array} classes - An array of seating matrices for all classes.
+ * @param {Array} rooms - An array of seating matrices for all classes.
  * @returns {Array} - An array of repeating registration numbers.
  */
-export default async function findRepeatingStudents(classes) {
+export default async function findRepeatingStudents(rooms) {
     const regNoSet = new Set(); // To store unique registration numbers
 
     // Use flatMap to flatten the nested arrays
-    const allSeats = classes.flatMap(({ seatingMatrix }) =>
+    const allSeats = rooms.flatMap(({ seatingMatrix }) =>
         seatingMatrix.flatMap((row) => row),
     );
 
@@ -17,12 +17,12 @@ export default async function findRepeatingStudents(classes) {
     allSeats
         .filter((seat) => seat.occupied)
         .forEach((seat) => {
-            const { regno } = seat;
-            if (regNoSet.has(regno)) {
+            const { id } = seat;
+            if (regNoSet.has(id)) {
                 // This registration number is repeating
-                repeatingRegNos.add(regno);
+                repeatingRegNos.add(id);
             } else {
-                regNoSet.add(regno);
+                regNoSet.add(id);
             }
         });
 
