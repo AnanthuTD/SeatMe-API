@@ -34,9 +34,8 @@ build/
 # Debug logs
 debug.log
 
-<<<<<<< HEAD
 src/views
-=======
 pdf
 src/Views/
->>>>>>> a62d0540b8814f02d5c5d70ce2d809075ae6bc23
+
+credentials
