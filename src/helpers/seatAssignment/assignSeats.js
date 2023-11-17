@@ -24,7 +24,7 @@ async function assignSeats({
     examType = 'internal',
 }) {
     /** @type {[NestedStudentArray, number]} */
-    let [students, totalStudents] = await getData({date, orderBy, timeCode});
+    let [students, totalStudents] = await getData({ date, orderBy, timeCode });
 
     console.log(`total subjects : ${students.length}`);
     console.log(`Generated ${totalStudents} students`);
@@ -68,7 +68,6 @@ async function assignSeats({
 
     // optimizing
     if (optimize && totalUnassignedStudents > 0) {
-        console.log(optimize);
         totalUnassignedStudents = await optimizer(
             classes,
             totalUnassignedStudents,
