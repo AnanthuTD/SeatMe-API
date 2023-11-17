@@ -32,6 +32,14 @@ const getTimeCodeForNow = async (seatingTimes) => {
     return matchingConfig ? matchingConfig.timeCode : null;
 };
 
+const clearSeatingInfoFromRedis = () => {
+    try {
+        redisClient.del(keyNames.seatingInfo);
+    } catch (error) {
+        console.error('Failed to clear seating info from redis!');
+    }
+};
+
 const retrieveAndStoreSeatingInfoInRedis = async () => {
     try {
         const currentDate = new Date();
@@ -476,4 +484,5 @@ export {
     retrieveAndStoreExamsInRedis,
     getUpcomingExams,
     getUpcomingExamsFromDB,
+    clearSeatingInfoFromRedis,
 };

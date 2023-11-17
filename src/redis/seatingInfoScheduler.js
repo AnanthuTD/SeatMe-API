@@ -1,6 +1,9 @@
 import { CronJob } from 'cron';
 import { models } from '../sequelize/models.js';
-import { retrieveAndStoreSeatingInfoInRedis } from '../helpers/adminHelpers/studentSeat.js';
+import {
+    clearSeatingInfoFromRedis,
+    retrieveAndStoreSeatingInfoInRedis,
+} from '../helpers/adminHelpers/studentSeat.js';
 
 // An array to store references to existing jobs
 let existingJobs = [];
@@ -17,26 +20,38 @@ const updateScheduledTasks = async () => {
         });
 
         // Schedule tasks for each time configuration
-        const newJobs = scheduleTimes.map((config) => {
-            const { startTime, endTime, timeCode, day } = config;
+        const newJobs = scheduleTimes
+            .map((config) => {
+                const { startTime, endTime, day } = config;
 
-            const firstThreeLettersOfDay = day.slice(0, 3);
+                const firstThreeLettersOfDay = day.slice(0, 3);
 
-            const [hours, minutes] = startTime.split(':');
-            const cronExpression = `00 ${22} ${12} * * ${firstThreeLettersOfDay}`;
-            console.log(cronExpression);
+                let hours;
+                let minutes;
 
-            const onTick = () => retrieveAndStoreSeatingInfoInRedis();
+                [hours, minutes] = startTime.split(':');
+                const retrievalCronTime = `00 ${minutes} ${hours} * * ${firstThreeLettersOfDay}`;
 
-            const job = CronJob.from({
-                cronTime: cronExpression,
-                onTick,
-                start: true,
-                // timeZone: 'Asia/Kolkata',
-            });
+                const job1 = CronJob.from({
+                    cronTime: retrievalCronTime,
+                    onTick: retrieveAndStoreSeatingInfoInRedis,
+                    start: true,
+                    timeZone: 'Asia/Kolkata',
+                });
 
-            return job;
-        });
+                [hours, minutes] = endTime.split(':');
+                const clearingCronTime = `00 ${minutes} ${hours} * * ${firstThreeLettersOfDay}`;
+
+                const job2 = CronJob.from({
+                    cronTime: clearingCronTime,
+                    onTick: clearSeatingInfoFromRedis,
+                    start: true,
+                    timeZone: 'Asia/Kolkata',
+                });
+
+                return [job1, job2];
+            })
+            .flat();
 
         console.log('Tasks updated based on seatingTimeConfig changes.');
 
