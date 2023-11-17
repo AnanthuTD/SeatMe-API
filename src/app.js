@@ -27,7 +27,7 @@ import getRootDir from '../getRootDir.js';
 import validateENV from './env.js';
 import { retrieveAndStoreExamsInRedis } from './helpers/adminHelpers/studentSeat.js';
 import { isRedisAvailable } from './redis/config.js';
-import { updateScheduledTasks } from './redis/seatingInfoScheduler.js';
+import updateSeatingInfoScheduledTasks from './redis/seatingInfoScheduler.js';
 import { loadSeatingAvailabilityTimesToRedis } from './redis/loadSeatingAvailabilityTimes.js';
 import loadRefreshTokensToRedis from './redis/loadRefreshTokens.js';
 
@@ -160,7 +160,7 @@ async function assertRedisConnectionOk() {
 }
 
 function populateRedis() {
-    updateScheduledTasks();
+    updateSeatingInfoScheduledTasks();
     loadRefreshTokensToRedis();
     loadSeatingAvailabilityTimesToRedis();
     retrieveAndStoreExamsInRedis();

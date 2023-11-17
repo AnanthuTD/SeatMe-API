@@ -5,25 +5,33 @@ import {
     retrieveAndStoreSeatingInfoInRedis,
 } from '../helpers/adminHelpers/studentSeat.js';
 
-// An array to store references to existing jobs
+const TIME_ZONE = 'Asia/Kolkata';
+
+// Function to create a cron job
+const createCronJob = (cronTime, onTick) => {
+    return CronJob.from({
+        cronTime,
+        onTick,
+        start: true,
+        timeZone: TIME_ZONE,
+    });
+};
+
+// Initialize existingJobs array
 let existingJobs = [];
 
 // Function to update scheduled tasks based on seatingTimeConfig changes
 const updateScheduledTasks = async () => {
     try {
-        // Fetch schedule times from the seatingTimeConfig table
         const scheduleTimes = await models.seatingTimeConfig.findAll();
 
-        // Clear existing tasks
-        existingJobs.forEach((job) => {
-            job.stop();
-        });
+        // Clear existing jobs
+        existingJobs.forEach((job) => job.stop());
 
-        // Schedule tasks for each time configuration
+        // Create new jobs
         const newJobs = scheduleTimes
-            .map((config) => {
+            .flatMap((config) => {
                 const { startTime, endTime, day } = config;
-
                 const firstThreeLettersOfDay = day.slice(0, 3);
 
                 let hours;
@@ -32,34 +40,30 @@ const updateScheduledTasks = async () => {
                 [hours, minutes] = startTime.split(':');
                 const retrievalCronTime = `00 ${minutes} ${hours} * * ${firstThreeLettersOfDay}`;
 
-                const job1 = CronJob.from({
-                    cronTime: retrievalCronTime,
-                    onTick: retrieveAndStoreSeatingInfoInRedis,
-                    start: true,
-                    timeZone: 'Asia/Kolkata',
-                });
-
                 [hours, minutes] = endTime.split(':');
                 const clearingCronTime = `00 ${minutes} ${hours} * * ${firstThreeLettersOfDay}`;
 
-                const job2 = CronJob.from({
-                    cronTime: clearingCronTime,
-                    onTick: clearSeatingInfoFromRedis,
-                    start: true,
-                    timeZone: 'Asia/Kolkata',
-                });
+                const retrievalJob = createCronJob(
+                    retrievalCronTime,
+                    retrieveAndStoreSeatingInfoInRedis,
+                );
+                const clearingJob = createCronJob(
+                    clearingCronTime,
+                    clearSeatingInfoFromRedis,
+                );
 
-                return [job1, job2];
+                return [retrievalJob, clearingJob];
             })
             .flat();
 
-        console.log('Tasks updated based on seatingTimeConfig changes.');
-
-        // Store the new jobs for future reference or clearing
-        existingJobs = newJobs;
+        console.log(
+            `Successfully updated ${newJobs.length} scheduled tasks based on seatingTimeConfig changes.`,
+        );
+        existingJobs = newJobs; // Store new jobs for future reference
     } catch (error) {
         console.error('Error updating scheduled tasks:', error);
+        // Log more details about the error, if possible
     }
 };
 
-export { updateScheduledTasks };
+export default updateScheduledTasks;
