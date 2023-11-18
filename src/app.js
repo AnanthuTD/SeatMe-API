@@ -162,6 +162,7 @@ async function assertRedisConnectionOk() {
     return true;
 }
 
+
 function populateRedis() {
     // retrieve student seating arrangement for today  and store it in redis.
     retrieveAndStoreInRedis();

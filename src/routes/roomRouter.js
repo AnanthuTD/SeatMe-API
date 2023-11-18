@@ -13,20 +13,24 @@ router.get('/', (req, res) => {
 });
 router.post('/room', (req, res) => {
     console.log('this is called');
-    console.log(req.body);
+   // console.log(req.body);
     let body = req.body.rooms;
     let rooms = [];
     body.forEach((item) => {
         let id = item.id;
-        let cols = item.cols;
-        let rows = item.rows;
+        let internalRows=item.internalRows;
+        let internalCols = item.internalCols;
+        let finalRows = item.finalRows;
+        let finalCols = item.finalCols;
         let isAvailable = item.isAvailable;
         let floor = item.floor;
         let blockId = item.block;
         rooms.push({
             id,
-            cols,
-            rows,
+            internalRows,
+            internalCols,
+            finalRows,
+            finalCols,
             isAvailable,
             floor,
             blockId,
