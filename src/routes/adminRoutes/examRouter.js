@@ -10,11 +10,12 @@ import { assignSeats } from '../../helpers/seatAssignment/assignSeats.js';
 
 import { createRecord } from '../../helpers/adminHelpers/studentSeat.js';
 
-import { models } from '../../sequelize/models.js';
+import { models, sequelize } from '../../sequelize/models.js';
 
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
 
 import logger from '../../helpers/logger.js';
+import room from '../../sequelize/models/room.js';
 
 const router = express.Router();
 
@@ -331,6 +332,38 @@ router.delete('/:examId', async (req, res) => {
 
         // If the exam with the given ID doesn't exist
         return res.status(404).json({ error: 'Exam not found' });
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+router.get('/:date/:timeCode/rooms', async (req, res) => {
+    try {
+        let { date, timeCode } = req.params;
+        date = new Date(date);
+
+        const rooms = await models.room.findAll({
+            attributes: ['id', 'blockId', 'isAvailable', 'floor'],
+            include: {
+                model: models.studentSeat,
+                include: {
+                    model: models.exam,
+                    include: {
+                        model: models.dateTime,
+                        where: { date, timeCode },
+                        required: true,
+                        attributes: [],
+                    },
+                    required: true,
+                    attributes: [],
+                },
+                required: true,
+                attributes: [],
+            },
+        });
+
+        return res.json(rooms);
     } catch (error) {
         console.error('Error:', error);
         return res.status(500).json({ error: 'Internal Server Error' });

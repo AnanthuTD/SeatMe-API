@@ -10,7 +10,11 @@ router.get('/', async (req, res) => {
         const staffId = req.user.id;
         let onDuty;
         const currentDate = new Date();
-        const today = currentDate.toISOString().split('T')[0];
+        console.log(currentDate);
+        const today = currentDate
+            .toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })
+            .split(',')[0];
+        console.log(today);
 
         // Use await with findOne to wait for the query to complete
         const dateEntry = await models.dateTime.findOne({
