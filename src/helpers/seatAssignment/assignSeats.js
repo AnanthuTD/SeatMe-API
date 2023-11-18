@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import findRepeatingRegNos from './findRepeatingStudents.js';
 import getData from './getData.js';
 // import generateSeatingMatrixHTML from './htmlSeatingMatrix.js';
@@ -17,28 +18,29 @@ import optimizer from './optimizer.js';
  */
 async function assignSeats({
     date = new Date(),
+    timeCode = 'AN',
     orderBy = 'rollNumber',
     fileName = 'unnamed',
     optimize = true,
     examType = 'internal',
 }) {
     /** @type {[NestedStudentArray, number]} */
-    let [students, totalStudents] = await getData(date, orderBy);
+    let [students, totalStudents] = await getData({ date, orderBy, timeCode });
 
     console.log(`total subjects : ${students.length}`);
     console.log(`Generated ${totalStudents} students`);
 
-    const { classes, totalSeats } = await generateSeatingMatrix(examType);
+    let { rooms, totalSeats } = await generateSeatingMatrix(examType);
 
     console.log(
-        `Generated ${classes.length} classes with a total of ${totalSeats} seats.`,
+        `Generated ${rooms.length} classes with a total of ${totalSeats} seats.`,
     );
 
-    let classesIndex = 0;
-    while (students.length > 0 && classesIndex < classes.length) {
+    let roomIndex = 0;
+    while (students.length > 0 && roomIndex < rooms.length) {
         const seatingArrangement = new SeatingArrangement({
             students,
-            room: classes[classesIndex],
+            room: rooms[roomIndex],
         });
 
         try {
@@ -51,11 +53,12 @@ async function assignSeats({
             (classStudents) => classStudents.length > 0,
         );
 
-        classesIndex += 1;
+        roomIndex += 1;
     }
 
-    let { totalEmptySeats, totalAssignedSeats } = seatCount(classes);
+    let { totalEmptySeats, totalAssignedSeats } = seatCount(rooms);
     let totalUnassignedStudents = totalStudents - totalAssignedSeats;
+
     if (totalAssignedSeats === totalStudents) {
         console.log(
             `All students have been assigned ( ${totalAssignedSeats}  )`,
@@ -67,30 +70,32 @@ async function assignSeats({
 
     // optimizing
     if (optimize && totalUnassignedStudents > 0) {
-        console.log(optimize);
-        totalUnassignedStudents = await optimizer(
-            classes,
+        const optimizedRooms = await optimizer(
+            _.cloneDeep(rooms),
             totalUnassignedStudents,
             students,
         );
 
-        // console.log(JSON.stringify(classes, null, 2));
+        rooms = optimizedRooms;
+
         const { totalEmptySeats: h1, totalAssignedSeats: h2 } =
-            seatCount(classes);
-        console.log(h1, h2);
+            seatCount(rooms);
 
         totalEmptySeats = h1;
         totalAssignedSeats = h2;
 
-        totalUnassignedStudents = totalStudents - h2;
-        if (h2 === totalStudents) {
-            console.log(`All students have been assigned ( ${h2}  )`);
+        totalUnassignedStudents = totalStudents - totalAssignedSeats;
+
+        if (totalAssignedSeats === totalStudents) {
+            console.log(
+                `All students have been assigned ( ${totalAssignedSeats}  )`,
+            );
         } else
             console.warn(
                 `${totalUnassignedStudents} students are not been assigned`,
             );
 
-        const repeatingRegNos = findRepeatingRegNos(classes);
+        const repeatingRegNos = findRepeatingRegNos(rooms);
 
         if (repeatingRegNos.length > 0) {
             console.log('Repeating registration numbers found:');
@@ -100,7 +105,7 @@ async function assignSeats({
         }
     }
     generateSeatingMatrixPDF(
-        classes,
+        rooms,
         date,
         totalStudents,
         totalAssignedSeats,
@@ -109,9 +114,7 @@ async function assignSeats({
         fileName,
     );
 
-    return [classes, totalUnassignedStudents, students];
+    return [rooms, totalUnassignedStudents];
 }
 
 export { assignSeats };
-
-// assignSeats({ date: new Date('2023-10-11') });

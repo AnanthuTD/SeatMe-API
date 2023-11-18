@@ -15,7 +15,15 @@ async function checkCredentialsAndRetrieveData(email, password) {
             where: {
                 email,
             },
-            attributes: ['id', 'name', 'designation', 'isAdmin', 'password'],
+            attributes: [
+                'id',
+                'name',
+                'designation',
+                'isAdmin',
+                'password',
+                'email',
+                'phone',
+            ],
         });
 
         if (user) {

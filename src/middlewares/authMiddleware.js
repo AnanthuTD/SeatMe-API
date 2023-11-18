@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { Strategy as BearerStrategy } from 'passport-http-bearer';
 import jwt from 'jsonwebtoken';
-import { isBlacklisted } from '../helpers/jwtHelper.js';
+import { isBlacklisted } from '../helpers/tokenHelpers/jwtHelper.js';
 import env from '../env.js';
 
 const config = env();
@@ -43,7 +43,6 @@ passport.use(
 passport.use(
     'admin',
     new BearerStrategy((token, done) => {
-        console.log(token);
         try {
             const decodedToken = jwt.verify(token, accessTokenPrivateKey, {
                 ignoreExpiration: true,

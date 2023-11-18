@@ -58,7 +58,7 @@ async function generateSeatingMatrix(examType) {
          * Represents an array of classes with seating matrices.
          * @type {Array<Class>}
          */
-        const classes = [];
+        const defineRooms = [];
 
         let totalSeats = 0;
 
@@ -83,13 +83,10 @@ async function generateSeatingMatrix(examType) {
                 seats: room.seats,
             };
 
-            classes.push(currentClass);
+            defineRooms.push(currentClass);
         });
 
-        // console.log(JSON.stringify(rooms, null, 2));
-        console.log(classes.length);
-
-        return { classes, totalSeats };
+        return { rooms: defineRooms, totalSeats };
     } catch (error) {
         console.error('Error generating seating matrix:', error);
         throw error;
@@ -97,5 +94,4 @@ async function generateSeatingMatrix(examType) {
 }
 
 // Export the function
-// generateSeatingMatrix();
 export default generateSeatingMatrix;

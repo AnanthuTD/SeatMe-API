@@ -2,15 +2,17 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { checkCredentialsAndRetrieveData } from '../helpers/commonHelper.js';
 import env from '../env.js';
-import { models, sequelize } from '../sequelize/models.js';
-import verifyRefreshToken from '../helpers/verifyRefreshToken.js';
+import { models } from '../sequelize/models.js';
+import verifyRefreshToken from '../helpers/tokenHelpers/verifyRefreshToken.js';
+import { setNewRefreshToken } from '../helpers/tokenHelpers/index.js';
+import { removeRefreshTokenFromRedis } from '../redis/loadRefreshTokens.js';
+import keyNames from '../redis/keyNames.js';
 
 const router = express.Router();
 
 const config = env();
 
 const accessTokenPrivateKey = config.ACCESS_TOKEN_PRIVATE_KEY;
-const refreshTokenPrivateKey = config.REFRESH_TOKEN_PRIVATE_KEY;
 
 /**
  * @route POST /
@@ -32,43 +34,11 @@ router.post('/login', async (req, res) => {
             const accessToken = jwt.sign(userData, accessTokenPrivateKey, {
                 expiresIn: '15m',
             });
-            const refreshToken = jwt.sign(userData, refreshTokenPrivateKey, {
-                expiresIn: '30d',
-            });
 
-            try {
-                await sequelize.transaction(async (t) => {
-                    await models.refreshToken.destroy({
-                        where: { authUserId: userData.id },
-                        transaction: t,
-                    });
-
-                    // Create a new refresh token
-                    await models.refreshToken.create(
-                        {
-                            authUserId: userData.id,
-                            token: refreshToken,
-                        },
-                        { transaction: t },
-                    );
-                });
-            } catch (error) {
-                console.error(error);
+            if (await setNewRefreshToken(res, userData)) {
+                return res.json({ user: userData, accessToken });
             }
-
-            const currentDate = new Date();
-            const expirationDate = new Date(
-                currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
-            );
-
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: true,
-                expires: expirationDate,
-                sameSite: 'strict',
-            });
-
-            return res.json({ user: userData, accessToken });
+            throw new Error('Failed to set a new refresh token');
         }
 
         // Authentication failed
@@ -89,16 +59,15 @@ router.post('/refresh', async (req, res) => {
         const { tokenDetails, error, message } = await verifyRefreshToken(
             refreshToken,
         );
-
         if (error) {
             return res.status(401).json({ error: message });
         }
         const payload = {
             id: tokenDetails.id,
-            designation: tokenDetails.designation,
             isAdmin: tokenDetails.isAdmin,
-            name: tokenDetails.name,
+            email: tokenDetails.email,
         };
+        await setNewRefreshToken(res, payload);
         const newAccessToken = jwt.sign(payload, accessTokenPrivateKey, {
             expiresIn: '15m',
         });
@@ -113,9 +82,17 @@ router.post('/refresh', async (req, res) => {
 router.delete('/logout', async (req, res) => {
     const { refreshToken } = req.cookies;
     if (!refreshToken) return res.sendStatus(200);
+    const privateKey = process.env.REFRESH_TOKEN_PRIVATE_KEY;
+
     try {
-        models.refreshToken.destroy({ where: { token: refreshToken } });
-        res.clearCookie('refreshToken');
+        const decodedToken = jwt.verify(refreshToken, privateKey);
+
+        models.refreshToken.destroy({ where: { authUserId: decodedToken.id } });
+
+        removeRefreshTokenFromRedis(decodedToken.id);
+
+        res.clearCookie(keyNames.refreshToken);
+
         return res.sendStatus(200);
     } catch (error) {
         console.error(error);

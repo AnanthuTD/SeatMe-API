@@ -1,11 +1,7 @@
 import _ from 'lodash';
 import SeatingArrangement from './algorithm.js';
 
-const logger = (message) => {
-    console.log(message);
-};
-
-function optimizationAttempt(students, room) {
+function optimizationAttempt({ students, room }) {
     const seatingOptimizer = new SeatingArrangement({
         students,
         room,
@@ -14,210 +10,116 @@ function optimizationAttempt(students, room) {
     try {
         seatingOptimizer.assignSeats();
     } catch (error) {
-        logger(`Error in optimization Attempt: ${error.message}`);
         return false;
     }
 
     const studentsLeftUnassigned = seatingOptimizer
         .getUnsignedStudents()
-        .filter((classStudents) => classStudents.length > 0);
+        .filter((classStudents) => classStudents.length);
 
-    if (studentsLeftUnassigned.length > 0) {
+    if (studentsLeftUnassigned.length) {
         return false;
     }
-    return true;
+    return room;
 }
 
 function firstTryToOptimization(
-    exam,
+    selectedCourseForReplacement, // courseId
     exams,
     seatingMatrix,
-    totalStudentsCount,
     studentsData,
+    roomsWithEmptySeats,
 ) {
-    // console.log(JSON.stringify(studentsData, null, 2));
-    // console.log('studentsData', studentsData);
-    // console.log('totalStudentsCount', totalStudentsCount);
+    let newSeatingMatrix = _.cloneDeep(seatingMatrix);
+    const reassignedStudents = [];
 
-    /* const currentExam = exams.filter(
-        (e) => e.courseId === studentsData[0].courseId,
-    ); */
-    const currentExam = exam;
-
-    // console.log('exam : ', exam);
-    // let studentIndex = 0;
-
-    const newSeatingMatrix = seatingMatrix.map((row) => {
-        if (totalStudentsCount <= 0) {
-            return row;
+    newSeatingMatrix.forEach((row, rowIndex) => {
+        if (!studentsData.length) {
+            return;
         }
-        return row.map((seat) => {
-            if (totalStudentsCount <= 0) {
-                return seat;
+        row.forEach((seat, colIndex) => {
+            if (!studentsData.length) {
+                return;
             }
-            if (seat.courseId === currentExam.courseId) {
-                totalStudentsCount -= 1;
-
-                currentExam.examines = currentExam.examines.filter((x) => {
-                    return x !== seat.id;
-                });
-                /*  const result = optimizationAttempt(
-                    [studentsData[studentIndex]],
-                    {
-                        seatingMatrix: seatingMatrix[],
-                        exams,
-                    },
-                ); */
-
-                // if (result) studentIndex += 1;
-
-                return {
+            if (seat.courseId === selectedCourseForReplacement) {
+                newSeatingMatrix[rowIndex][colIndex] = {
                     occupied: false,
                 };
+
+                const room = { seatingMatrix: newSeatingMatrix, exams };
+                const result = optimizationAttempt({
+                    students: [[studentsData[0]]],
+                    room,
+                });
+
+                if (result) {
+                    exams = result.exams;
+                    newSeatingMatrix = result.seatingMatrix;
+
+                    let flag = false;
+
+                    roomsWithEmptySeats.forEach((roomToOptimize) => {
+                        if (flag) return;
+                        const result2 = optimizationAttempt({
+                            students: [[seat]],
+                            room: roomToOptimize,
+                        });
+                        if (result2) {
+                            flag = true;
+                        }
+                    });
+
+                    if (!flag) {
+                        newSeatingMatrix[rowIndex][colIndex] = seat;
+                        return;
+                    }
+
+                    studentsData.splice(0, 1);
+
+                    reassignedStudents.push(seat.id);
+                } else newSeatingMatrix[rowIndex][colIndex] = seat;
             }
-            return seat;
         });
     });
 
-    /* console.log(
-        'new seating matrix: ',
-        JSON.stringify(newSeatingMatrix, null, 2),
-    ); */
-
-    // console.log('currentExam: ', JSON.stringify(currentExam, null, 2));
+    exams = exams.filter((x) => {
+        return x.examines.length;
+    });
 
     exams = exams.map((x) => {
-        if (x.courseId === currentExam.courseId) {
-            console.log(x.courseId === currentExam.courseId);
-            return currentExam;
-        }
+        x.examines =
+            x.courseId === selectedCourseForReplacement
+                ? x.examines.filter(
+                      (studentId) => !reassignedStudents.includes(studentId),
+                  )
+                : x.examines;
+
         return x;
     });
 
-    console.log('before: ', JSON.stringify(exams, null, 2));
-
-    console.log('remaing students: ', totalStudentsCount);
-
-    /*  console.log(
-        'students in course: ',
-        JSON.stringify(studentsInCourse, null, 2),
-    ); */
-
-    // studentsInCourseCount = studentsInCourse.length;
-
-    const assignedStudentCount = studentsData.length - totalStudentsCount;
-
-    const newStudents = studentsData.splice(0, assignedStudentCount);
-
-    console.log('new students: ', newStudents.length);
-    console.log('studentData: ', studentsData.length);
-
-    if (!newStudents.length) {
-        console.log('first optimization unsuccessful');
-
-        return [false, null, null, assignedStudentCount];
-    }
-
-    const result = optimizationAttempt([newStudents], {
-        seatingMatrix: newSeatingMatrix,
-        exams,
-    });
-
-    if (!result) {
-        console.log('first optimization unsuccessful');
-
-        return [false, null, null, assignedStudentCount];
-    }
-
-    /*  console.log(
-        'new seating matrix: ',
-        JSON.stringify(newSeatingMatrix, null, 2),
-    ); */
-    console.log('after: ', JSON.stringify(exams, null, 2));
-
-    console.log('first optimization successful');
-    return [true, newSeatingMatrix, exams, assignedStudentCount];
+    return [newSeatingMatrix, exams, studentsData, roomsWithEmptySeats];
 }
 
-function secondTryToOptimize(
-    seatingMatrix,
-    exam,
-    assignedStudentsCount,
-    roomsToOptimize,
-) {
-    console.log('assigned students count ', assignedStudentsCount);
-    let studentIndex = 0;
-    let studentsToReplace = seatingMatrix.map((row) => {
-        return row
-            .map((seat) => {
-                if (
-                    seat.courseId === exam.courseId &&
-                    studentIndex < assignedStudentsCount
-                ) {
-                    studentIndex += 1;
-                    seat.programId = exam.id;
-                    seat.programName = exam.name;
-                    seat.semester = exam.semester;
-                    return seat;
-                }
-                // console.log(seat.courseId, exam.courseId);
-                return {};
-            })
-            .filter((seat) => Object.keys(seat).length > 0);
-    });
-
-    // console.log('students to replace : ', studentsToReplace);
-
-    let studentsAlreadyAssigned = [];
-
-    roomsToOptimize.forEach((roomToOptimize) => {
-        const studentsToAssign = studentsToReplace.filter(
-            (student) => !studentsAlreadyAssigned.includes(student),
-        );
-
-        if (studentsToAssign.length === 0) {
-            return;
-        }
-
-        const result = optimizationAttempt(studentsToAssign, roomToOptimize);
-
-        if (result) {
-            studentsAlreadyAssigned =
-                studentsAlreadyAssigned.concat(studentsToAssign);
-        }
-    });
-
-    if (studentsAlreadyAssigned.length === studentsToReplace.length) {
-        console.log('second optimization successful');
-
-        return true;
-    }
-    console.log('second optimization unsuccessful');
-
-    return false;
-}
-
-async function main(roomAssignments, unassignedStudentCount, studentData) {
-    // console.log(JSON.stringify(studentData, null, 2));
+async function main(rooms, unassignedStudentCount, unassignedStudentsData) {
     try {
         if (
-            roomAssignments.length <= 0 ||
+            rooms.length <= 0 ||
             unassignedStudentCount <= 0 ||
-            studentData.length <= 0
+            unassignedStudentsData.length <= 0
         ) {
             console.warn('Lack necessary data to start optimization!');
             return unassignedStudentCount;
         }
 
-        let roomAssignmentsCopy = _.cloneDeep(roomAssignments);
+        // let roomAssignmentsCopy = _.cloneDeep(rooms);
 
         // Iterate through course IDs
-        studentData.forEach((students, studentIndex) => {
+        unassignedStudentsData.forEach((students, studentIndex) => {
             let studentsCopy = _.cloneDeep(students);
             let studentsInCourseCount = studentsCopy.length;
 
             // Filter rooms with empty seats
-            const roomsWithEmptySeats = roomAssignmentsCopy.filter(
+            const roomsWithEmptySeats = rooms.filter(
                 (room) => room.unOccupiedSeatsCount > 0,
             );
 
@@ -226,8 +128,8 @@ async function main(roomAssignments, unassignedStudentCount, studentData) {
                 return unassignedStudentCount;
             }
 
-            roomAssignmentsCopy.forEach((roomAssignment, index) => {
-                let { exams, seatingMatrix } = roomAssignment;
+            rooms.forEach((room, index) => {
+                let { exams, seatingMatrix } = room;
 
                 exams.forEach((exam) => {
                     if (studentsInCourseCount <= 0) {
@@ -237,80 +139,39 @@ async function main(roomAssignments, unassignedStudentCount, studentData) {
 
                     if (exam.courseId !== students[0]?.courseId) {
                         const [
-                            result,
                             newSeatingMatrix,
                             newExams,
-                            assignedStudentsCount,
+                            studentDataReturned,
                         ] = firstTryToOptimization(
-                            exam,
+                            exam.courseId,
                             [...exams],
                             seatingMatrix,
-                            studentsInCourseCount,
                             studentsCopy,
+                            roomsWithEmptySeats,
                         );
 
-                        if (!result) {
-                            studentsCopy = _.cloneDeep(students);
-                            return;
-                        }
+                        studentsCopy = studentDataReturned;
 
-                        let roomsToOptimize = _.cloneDeep(roomsWithEmptySeats);
+                        students = _.cloneDeep(studentDataReturned);
 
-                        const opt2 = secondTryToOptimize(
-                            seatingMatrix,
-                            exam,
-                            assignedStudentsCount,
-                            roomsToOptimize,
-                        );
+                        unassignedStudentsData[studentIndex] = students;
 
-                        if (opt2) {
-                            logger('Optimization was successful');
-                            students = _.cloneDeep(studentsCopy);
+                        studentsInCourseCount = studentDataReturned.length;
 
-                            studentData[studentIndex] = students;
+                        room.seatingMatrix = newSeatingMatrix;
+                        room.exams = newExams;
 
-                            studentsInCourseCount = studentsCopy.length;
+                        exams = newExams;
+                        seatingMatrix = newSeatingMatrix;
 
-                            roomAssignment.seatingMatrix = newSeatingMatrix;
-                            roomAssignment.exams = newExams;
+                        // rooms[index] = room;
 
-                            /* console.log(
-                                'before: ',
-                                JSON.stringify(
-                                    roomAssignments[index].exams,
-                                    null,
-                                    2,
-                                ),
-                            ); */
-
-                            roomAssignments[index] = roomAssignment;
-
-                            /*  console.log(
-                                'after: ',
-                                JSON.stringify(
-                                    roomAssignments[index].exams,
-                                    null,
-                                    2,
-                                ),
-                            ); */
-
-                            roomsToOptimize.forEach((optimizedRoom) => {
-                                roomAssignments.forEach(
-                                    (originalRoom, roomIndex) => {
-                                        if (
-                                            optimizedRoom.id === originalRoom.id
-                                        )
-                                            roomAssignments[roomIndex] =
-                                                optimizedRoom;
-                                    },
-                                );
+                        roomsWithEmptySeats.forEach((optimizedRoom) => {
+                            rooms.forEach((originalRoom, roomIndex) => {
+                                if (optimizedRoom.id === originalRoom.id)
+                                    rooms[roomIndex] = optimizedRoom;
                             });
-                        } else {
-                            studentsCopy = _.cloneDeep(students);
-                            studentsInCourseCount = students.length;
-                            roomAssignmentsCopy = _.cloneDeep(roomAssignments);
-                            logger('Optimization was unsuccessful');
-                        }
+                        });
                     }
                 });
             });
@@ -319,10 +180,7 @@ async function main(roomAssignments, unassignedStudentCount, studentData) {
         console.error('Error:', error);
     }
 
-    const flatArray = studentData.flat();
-    const numberOfStudents = flatArray.length;
-
-    return numberOfStudents;
+    return rooms;
 }
 
 export default main;

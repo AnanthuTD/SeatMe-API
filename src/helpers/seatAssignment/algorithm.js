@@ -1,3 +1,5 @@
+import logger from '../logger.js';
+
 /**
  * Class representing a seating arrangement for exams.
  */
@@ -30,6 +32,14 @@ export default class SeatingArrangement {
         this.try = true;
     }
 
+    // Function to shuffle an array using Fisher-Yates algorithm
+    /*  shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    } */
+
     /**
      * Assign seats to students based on their exams.
      */
@@ -38,7 +48,29 @@ export default class SeatingArrangement {
             return;
         }
 
-        for (let examIndex = 0; examIndex < this.numExams; examIndex += 1) {
+        // Generate an array of exam indices and shuffle it
+        /* const shuffledExamIndices = Array.from(
+            { length: this.students.length },
+            (_, i) => i,
+        ); */
+
+        // logger(this.students);
+
+        /* for (let i = this.students.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.students[i], this.students[j]] = [
+                this.students[j],
+                this.students[i],
+            ];
+        } */
+
+        // logger(this.students);
+
+        this.students.forEach((_, examIndex) => {
+            if (this.unOccupiedSeatsCount <= 0) {
+                return;
+            }
+
             let numStudentsThisExam;
 
             // Check if there are enough remaining seats for this exam
@@ -91,6 +123,9 @@ export default class SeatingArrangement {
                     this.seatingMatrix[row][col].id = id;
                     this.seatingMatrix[row][col].name = name;
                     this.seatingMatrix[row][col].examId = examId;
+                    this.seatingMatrix[row][col].programName = programName;
+                    this.seatingMatrix[row][col].programId = programId;
+                    this.seatingMatrix[row][col].semester = semester;
 
                     this.updateExamines(
                         programId,
@@ -117,10 +152,8 @@ export default class SeatingArrangement {
                 ...this.students[examIndex],
             ];
             this.unassignedStudents = [];
-            if (this.unOccupiedSeatsCount <= 0) {
-                break;
-            }
-        }
+        });
+
         if (this.extraStudentsNeeded && this.try) {
             this.try = false;
             this.students = this.students.filter(

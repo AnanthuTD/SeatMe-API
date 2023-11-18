@@ -2,10 +2,68 @@ import { Op } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
 import redisClient from '../../redis/config.js';
 import logger from '../logger.js';
+import keyNames from '../../redis/keyNames.js';
 
-const retrieveAndStoreInRedis = async () => {
+const getTimeCodeForNow = async (seatingTimes) => {
+    const currentTime = new Date();
+
+    logger(seatingTimes, 'seating times');
+
+    const matchingConfig = seatingTimes.find((config) => {
+        const configStartTime = new Date(`1970-01-01T${config.startTime}`);
+        const configEndTime = new Date(`1970-01-01T${config.endTime}`);
+
+        const isAfterStartTime =
+            currentTime.getHours() > configStartTime.getHours() ||
+            (currentTime.getHours() === configStartTime.getHours() &&
+                currentTime.getMinutes() >= configStartTime.getMinutes());
+
+        const isBeforeEndTime =
+            currentTime.getHours() < configEndTime.getHours() ||
+            (currentTime.getHours() === configEndTime.getHours() &&
+                currentTime.getMinutes() < configEndTime.getMinutes());
+
+        console.log(isAfterStartTime, isBeforeEndTime);
+
+        // Check if the current time is within the range of config.startTime and config.endTime
+        return isAfterStartTime && isBeforeEndTime;
+    });
+
+    return matchingConfig ? matchingConfig.timeCode : null;
+};
+
+const clearSeatingInfoFromRedis = () => {
+    try {
+        redisClient.del(keyNames.seatingInfo);
+    } catch (error) {
+        console.error('Failed to clear seating info from redis!');
+    }
+};
+
+const retrieveAndStoreSeatingInfoInRedis = async () => {
     try {
         const currentDate = new Date();
+        const currentDayOfWeek = currentDate.getDay();
+
+        const daysOfWeek = [
+            'Sunday',
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+        ];
+
+        const day = daysOfWeek[currentDayOfWeek];
+
+        console.log(day);
+
+        const seatingTimes = await models.seatingTimeConfig.findAll({
+            where: { day },
+        });
+
+        const timeCode = await getTimeCodeForNow(seatingTimes);
 
         const seatingData = await models.studentSeat.findAll({
             attributes: [
@@ -18,6 +76,7 @@ const retrieveAndStoreInRedis = async () => {
                 [sequelize.col('room.block.name'), 'blockName'],
                 [sequelize.col('exam.course.id'), 'courseId'],
                 [sequelize.col('exam.course.name'), 'courseName'],
+                [sequelize.col('exam.dateTime.time_code'), 'timeCode'],
             ],
             include: [
                 {
@@ -27,9 +86,9 @@ const retrieveAndStoreInRedis = async () => {
                     include: [
                         {
                             model: models.dateTime,
-                            where: { date: { [Op.eq]: currentDate } },
+                            where: { date: { [Op.eq]: currentDate }, timeCode },
                             required: true,
-                            attributes: ['date', 'timeCode'],
+                            attributes: [],
                         },
                         {
                             model: models.course,
@@ -62,16 +121,16 @@ const retrieveAndStoreInRedis = async () => {
             ],
         });
 
-        // logger(seatingData)
+        // logger(seatingData);
 
-        await redisClient.del('seatingInfo');
+        await redisClient.del(keyNames.seatingInfo);
 
         // Store the entire seating information in Redis
         await Promise.all(
             seatingData.map(async (record) => {
                 const key = record.student.id.toString();
                 await redisClient.hset(
-                    'seatingInfo',
+                    keyNames.seatingInfo,
                     key,
                     JSON.stringify(record),
                 );
@@ -81,7 +140,7 @@ const retrieveAndStoreInRedis = async () => {
         console.log('Seating information stored in Redis successfully');
     } catch (error) {
         console.error(
-            'Error retrieving or storing seating information:',
+            'Error retrieving or storing seating information in (retrieveAndStoreSeatingInfoInRedis)\n',
             error,
         );
     }
@@ -90,7 +149,7 @@ const retrieveAndStoreInRedis = async () => {
 const retrieveStudentDetails = async (studentId) => {
     try {
         const studentDetailsStr = await redisClient.hget(
-            'seatingInfo',
+            keyNames.seatingInfo,
             studentId.toString(),
         );
 
@@ -148,7 +207,7 @@ const createRecord = async (seating) => {
         });
 
         // retrieve and store data into redis
-        retrieveAndStoreInRedis();
+        // retrieveAndStoreSeatingInfoInRedis();
     } catch (error) {
         console.error(
             'Error during bulk insert or update of studentSeat:',
@@ -282,15 +341,19 @@ const getUpcomingExamsFromDB = async () => {
 const retrieveAndStoreExamsInRedis = async () => {
     const upcomingExams = await getUpcomingExamsFromDB();
 
-    await removeAllSetsWithPattern('courses:program:');
-    redisClient.del('examOpenCourses');
+    await removeAllSetsWithPattern(keyNames.coursesProgram);
+    redisClient.del(keyNames.examOpenCourses);
 
     upcomingExams.map(async (exam) => {
         if (exam.isOpenCourse === 1) {
             const key = `${exam.courseId}-${exam.semester}`;
-            redisClient.hset('examOpenCourses', key, JSON.stringify(exam));
+            redisClient.hset(
+                keyNames.examOpenCourses,
+                key,
+                JSON.stringify(exam),
+            );
         } else {
-            const key = `courses:program:${exam.programId}:${exam.semester}`;
+            const key = `${keyNames.coursesProgram}:${exam.programId}:${exam.semester}`;
             redisClient.sadd(key, JSON.stringify(exam));
         }
     });
@@ -302,7 +365,7 @@ const getUpcomingExams = async (
     openCourseId = undefined,
 ) => {
     try {
-        let key = `courses:program:${programId}:${semester}`;
+        let key = `${keyNames.coursesProgram}:${programId}:${semester}`;
         const members = await redisClient.smembers(key);
         const examDataNormal = members.map((member) => JSON.parse(member));
         console.log('Retrieved normal exam data:', examDataNormal);
@@ -313,7 +376,7 @@ const getUpcomingExams = async (
             key = `${openCourseId}-${semester}`;
 
             const examOpenCourseData = await redisClient.hget(
-                'examOpenCourses',
+                keyNames.examOpenCourses,
                 key,
             );
 
@@ -416,9 +479,10 @@ const getTimeTableAndSeating = async (studentId) => {
 export {
     createRecord,
     getTimeTableAndSeating,
-    retrieveAndStoreInRedis,
+    retrieveAndStoreSeatingInfoInRedis,
     retrieveStudentDetails,
     retrieveAndStoreExamsInRedis,
     getUpcomingExams,
     getUpcomingExamsFromDB,
+    clearSeatingInfoFromRedis,
 };

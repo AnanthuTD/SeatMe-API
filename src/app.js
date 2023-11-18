@@ -4,9 +4,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import cron from 'node-cron';
 import userRouter from './routes/userRouter.js';
-import adminRouter from './routes/adminRouter.js';
+import adminRouter from './routes/adminRoutes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
 import authRouter from './routes/authRouter.js';
 import departmentRouter from './routes/departmententRouter.js';
@@ -16,7 +15,6 @@ import datetimeRouter from './routes/datetimeRouter.js';
 import programRouter from './routes/programRouter.js';
 import roomRouter from './routes/roomRouter.js';
 import { sequelize } from './sequelize/connection.js';
-import { cleanBlacklist } from './helpers/jwtHelper.js';
 import {
     adminAuthMiddleware,
     staffAuthMiddleware,
@@ -27,11 +25,11 @@ import {
 } from './middlewares/csrfMiddleware.js';
 import getRootDir from '../getRootDir.js';
 import validateENV from './env.js';
-import {
-    retrieveAndStoreExamsInRedis,
-    retrieveAndStoreInRedis,
-} from './helpers/adminHelpers/studentSeat.js';
+import { retrieveAndStoreExamsInRedis } from './helpers/adminHelpers/studentSeat.js';
 import { isRedisAvailable } from './redis/config.js';
+import updateSeatingInfoScheduledTasks from './redis/seatingInfoScheduler.js';
+import { loadSeatingAvailabilityTimesToRedis } from './redis/loadSeatingAvailabilityTimes.js';
+import loadRefreshTokensToRedis from './redis/loadRefreshTokens.js';
 
 const dirname = getRootDir();
 
@@ -125,7 +123,6 @@ function setupRoutes() {
 
     app.use('/admin/blockentry', blockRouter);
     app.use('/admin/departmententry', departmentRouter);
-    // app.use('/admin/departmententry', departmentRouter);
     app.use('/admin/courseentry', courseRouter);
     app.use('/admin/roomentry', roomRouter);
     app.use('/admin/programentry', programRouter);
@@ -164,9 +161,9 @@ async function assertRedisConnectionOk() {
 
 
 function populateRedis() {
-    // retrieve student seating arrangement for today  and store it in redis.
-    retrieveAndStoreInRedis();
-    // retrieve exams
+    updateSeatingInfoScheduledTasks();
+    loadRefreshTokensToRedis();
+    loadSeatingAvailabilityTimesToRedis();
     retrieveAndStoreExamsInRedis();
 }
 
@@ -181,10 +178,6 @@ async function init() {
     setupRoutes();
     startServer();
     populateRedis();
-    // Schedule the jwt blacklist cleanup task to run every day at midnight (adjust as needed)
-    cron.schedule('0 0 * * *', () => {
-        cleanBlacklist();
-    });
 }
 
 const folderPath = path.join(getRootDir(), 'pdf');

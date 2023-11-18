@@ -21,8 +21,8 @@ const applyExtraSetup = (sequelize) => {
         refreshToken,
     } = sequelize.models;
 
-    refreshToken.belongsTo(authUser);
-    authUser.hasMany(refreshToken);
+    refreshToken.belongsTo(authUser, { foreignKey: 'authUserId' });
+    authUser.hasMany(refreshToken, { foreignKey: 'authUserId' });
 
     authUser.belongsTo(department);
     department.hasMany(authUser);
