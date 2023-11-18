@@ -2,7 +2,6 @@ import { Op, literal } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
 import { fetchExams } from '../seatAssignment/getData.js';
 import { retrieveAndStoreExamsInRedis } from './studentSeat.js';
-import logger from '../logger.js';
 
 const getStaffs = async (
     query = [''],
@@ -494,7 +493,7 @@ const getOngoingExamCount = async () => {
     return totalCount;
 };
 
-const getRooms = async ({ examType = 'final' }) => {
+const getRooms = async ({ examType = 'final', availability = undefined }) => {
     let rowsAndCols = [];
     if (examType === 'final')
         rowsAndCols = [
@@ -517,6 +516,10 @@ const getRooms = async ({ examType = 'final' }) => {
                 'floor',
                 [literal(`${rowsAndCols[0][0]}*${rowsAndCols[1][0]}`), 'seats'],
             ],
+            where:
+                availability === undefined
+                    ? undefined
+                    : { isAvailable: availability === 'true' },
         });
         return rooms;
     } catch (error) {

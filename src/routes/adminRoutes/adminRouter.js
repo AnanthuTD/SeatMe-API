@@ -101,8 +101,25 @@ router.get('/open-courses', async (req, res) => {
 
 router.get('/rooms/:examType', async (req, res) => {
     const { examType } = req.params;
+    const { availability } = req.query || {};
     try {
-        const rooms = await getRooms({ examType });
+        const rooms = await getRooms({ examType, availability });
+        res.json(rooms);
+    } catch (error) {
+        console.error('Error fetching rooms:', error);
+        res.status(500).json({ error: 'Error fetching rooms' });
+    }
+});
+
+router.get('/rooms', async (req, res) => {
+    const { availability } = req.query || {};
+    try {
+        const rooms = await models.room.findAll({
+            where:
+                availability === undefined
+                    ? undefined
+                    : { isAvailable: availability },
+        });
         res.json(rooms);
     } catch (error) {
         console.error('Error fetching rooms:', error);
@@ -121,7 +138,7 @@ router.get('/date-time-id', async (req, res) => {
     }
 });
 
-router.patch('/rooms', async (req, res) => {
+router.patch('/rooms-availability', async (req, res) => {
     const { roomIds } = req.body;
 
     if (!roomIds || !Array.isArray(roomIds)) {
@@ -136,6 +153,32 @@ router.patch('/rooms', async (req, res) => {
         return res
             .status(500)
             .json({ error: 'Failed to update room availability' });
+    }
+});
+
+router.patch('/rooms/:examType', async (req, res) => {
+    const room = req.body;
+    console.log(room);
+    const { examType } = req.params;
+
+    try {
+        let roomData = {};
+        if (examType === 'final') {
+            roomData.finalRows = room.rows;
+            roomData.finalCols = room.cols;
+        } else {
+            roomData.internalRows = room.rows;
+            roomData.internalCols = room.cols;
+        }
+        console.log(roomData);
+        const [updateCount] = await models.room.update(roomData, {
+            where: { id: room.id },
+        });
+
+        return res.json({ updateCount });
+    } catch (error) {
+        console.error(`Error in PATCH /rooms/${examType}: ${error.message}`);
+        return res.status(500).json({ error: 'Failed to update room' });
     }
 });
 
