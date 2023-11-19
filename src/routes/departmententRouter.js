@@ -1,15 +1,14 @@
 import express from 'express';
-
-const router = express.Router();
-
-import getroot from '../../getRootDir.js';
+import getRootDir from '../../getRootDir.js';
 
 import { models } from '../sequelize/models.js';
 
-router.get('/', (req, res) => {
-    let p = getroot() + '/src/Views/department.html';
+const router = express.Router();
 
-    //res.sendFile(p);
+router.get('/', (req, res) => {
+    let p = `${getRootDir()}/src/Views/department.html`;
+
+    // res.sendFile(p);
 });
 router.post('/department', (req, res) => {
     console.log('this is called');
@@ -17,47 +16,50 @@ router.post('/department', (req, res) => {
     let body = req.body.departments;
     let deps = [];
     body.forEach((item) => {
-        let id = item.id;
-        let name = item.name;
+        let { id } = item;
+        let { name } = item;
+        let { code } = item;
         deps.push({
             id,
             name,
+            code,
         });
         console.log(deps);
         console.log(`ID: ${item.id}, Name: ${item.name}`);
     });
-    let name = req.body.name;
-
-    console.log(deps);
 
     models.department
-        .bulkCreate(deps, { validate: true })
+        .bulkCreate(deps, { validate: true, ignoreDuplicates: true })
         .then(() => {
-            res.send(deps);
+            res.send();
         })
         .catch((error) => {
             console.error('Error in inserting into DB:', error);
 
             // Sending SQL error message to frontend
-            res.status(500).json({ error: 'Error inserting values into DB', sqlError: error.message });
+            res.status(500).json({
+                error: 'Error inserting values into DB',
+                sqlError: error.message,
+            });
         });
 });
+
 router.patch('/departmentupdate/', async (req, res) => {
     try {
         let departments = [];
         req.body.forEach((item) => {
-            let id = item.id;
-            let name = item.name;
+            let { id } = item;
+            let { name } = item;
             departments.push({
                 id,
                 name,
             });
-          //  console.log(departments,"hai this is patch");
+            //  console.log(departments,"hai this is patch");
         });
         departments.forEach((department) => {
             const departmentId = department.id;
             const departmentName = department.name;
-        
+
             // Use the values as needed
             console.log('department ID:', departmentId);
             console.log('department Name:', departmentName);
@@ -68,7 +70,9 @@ router.patch('/departmentupdate/', async (req, res) => {
             const department = await models.department.findByPk(department1.id);
 
             if (!department) {
-                return { error: `department with ID ${department1.id} not found` };
+                return {
+                    error: `department with ID ${department1.id} not found`,
+                };
             }
 
             let updatedData = {
@@ -78,23 +82,32 @@ router.patch('/departmentupdate/', async (req, res) => {
             // Update the department with the provided data
             await department.update(updatedData);
 
-            return { message: `department with ID ${department1.id} updated successfully`, updateddepartment: department };
+            return {
+                message: `department with ID ${department1.id} updated successfully`,
+                updateddepartment: department,
+            };
         });
 
         // Wait for all updates to complete before sending the response
         const results = await Promise.all(updates);
 
         // Check for errors in the results
-        const errors = results.filter(result => result.error);
+        const errors = results.filter((result) => result.error);
         if (errors.length > 0) {
             return res.status(404).json({ errors });
         }
 
         // If no errors, send a success response
-        res.status(200).json({ message: 'All departments updated successfully', results });
+        res.status(200).json({
+            message: 'All departments updated successfully',
+            results,
+        });
     } catch (error) {
         console.error('Error updating department in DB:', error);
-        res.status(500).json({ error: 'Error updating department in DB', errorMessage: error.message });
+        res.status(500).json({
+            error: 'Error updating department in DB',
+            errorMessage: error.message,
+        });
     }
 });
 

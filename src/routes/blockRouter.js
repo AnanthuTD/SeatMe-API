@@ -14,7 +14,6 @@ router.get('/', (req, res) => {
 });
 
 router.post('/block', async (req, res) => {
-    console.log('This is called');
     try {
         const body = req.body.blocks;
         const blocks = body.map((item) => ({ id: item.id, name: item.name }));
@@ -30,7 +29,6 @@ router.post('/block', async (req, res) => {
             (block) => block.isNewRecord,
         );
 
-        console.log('Blocks inserted successfully:', successfulBlocks);
         res.send(successfulBlocks);
     } catch (error) {
         console.error('Error inserting into DB:', error);

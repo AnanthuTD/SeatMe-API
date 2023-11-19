@@ -11,13 +11,11 @@ const department = (sequelize) => {
             id: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 primaryKey: true,
-                validate: {
-                    isTwoDigitNumber(value) {
-                        if (!/^\d{2}$/.test(value)) {
-                            throw new Error('ID must be a 2-digit number.');
-                        }
-                    },
-                },
+            },
+            code: {
+                type: DataTypes.STRING(20),
+                allowNull: false,
+                unique: true,
             },
             name: {
                 type: DataTypes.STRING(100),
