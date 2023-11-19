@@ -36,10 +36,6 @@ export default (sequelize) => {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
             },
-            blockId: {
-                type: DataTypes.TINYINT.UNSIGNED,
-                allowNull: false,
-            },
         },
         {
             timestamps: false,
