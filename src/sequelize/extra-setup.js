@@ -83,7 +83,7 @@ const applyExtraSetup = (sequelize) => {
     course.hasMany(supplementary);
     supplementary.belongsTo(course);
 
-    program.hasMany(student);
-    student.belongsTo(program);
+    program.hasMany(student, { foreignKey: 'programId' });
+    student.belongsTo(program, { foreignKey: 'programId' });
 };
 export { applyExtraSetup };
