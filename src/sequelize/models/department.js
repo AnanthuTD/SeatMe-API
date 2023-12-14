@@ -10,12 +10,12 @@ const department = (sequelize) => {
         {
             id: {
                 type: DataTypes.TINYINT.UNSIGNED,
-                primaryKey: true,
+                unique: true,
             },
             code: {
                 type: DataTypes.STRING(20),
                 allowNull: false,
-                unique: true,
+                primaryKey: true,
             },
             name: {
                 type: DataTypes.STRING(100),
