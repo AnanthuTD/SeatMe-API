@@ -17,13 +17,13 @@ router.post('/program', (req, res) => {
         let name = item.name;
         let duration = item.duration;
         let level = item.level;
-        let departmentId = item.departmentId;
+        let departmentCode = item.departmentCode;
         programs.push({
             id,
             name,
             duration,
             level,
-            departmentId,
+            departmentCode,
         });
         console.log(programs);
     });
@@ -33,7 +33,7 @@ router.post('/program', (req, res) => {
     models.program
         .bulkCreate(programs)
         .then(() => {
-            res.send(programs);
+            res.send();
         })
         .catch((error) => {
             console.error('Error in inserting into DB:', error);

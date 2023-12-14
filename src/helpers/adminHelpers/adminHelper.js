@@ -257,6 +257,11 @@ const getPrograms = async (departmentId) => {
     if (departmentId) {
         const programs = await models.program.findAll({
             where: { departmentId },
+            include:{
+                model: models.department,
+                attributes:['name']
+            },
+            raw: true
         });
         return programs;
     }
@@ -589,6 +594,12 @@ const countExamsForDate = async ({
 };
 
 const findOrCreateStudents = async (students) => {
+    students.forEach((student) => {
+        const rollNumberStr = student.rollNumber.toString();
+        const programIdDigits = rollNumberStr.slice(2, 4);
+        student.programId = parseInt(programIdDigits, 10);
+    });
+
     try {
         const foundOrCreatedStudents = await Promise.all(
             students.map(async (student) => {
