@@ -9,20 +9,30 @@ export default (sequelize) => {
         'course',
         {
             id: {
-                type: DataTypes.STRING(9),
+                type: DataTypes.STRING(20),
                 primaryKey: true,
             },
             name: {
                 type: DataTypes.STRING(100),
                 allowNull: false,
             },
+            type: {
+                type: DataTypes.ENUM([
+                    'core',
+                    'common',
+                    'complementary',
+                    'optional',
+                    'elective',
+                    'open',
+                    'skill',
+                    'general',
+                    'project',
+                ]),
+                allowNull: true,
+            },
             semester: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
-            },
-            isOpenCourse: {
-                type: DataTypes.BOOLEAN,
-                defaultValue: false,
             },
         },
         {
