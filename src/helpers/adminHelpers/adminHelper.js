@@ -217,7 +217,7 @@ const findStudent = async (
                     model: models.course,
                     attributes: [],
                     required: false,
-                    where: { isOpenCourse: true },
+                    where: { type: 'open' },
                 },
             ],
             attributes: [
@@ -257,15 +257,21 @@ const getPrograms = async (departmentId) => {
     if (departmentId) {
         const programs = await models.program.findAll({
             where: { departmentId },
-            include:{
+            include: {
                 model: models.department,
-                attributes:['name']
+                attributes: [['name']],
             },
-            raw: true
+            raw: true,
         });
         return programs;
     }
-    const allPrograms = await models.program.findAll();
+    const allPrograms = await models.program.findAll({
+        include: {
+            model: models.department,
+            attributes: [['name']],
+        },
+        raw: true,
+    });
     return allPrograms;
 };
 
@@ -297,13 +303,13 @@ const getCourses = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.ne]: programId,
                             },
-                            isOpenCourse: 1,
+                            type: 'open',
                         },
                         {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            isOpenCourse: 0,
+                            type: [Op.ne, 'open'],
                         },
                     ],
                 },
@@ -327,13 +333,13 @@ const getCourses = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.ne]: programId,
                             },
-                            isOpenCourse: 1,
+                            type: 'open',
                         },
                         {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            isOpenCourse: 0,
+                            type: [Op.ne, 'open'],
                         },
                     ],
                 },
@@ -655,7 +661,7 @@ const getAvailableOpenCourses = async (programId) => {
         attributes: ['isAided'],
     });
     const openCourses = await models.course.findAll({
-        where: { isOpenCourse: 1 },
+        where: { type: 'open' },
         include: {
             model: models.program,
             attributes: [],
@@ -682,7 +688,7 @@ const findStudentsByProgramSem = async (programId, semester = undefined) => {
                     model: models.course,
                     attributes: ['name'],
                     required: false,
-                    where: { isOpenCourse: true },
+                    where: { type: 'open' },
                 },
             ],
             attributes: [

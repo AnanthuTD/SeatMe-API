@@ -43,7 +43,7 @@ const applyExtraSetup = (sequelize) => {
     // open course
     student.belongsTo(course, {
         scope: {
-            isOpenCourse: 1,
+            type: 'open',
         },
         foreignKey: 'openCourseId',
     });

@@ -236,13 +236,10 @@ const getUpcomingExamsById = async (studentId) => {
             ['id', 'courseId'],
             ['name', 'courseName'],
             'semester',
-            'isOpenCourse',
+            'type',
             [sequelize.col('exams.date_time_id'), 'dateTimeId'],
             [sequelize.col('exams.dateTime.date'), 'date'],
             [sequelize.col('exams.dateTime.time_code'), 'timeCode'],
-            // [sequelize.col('course.name'), 'courseName'],
-            // [sequelize.col('course.semester'), 'semester'],
-            // [sequelize.col('course.is_open_course'), 'isOpenCourse'],
             [sequelize.col('programCourses.program_id'), 'programId'],
         ],
 
@@ -258,7 +255,7 @@ const getUpcomingExamsById = async (studentId) => {
                     '$programCourses.program_id$': {
                         [Op.eq]: student.programId,
                     },
-                    isOpenCourse: 0,
+                    type: [Op.ne, 'open'],
                 },
             ],
         },
@@ -299,43 +296,52 @@ const getUpcomingExamsById = async (studentId) => {
 const getUpcomingExamsFromDB = async () => {
     const currentDate = new Date();
 
-    const upcomingExams = await models.exam.findAll({
-        attributes: [
-            'id',
-            'dateTimeId',
-            'courseId',
-            [sequelize.col('dateTime.date'), 'date'],
-            [sequelize.col('dateTime.time_code'), 'timeCode'],
-            [sequelize.col('course.name'), 'courseName'],
-            [sequelize.col('course.semester'), 'semester'],
-            [sequelize.col('course.is_open_course'), 'isOpenCourse'],
-            [sequelize.col('course.programCourses.program_id'), 'programId'],
-        ],
-        include: [
-            {
-                model: models.dateTime,
-                where: {
-                    date: { [Op.gte]: currentDate },
-                },
-                required: true,
-                attributes: [],
-            },
-            {
-                model: models.course,
-                required: true,
-                attributes: [],
-                include: [
-                    {
-                        model: models.programCourse,
-                        required: true,
-                        attributes: [],
-                    },
+    try {
+        const upcomingExams = await models.exam.findAll({
+            attributes: [
+                'id',
+                'dateTimeId',
+                'courseId',
+                [sequelize.col('dateTime.date'), 'date'],
+                [sequelize.col('dateTime.time_code'), 'timeCode'],
+                [sequelize.col('course.name'), 'courseName'],
+                [sequelize.col('course.semester'), 'semester'],
+                [sequelize.col('course.type'), 'type'],
+                [
+                    sequelize.col('course.programCourses.program_id'),
+                    'programId',
                 ],
-            },
-        ],
-        raw: true,
-    });
-    return upcomingExams;
+            ],
+            include: [
+                {
+                    model: models.dateTime,
+                    where: {
+                        date: { [Op.gte]: currentDate },
+                    },
+                    required: true,
+                    attributes: [],
+                },
+                {
+                    model: models.course,
+                    required: true,
+                    attributes: [],
+                    include: [
+                        {
+                            model: models.programCourse,
+                            required: true,
+                            attributes: [],
+                        },
+                    ],
+                },
+            ],
+            raw: true,
+        });
+
+        return upcomingExams;
+    } catch (error) {
+        console.error('Something went wrong!', error);
+        return [];
+    }
 };
 
 const retrieveAndStoreExamsInRedis = async () => {
@@ -345,7 +351,7 @@ const retrieveAndStoreExamsInRedis = async () => {
     redisClient.del(keyNames.examOpenCourses);
 
     upcomingExams.map(async (exam) => {
-        if (exam.isOpenCourse === 1) {
+        if (exam.type === 'open') {
             const key = `${exam.courseId}-${exam.semester}`;
             redisClient.hset(
                 keyNames.examOpenCourses,
@@ -412,13 +418,13 @@ const getTimeTableAndSeating = async (studentId) => {
                     '$programCourses.program_id$': {
                         [Op.ne]: student.programId,
                     },
-                    isOpenCourse: 1,
+                     type: 'open',
                 },
                 {
                     '$programCourses.program_id$': {
                         [Op.eq]: student.programId,
                     },
-                    isOpenCourse: 0,
+                    type: [Op.ne, 'open'],
                 },
             ],
         },

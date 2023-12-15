@@ -1,51 +1,79 @@
 import express from 'express';
+import { models } from '../sequelize/models.js';
+import getroot from '../../getRootDir.js';
 
 const router = express.Router();
 
-import getroot from '../../getRootDir.js';
-
-import { models } from '../sequelize/models.js';
-
 router.get('/', (req, res) => {
     let p = getroot() + '/src/Views/department.html';
-
-    //res.sendFile(p);
 });
-router.post('/course', (req, res) => {
-    console.log('this is called');
-    console.log(req.body);
-    let body = req.body.courses;
-    let courses = [];
-    body.forEach((item) => {
-        let id = item.id;
-        let name = item.name;
-        let semester = item.semester;
-        let isOpenCourse = item.isOpenCourse;
-        let program = item.program;
-        courses.push({
-            id,
-            name,
-            semester,
-            isOpenCourse,
-            program,
+
+router.post('/course', async (req, res) => {
+    const { courses } = req.body || {};
+
+    if (!Array.isArray(courses)) {
+        return res.status(400).json({ error: 'Invalid courses data' });
+    }
+
+    const failedRecords = [];
+
+    try {
+        await Promise.all(
+            courses.map(async (course) => {
+                try {
+                    const [courseInstance] = await models.course.upsert(
+                        course,
+                        {
+                            where: { id: course.id },
+                        },
+                    );
+
+                    const programId = await models.program.findByPk(
+                        course.programId,
+                        { attributes: ['id'] },
+                    );
+
+                    if (programId) {
+                        try {
+                            await courseInstance.addProgram(programId.id);
+                        } catch (error) {
+                            if (
+                                error.name !== 'SequelizeUniqueConstraintError'
+                            ) {
+                                throw error;
+                            }
+                        }
+                    } else {
+                        console.error(
+                            `Program with ID ${course.programId} not found.`,
+                        );
+
+                        failedRecords.push({
+                            record: course,
+                            error: `Program with ID ${course.programId} not found`,
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error upserting record:', error);
+
+                    failedRecords.push({
+                        record: course,
+                        error: error.message,
+                    });
+                }
+            }),
+        );
+
+        res.status(200).json({ failedRecords });
+    } catch (error) {
+        console.error('Error in upserting records:', error.message);
+        res.status(500).json({
+            error: 'Error upserting values into DB',
+            errorMessage: error.message,
         });
-        console.log(courses);
-    });
-
-    console.log(courses);
-
-    models.course
-        .bulkCreate(courses)
-        .then(() => {
-            res.send(courses);
-        })
-        .catch((error) => {
-            console.error('Error in inserting into DB:', error);
-             res.status(500).send(error);
-            res.status(500).json({ error: 'Error inserting values into DB', errorMessage: error.message });
-
-        });
+    }
 });
+
 router.patch('/courseupdate/', async (req, res) => {
     try {
         let courses = [];
@@ -53,16 +81,16 @@ router.patch('/courseupdate/', async (req, res) => {
             let id = item.id;
             let name = item.name;
             let semester = item.semester;
-            let isOpenCourse = item.isOpenCourse;
+            let type = item.type;
             let program = item.program;
             courses.push({
                 id,
                 name,
                 semester,
-                isOpenCourse,
+                type,
                 program,
             });
-          //  console.log(courses,"hai this is patch");
+            //  console.log(courses,"hai this is patch");
         });
         const updates = courses.map(async (course1) => {
             // Find the course by courseId
@@ -75,30 +103,39 @@ router.patch('/courseupdate/', async (req, res) => {
             let updatedData = {
                 name: course1.name,
                 semester: course1.semester,
-                isOpenCourse: course1.isOpenCourse,
+                type: course1.type,
                 program: course1.program,
             };
 
             // Update the course with the provided data
             await course.update(updatedData);
 
-            return { message: `Course with ID ${course1.id} updated successfully`, updatedCourse: course };
+            return {
+                message: `Course with ID ${course1.id} updated successfully`,
+                updatedCourse: course,
+            };
         });
 
         // Wait for all updates to complete before sending the response
         const results = await Promise.all(updates);
 
         // Check for errors in the results
-        const errors = results.filter(result => result.error);
+        const errors = results.filter((result) => result.error);
         if (errors.length > 0) {
             return res.status(404).json({ errors });
         }
 
         // If no errors, send a success response
-        res.status(200).json({ message: 'All courses updated successfully', results });
+        res.status(200).json({
+            message: 'All courses updated successfully',
+            results,
+        });
     } catch (error) {
         console.error('Error updating course in DB:', error);
-        res.status(500).json({ error: 'Error updating course in DB', errorMessage: error.message });
+        res.status(500).json({
+            error: 'Error updating course in DB',
+            errorMessage: error.message,
+        });
     }
 });
 export default router;
