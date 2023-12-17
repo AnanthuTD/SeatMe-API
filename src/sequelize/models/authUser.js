@@ -11,11 +11,17 @@ export default (sequelize) => {
             id: {
                 type: DataTypes.STRING(7),
                 primaryKey: true,
+                set(value) {
+                    this.setDataValue(
+                        'id',
+                        value.replace(/[a-z]/g, (char) => char.toUpperCase()),
+                    );
+                },
                 validate: {
-                    isNumberOrCaps(value) {
-                        if (!/^[0-9A-Z]+$/.test(value)) {
+                    isAlphaOrNumber(value) {
+                        if (!/^[0-9A-Za-z]+$/.test(value)) {
                             throw new Error(
-                                'ID must be composed of numbers or uppercase letters (caps).',
+                                'ID must be composed of numbers or letters.',
                             );
                         }
                     },
@@ -35,7 +41,7 @@ export default (sequelize) => {
             phone: { type: DataTypes.BIGINT },
             isAdmin: { type: DataTypes.BOOLEAN, defaultValue: false },
             password: { type: DataTypes.STRING(72) },
-            designation: { type: DataTypes.STRING(100), allowNull: false },
+            designation: { type: DataTypes.STRING(100), allowNull: true },
         },
         {
             underscored: true,
