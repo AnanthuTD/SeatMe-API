@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import zxcvbn from 'zxcvbn';
 import { Op } from 'sequelize';
 import { models } from '../sequelize/models.js';
+import logger from './logger.js';
 
 /**
  * Check if a user with the provided email or ID already exists.
@@ -48,70 +49,54 @@ const encrypt = (value) => {
  */
 const createStaff = async (staffDataArray) => {
     try {
-        const duplicateStaffs = [];
-        const createdStaff = [];
         const uncreatedStaffs = [];
 
         await Promise.all(
             staffDataArray.map(async (staffData) => {
-                if (await doesUserExist(staffData.email, staffData.id)) {
-                    duplicateStaffs.push(staffData);
-                } else {
-                    if (staffData.password) {
-                        checkPasswordStrength(staffData.password);
-                        staffData.password = await encrypt(staffData.password);
-                    }
-                    try {
-                        await insertUser(staffData);
-                        createdStaff.push(staffData);
-                    } catch (error) {
-                        uncreatedStaffs.push(staffData);
-                    }
+                if (!staffData.password) {
+                    uncreatedStaffs.push({
+                        ...staffData,
+                        error: 'Password is required',
+                    });
+                    return;
+                }
+
+                staffData.password = await encrypt(staffData.password);
+
+                try {
+                    await models.authUser.upsert(staffData, {
+                        where: { id: staffData.id },
+                    });
+                } catch (error) {
+                    console.error(error);
+                    uncreatedStaffs.push({
+                        ...staffData,
+                        error:
+                            error.message ||
+                            'Error occurred during upsert operation',
+                    });
                 }
             }),
         );
 
-        if (createdStaff.length === staffDataArray.length) {
-            return {
-                status: 201,
-                message: 'Users registered successfully',
-                createdStaff,
-                uncreatedStaffs,
-            };
-        }
-
-        if (duplicateStaffs.length > 0 && uncreatedStaffs.length > 0) {
-            return {
-                status: 409,
-                message:
-                    'Some Email or Id already exist and some error occurred while inserting some staffs',
-                duplicateStaffs,
-                uncreatedStaffs,
-            };
-        }
-        if (duplicateStaffs.length > 0) {
-            return {
-                status: 409,
-                message: 'Emails already exist',
-                duplicateStaffs,
-                uncreatedStaffs,
-            };
-        }
         if (uncreatedStaffs.length > 0) {
             return {
                 status: 409,
-                message: 'Error occurred while inserting some staffs',
-                duplicateStaffs,
+                message:
+                    'Some users were not registered or updated successfully',
                 uncreatedStaffs,
             };
         }
-
-        return { status: 400, message: 'No valid users to register' };
+        return {
+            status: 200,
+            message: 'Users registered or updated successfully',
+        };
     } catch (error) {
         console.error(error);
         return {
             status: 500,
-            message: 'An error occurred during registration',
+            message:
+                'An unexpected error occurred during registration or update',
         };
     }
 };
