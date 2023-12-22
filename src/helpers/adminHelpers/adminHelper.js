@@ -599,38 +599,42 @@ const countExamsForDate = async ({
     }
 };
 
-const findOrCreateStudents = async (students) => {
-    students.forEach((student) => {
+const upsertStudents = async (students) => {
+    const formattedStudents = students.map((student) => {
         const rollNumberStr = student.rollNumber.toString();
         const programIdDigits = rollNumberStr.slice(2, 4);
-        student.programId = parseInt(programIdDigits, 10);
+        return {
+            ...student,
+            programId: parseInt(programIdDigits, 10),
+        };
     });
 
-    try {
-        const foundOrCreatedStudents = await Promise.all(
-            students.map(async (student) => {
-                const [foundStudent, created] =
-                    await models.student.findOrCreate({
-                        where: {
-                            id: student.id,
-                        },
-                        defaults: student,
-                    });
+    const uncreatedStudents = [];
 
-                return { foundStudent, created, student };
+    try {
+        await Promise.all(
+            formattedStudents.map(async (student) => {
+                try {
+                    await models.student.upsert(student, {
+                        returning: true,
+                    });
+                } catch (error) {
+                    console.error(
+                        `Error creating or updating student ${student.id}:`,
+                        error,
+                    );
+                    uncreatedStudents.push({
+                        ...student,
+                        error: error.message || 'Unknown error',
+                    });
+                }
             }),
         );
 
-        const existingStudent = foundOrCreatedStudents.filter(
-            (studentInfo) => studentInfo.created === false,
-        );
-
-        // console.log(JSON.stringify(existingStudent, null, 2));
-
-        return existingStudent;
+        return { success: true, uncreatedStudents, error: null };
     } catch (error) {
-        console.error('Error finding or creating students:', error);
-        return false;
+        console.error('Error creating or updating students:', error);
+        return { success: false, uncreatedStudents: [], error: error.message };
     }
 };
 
@@ -739,7 +743,7 @@ export {
     updateRoomAvailability,
     getExamDateTime,
     countExamsForDate,
-    findOrCreateStudents,
+    upsertStudents,
     updateStudent,
     getAvailableOpenCourses,
     deleteStudent,

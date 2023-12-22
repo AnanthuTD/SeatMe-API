@@ -30,6 +30,20 @@ export default (sequelize) => {
                 },
                 allowNull: false,
             },
+            programId: {
+                type: DataTypes.TINYINT.UNSIGNED,
+                allowNull: false,
+                set() {
+                    // Calculate programId from the third and fourth digits of rollNumber
+                    const rollNumberStr =
+                        this.getDataValue('rollNumber').toString();
+                    const programIdDigits = rollNumberStr.slice(2, 4);
+                    this.setDataValue(
+                        'programId',
+                        parseInt(programIdDigits, 10),
+                    );
+                },
+            },
             semester: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
@@ -51,6 +65,15 @@ export default (sequelize) => {
             underscored: true,
         },
     );
+
+    student.beforeBulkCreate((instances) => {
+        instances.forEach((instance) => {
+            const rollNumberStr = instance.rollNumber.toString();
+            const programIdDigits = rollNumberStr.slice(2, 4);
+            console.log('programIdDigits: ', programIdDigits);
+            instance.programId = parseInt(programIdDigits, 10);
+        });
+    });
 
     return student;
 };

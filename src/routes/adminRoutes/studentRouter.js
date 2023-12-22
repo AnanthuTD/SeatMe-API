@@ -4,29 +4,34 @@ import {
     getStudentCount,
     findStudent,
     updateStudent,
-    findOrCreateStudents,
+    upsertStudents,
     deleteStudent,
     findStudentsByProgramSem,
 } from '../../helpers/adminHelpers/adminHelper.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 
 router.post('/', async (req, res) => {
     const { students } = req.body;
 
+    logger(students, 'Student');
+
     if (!students) {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
     try {
-        const result = await findOrCreateStudents(students);
+        const { success, uncreatedStudents, error } = await upsertStudents(
+            students,
+        );
 
-        if (result) return res.status(200).json(result);
-        return res.status(400).json(result);
+        if (success) return res.status(200).json(uncreatedStudents);
+        return res.status(400).json({ uncreatedStudents, error });
     } catch (error) {
         const errorMessage = `Error in POST /student: ${error.message}`;
         console.error(errorMessage);
-        return res.status(500).send('Error processing student data.');
+        return res.status(500).send(errorMessage);
     }
 });
 
