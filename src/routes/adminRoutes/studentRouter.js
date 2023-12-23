@@ -9,6 +9,7 @@ import {
     findStudentsByProgramSem,
 } from '../../helpers/adminHelpers/adminHelper.js';
 import logger from '../../helpers/logger.js';
+import { models } from '../../sequelize/models.js';
 
 const router = express.Router();
 
@@ -144,6 +145,45 @@ router.get('/pro-sem', async (req, res) => {
     } catch (error) {
         console.error(`Error in GET /students/pro-sem: ${error.message}`);
         return res.status(500).json({ error: 'Error fetching students' });
+    }
+});
+
+router.post('/supplementary', async (req, res) => {
+    const { courseIds, studentIds } = req.body;
+    const failedRecords = [];
+
+    try {
+        await Promise.all(
+            courseIds.map(async (courseId) => {
+                if (!courseId) return;
+                Promise.all(
+                    studentIds.map(async (studentId) => {
+                        if (!studentId) return;
+                        try {
+                            console.log(courseId, studentId);
+                            await models.supplementary.create({
+                                courseId,
+                                studentId,
+                            });
+                        } catch (error) {
+                            console.log(error);
+                            failedRecords.push({
+                                courseId,
+                                studentId,
+                                error: error.message,
+                            });
+                        }
+                    }),
+                );
+            }),
+        );
+
+        res.status(200).json({
+            failedRecords,
+        });
+    } catch (error) {
+        console.error('Error creating records:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 

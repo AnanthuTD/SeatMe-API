@@ -62,9 +62,8 @@ router.get('/blocks', async (req, res) => {
 
 router.get('/programs', async (req, res) => {
     try {
-        let { departmentId } = req.query;
-        departmentId = parseInt(departmentId, 10) || 0;
-        const programs = await getPrograms(departmentId);
+        let { departmentCode } = req.query;
+        const programs = await getPrograms(departmentCode);
         res.json(programs);
     } catch (error) {
         console.error(`Error in GET /programs: ${error.message}`);
@@ -75,6 +74,7 @@ router.get('/programs', async (req, res) => {
 router.get('/courses', async (req, res) => {
     try {
         const { programId, semester } = req.query;
+        console.log(programId, semester);
         const courses = await getCourses(programId, semester);
         res.json(courses);
     } catch (error) {

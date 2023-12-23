@@ -2,6 +2,7 @@ import { Op, literal } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
 import { fetchExams } from '../seatAssignment/getData.js';
 import { retrieveAndStoreExamsInRedis } from './studentSeat.js';
+import logger from '../logger.js';
 
 const getStaffs = async (
     query = [''],
@@ -83,7 +84,7 @@ const getStaffs = async (
                 'email',
                 'phone',
                 'designation',
-                'departmentId',
+                'departmentCode',
                 [sequelize.col('department.name'), 'departmentName'],
                 [
                     sequelize.literal(
@@ -253,16 +254,19 @@ const getBlocks = async () => {
     return block;
 };
 
-const getPrograms = async (departmentId) => {
-    if (departmentId) {
+const getPrograms = async (departmentCode) => {
+    if (departmentCode) {
         const programs = await models.program.findAll({
-            where: { departmentId },
+            where: { departmentCode },
             include: {
                 model: models.department,
-                attributes: [['name']],
+                attributes: ['name'],
+                required: true,
             },
             raw: true,
         });
+        console.log('hi');
+        logger('programs', programs);
         return programs;
     }
     const allPrograms = await models.program.findAll({
@@ -287,14 +291,6 @@ const getCourses = async (programId, semester) => {
             program = await models.course.findAll({
                 include: {
                     model: models.programCourse,
-                    where: {
-                        programId: {
-                            [Op.or]: [
-                                { [Op.ne]: programId },
-                                { [Op.eq]: programId },
-                            ],
-                        },
-                    },
                 },
                 where: {
                     semester,
@@ -309,7 +305,7 @@ const getCourses = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            type: [Op.ne, 'open'],
+                            type: { [Op.ne]: 'open' },
                         },
                     ],
                 },
