@@ -78,8 +78,6 @@ const applyExtraSetup = (sequelize) => {
 
     student.hasMany(supplementary);
     supplementary.belongsTo(student);
-    program.hasMany(supplementary);
-    supplementary.belongsTo(program);
     course.hasMany(supplementary);
     supplementary.belongsTo(course);
 
