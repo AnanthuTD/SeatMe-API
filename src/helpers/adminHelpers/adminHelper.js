@@ -352,6 +352,121 @@ const getCourses = async (programId, semester) => {
         return [];
     }
 };
+const getCoursesExams = async (programId, semester) => {
+    if (!programId) {
+        const courses = await models.course.findAll({
+            include: [
+                {
+                    model: models.exam,
+                    include: [
+                        {
+                            model: models.dateTime,
+                            where: { date: { [Op.gte]: new Date() } },
+                            required: true,
+                        },
+                    ],
+                    required: true,
+                },
+            ],
+        });
+        return courses;
+    }
+    try {
+        // Find the program by programId and include its associated courses
+        let courses;
+        if (semester) {
+            courses = await models.course.findAll({
+                include: [
+                    {
+                        model: models.programCourse,
+                    },
+                    {
+                        model: models.exam,
+                        include: [
+                            {
+                                model: models.dateTime,
+                                where: { date: { [Op.gte]: new Date() } },
+                                required: true,
+                            },
+                        ],
+                        required: true,
+                    },
+                ],
+                where: {
+                    semester,
+                    [Op.or]: [
+                        {
+                            '$programCourses.program_id$': {
+                                [Op.ne]: programId,
+                            },
+                            type: 'open',
+                        },
+                        {
+                            '$programCourses.program_id$': {
+                                [Op.eq]: programId,
+                            },
+                            type: { [Op.ne]: 'open' },
+                        },
+                    ],
+                },
+            });
+        } else {
+            courses = await models.course.findAll({
+                include: [
+                    {
+                        model: models.programCourse,
+                        where: {
+                            programId: {
+                                [Op.or]: [
+                                    { [Op.ne]: programId },
+                                    { [Op.eq]: programId },
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        model: models.exam,
+                        include: [
+                            {
+                                model: models.dateTime,
+                                where: { date: { [Op.gte]: new Date() } },
+                                required: true,
+                            },
+                        ],
+                        required: true,
+                    },
+                ],
+                where: {
+                    [Op.or]: [
+                        {
+                            '$programCourses.program_id$': {
+                                [Op.ne]: programId,
+                            },
+                            type: 'open',
+                        },
+                        {
+                            '$programCourses.program_id$': {
+                                [Op.eq]: programId,
+                            },
+                            type: [Op.ne, 'open'],
+                        },
+                    ],
+                },
+            });
+        }
+
+        if (!courses) {
+            return [];
+        }
+
+        logger(courses, 'courses');
+
+        return courses;
+    } catch (error) {
+        console.error('Error:', error);
+        return [];
+    }
+};
 
 const setExam = async (data) => {
     try {
@@ -744,4 +859,5 @@ export {
     getAvailableOpenCourses,
     deleteStudent,
     findStudentsByProgramSem,
+    getCoursesExams,
 };

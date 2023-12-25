@@ -11,6 +11,7 @@ import {
     getAvailableOpenCourses,
     countExamsForDate,
     getExamDateTime,
+    getCoursesExams,
 } from '../../helpers/adminHelpers/adminHelper.js';
 import getRootDir from '../../../getRootDir.js';
 import staffRouter from './staffRouter.js';
@@ -77,6 +78,18 @@ router.get('/courses', async (req, res) => {
         const { programId, semester } = req.query;
         console.log(programId, semester);
         const courses = await getCourses(programId, semester);
+        res.json(courses);
+    } catch (error) {
+        console.error(`Error in GET /courses: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching courses' });
+    }
+});
+
+router.get('/courses/exams', async (req, res) => {
+    try {
+        const { programId, semester } = req.query;
+        console.log(programId, semester);
+        const courses = await getCoursesExams(programId, semester);
         res.json(courses);
     } catch (error) {
         console.error(`Error in GET /courses: ${error.message}`);
