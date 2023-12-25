@@ -34,7 +34,11 @@ export default (sequelize) => {
             },
             floor: {
                 type: DataTypes.TINYINT.UNSIGNED,
-                allowNull: false,
+                allowNull: true,
+            },
+            description: {
+                type: DataTypes.STRING,
+                allowNull: true,
             },
         },
         {

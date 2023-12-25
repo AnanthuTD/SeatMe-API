@@ -22,6 +22,7 @@ import { models } from '../../sequelize/models.js';
 import { checkCredentialsAndRetrieveData } from '../../helpers/commonHelper.js';
 import { encrypt } from '../../helpers/bcryptHelper.js';
 import { setNewRefreshToken } from '../../helpers/tokenHelpers/index.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 
@@ -124,6 +125,34 @@ router.get('/rooms', async (req, res) => {
     } catch (error) {
         console.error('Error fetching rooms:', error);
         res.status(500).json({ error: 'Error fetching rooms' });
+    }
+});
+
+router.post('/rooms', async (req, res) => {
+    const rooms = req.body;
+    const failedRecords = [];
+
+    try {
+        await Promise.all(
+            rooms.map(async (room) => {
+                try {
+                    await models.room.upsert(room, { where: { id: room.id } });
+                } catch (error) {
+                    failedRecords.push({ room, error: error.message });
+                }
+            }),
+        );
+
+        res.status(200).json({
+            success: true,
+            failedRecords,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error.',
+            error: error.message,
+        });
     }
 });
 
