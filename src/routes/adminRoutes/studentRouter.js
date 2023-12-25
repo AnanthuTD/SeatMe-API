@@ -10,6 +10,7 @@ import {
 } from '../../helpers/adminHelpers/adminHelper.js';
 import logger from '../../helpers/logger.js';
 import { models } from '../../sequelize/models.js';
+import { deleteSupplement, findSupplementaryStudents } from '../../helpers/adminHelpers/studentHelpers.js';
 
 const router = express.Router();
 
@@ -184,6 +185,72 @@ router.post('/supplementary', async (req, res) => {
     } catch (error) {
         console.error('Error creating records:', error);
         res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+router.get('/supplementary/list', async (req, res) => {
+    try {
+        let { query, column, offset, limit, sortField, sortOrder } = req.query;
+
+        const allowedColumns = [
+            'id',
+            'name',
+            'rollNumber',
+            'semester',
+            'program.name',
+            'programId',
+            'courses',
+        ];
+
+        // Validate and adjust the 'column' parameter
+        if (
+            !Array.isArray(column) ||
+            !column.every((col) => allowedColumns.includes(col))
+        ) {
+            column = ['id'];
+        }
+
+        query = query || [''];
+        sortField = sortField || 'updatedAt';
+        sortOrder = sortOrder || 'DESC';
+        offset = parseInt(offset, 10) || 0;
+        limit = parseInt(limit, 10) || 10;
+
+        const data = await findSupplementaryStudents(
+            query,
+            column,
+            offset,
+            limit,
+            sortField,
+            sortOrder,
+        );
+
+        res.json(data);
+    } catch (error) {
+        console.error(`Error in GET /student/list: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching student list' });
+    }
+});
+
+router.patch('/supplementary', async (req, res) => {
+    const student = req.body;
+    logger(student);
+
+    if (!student) {
+        return res.status(400).json({ error: 'Missing required data' });
+    }
+
+    try {
+        const deleteCount = await deleteSupplement(student);
+        if (deleteCount > 0) {
+            return res.status(200).json({
+                message: `Update successful.`,
+            });
+        }
+        return res.status(404).json({ error: 'Student not found!' });
+    } catch (error) {
+        console.error(`Error in PATCH /student: ${error}`, error);
+        return res.status(500).json({ error: 'Error updating students' });
     }
 });
 
