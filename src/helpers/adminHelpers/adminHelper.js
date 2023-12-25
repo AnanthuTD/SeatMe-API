@@ -272,7 +272,7 @@ const getPrograms = async (departmentCode) => {
     const allPrograms = await models.program.findAll({
         include: {
             model: models.department,
-            attributes: [['name']],
+            attributes: ['name'],
         },
         raw: true,
     });

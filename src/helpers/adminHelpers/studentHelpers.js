@@ -82,27 +82,34 @@ const findSupplementaryStudents = async (
                             : undefined,
                 },
                 {
-                    model: models.course,
-                    attributes: [],
-                    required: false,
-                    where: { type: 'open' },
-                },
-                {
                     model: models.supplementary,
-                    attributes: ['courseId'],
-                    where:
-                        columns[0] === 'courses'
-                            ? { courseId: query }
-                            : undefined,
+                    attributes: ['examId'],
+                    include: [
+                        {
+                            model: models.exam,
+                            where:
+                                columns[0] === 'courses'
+                                    ? { courseId: query }
+                                    : undefined,
+                        },
+                    ],
                     required: true,
                 },
             ],
         });
 
         data = data.map((d) => {
-            const courses = d.supplementaries.map((c) => c.courseId);
+            const exams = d.supplementaries.map((supply) => {
+                return {
+                    courseId: supply?.exam?.courseId,
+                    examId: supply?.examId,
+                };
+            });
+            const courses = d.supplementaries.map(
+                (supply) => supply?.exam?.courseId,
+            );
             d = d.toJSON();
-            return { courses, ...d, supplementaries: null };
+            return { courses, exams, ...d, supplementaries: null };
         });
 
         return data;
@@ -114,13 +121,12 @@ const findSupplementaryStudents = async (
     }
 };
 
-const deleteSupplement = async (record) => {
-    console.log(record);
+const deleteSupplement = async (studentId, examIds) => {
     const deleteCount = await models.supplementary.destroy({
         where: {
             [Op.and]: {
-                student_id: record.id,
-                courseId: { [Op.notIn]: record.courses },
+                student_id: studentId,
+                examId: { [Op.notIn]: examIds },
             },
         },
     });
@@ -128,4 +134,18 @@ const deleteSupplement = async (record) => {
     return deleteCount;
 };
 
-export { findSupplementaryStudents, deleteSupplement };
+const deleteAllSupply = async (studentId) => {
+    try {
+        const deletedStudent = await models.supplementary.destroy({
+            where: {
+                studentId,
+            },
+        });
+
+        return deletedStudent;
+    } catch (error) {
+        throw Error(error.message);
+    }
+};
+
+export { findSupplementaryStudents, deleteSupplement, deleteAllSupply };

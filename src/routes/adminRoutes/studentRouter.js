@@ -1,5 +1,5 @@
 import express from 'express';
-
+import { Op } from 'sequelize';
 import {
     getStudentCount,
     findStudent,
@@ -10,7 +10,10 @@ import {
 } from '../../helpers/adminHelpers/adminHelper.js';
 import logger from '../../helpers/logger.js';
 import { models } from '../../sequelize/models.js';
-import { deleteSupplement, findSupplementaryStudents } from '../../helpers/adminHelpers/studentHelpers.js';
+import {
+    deleteSupplement,
+    findSupplementaryStudents,
+} from '../../helpers/adminHelpers/studentHelpers.js';
 
 const router = express.Router();
 
@@ -157,13 +160,28 @@ router.post('/supplementary', async (req, res) => {
         await Promise.all(
             courseIds.map(async (courseId) => {
                 if (!courseId) return;
+                const exam = await models.exam.findOne({
+                    where: { courseId },
+                    include: [
+                        {
+                            model: models.dateTime,
+                            where: { date: { [Op.gte]: new Date() } },
+                            required: true,
+                            attributes: [],
+                        },
+                    ],
+                    attributes: ['id'],
+                });
+
+                if (!exam?.id) return;
+
                 Promise.all(
                     studentIds.map(async (studentId) => {
                         if (!studentId) return;
                         try {
                             console.log(courseId, studentId);
                             await models.supplementary.create({
-                                courseId,
+                                examId: exam.id,
                                 studentId,
                             });
                         } catch (error) {
@@ -240,8 +258,10 @@ router.patch('/supplementary', async (req, res) => {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
+    const examIds = student.exams.map((exam) => exam.examId);
+
     try {
-        const deleteCount = await deleteSupplement(student);
+        const deleteCount = await deleteSupplement(student.id, examIds);
         if (deleteCount > 0) {
             return res.status(200).json({
                 message: `Update successful.`,
@@ -251,6 +271,30 @@ router.patch('/supplementary', async (req, res) => {
     } catch (error) {
         console.error(`Error in PATCH /student: ${error}`, error);
         return res.status(500).json({ error: 'Error updating students' });
+    }
+});
+
+router.delete('/supplementary', async (req, res) => {
+    const { studentId } = req.query;
+
+    if (!studentId) {
+        return res.status(400).json({ error: 'Missing required data' });
+    }
+
+    try {
+        const deletionCount = await deleteStudent(studentId);
+
+        if (deletionCount > 0) {
+            return res.status(200).json({
+                message: `Student with ID ${studentId} deleted successfully.`,
+            });
+        }
+        return res
+            .status(404)
+            .json({ error: `Student with ID ${studentId} not found` });
+    } catch (error) {
+        console.error(`Error in DELETE /student: ${error.message}`);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 });
 

@@ -76,10 +76,10 @@ const applyExtraSetup = (sequelize) => {
     authUser.hasMany(teacherSeat);
     teacherSeat.belongsTo(authUser);
 
-    student.hasMany(supplementary);
-    supplementary.belongsTo(student);
-    course.hasMany(supplementary);
-    supplementary.belongsTo(course);
+    student.hasMany(supplementary, { foreignKey: 'studentId' });
+    supplementary.belongsTo(student, { foreignKey: 'studentId' });
+    exam.hasMany(supplementary, { foreignKey: 'examId' });
+    supplementary.belongsTo(exam, { foreignKey: 'examId' });
 
     program.hasMany(student, { foreignKey: 'programId' });
     student.belongsTo(program, { foreignKey: 'programId' });
