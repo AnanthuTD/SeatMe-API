@@ -13,10 +13,10 @@ import { models } from '../../sequelize/models.js';
  * @returns {string} .message - A message describing the result.
  * @throws {Error} If an error occurs during the database query.
  */
-async function getStaffsByDepartmentId({ departmentId }) {
+async function getStaffsByDepartmentCode({ departmentCode }) {
     try {
         const staffs = await models.authUser.findAll({
-            where: { departmentId },
+            where: { departmentCode },
             attributes: ['id', 'name', 'designation'],
         });
         return {
@@ -25,9 +25,9 @@ async function getStaffsByDepartmentId({ departmentId }) {
             message: 'Staff members retrieved successfully',
         };
     } catch (error) {
-        console.error('Error on getStaffsByDepartmentId', error);
+        console.error('Error on getStaffsByDepartmentCode', error);
         throw new Error('Error on fetching staff members');
     }
 }
 
-export { getStaffsByDepartmentId };
+export { getStaffsByDepartmentCode };

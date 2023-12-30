@@ -76,7 +76,6 @@ router.get('/programs', async (req, res) => {
 router.get('/courses', async (req, res) => {
     try {
         const { programId, semester } = req.query;
-        console.log(programId, semester);
         const courses = await getCourses(programId, semester);
         res.json(courses);
     } catch (error) {

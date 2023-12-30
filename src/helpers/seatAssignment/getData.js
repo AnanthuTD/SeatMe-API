@@ -4,7 +4,7 @@ import { models } from '../../sequelize/models.js';
 async function fetchExams(date, timeCode) {
     try {
         const data = await models.course.findAll({
-            attributes: ['id', 'name', 'semester', 'isOpenCourse'],
+            attributes: ['id', 'name', 'semester', 'type'],
             include: [
                 {
                     model: models.exam,
@@ -44,7 +44,7 @@ async function fetchExams(date, timeCode) {
                     programName: program.name,
                 };
 
-                if (course.isOpenCourse === 1) {
+                if (course.type === 'open') {
                     openCourses.push({ ...courseDetails, ...programInfo });
                 } else {
                     nonOpenCourses.push({ ...courseDetails, ...programInfo });

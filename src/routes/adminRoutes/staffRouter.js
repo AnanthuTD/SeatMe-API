@@ -4,7 +4,7 @@ import {
     getStaffCount,
     getStaffs,
 } from '../../helpers/adminHelpers/adminHelper.js';
-import { getStaffsByDepartmentId } from '../../helpers/adminHelpers/staffHelper.js';
+import { getStaffsByDepartmentCode } from '../../helpers/adminHelpers/staffHelper.js';
 import { models } from '../../sequelize/models.js';
 
 const router = express.Router();
@@ -145,17 +145,17 @@ router.get('/list', async (req, res) => {
 /**
  * GET staff members by department ID.
  */
-router.get('/:departmentId', async (req, res) => {
+router.get('/:departmentCode', async (req, res) => {
     try {
-        const { departmentId } = req.params;
+        const { departmentCode } = req.params;
 
-        if (!departmentId) res.sendStatus(400);
+        if (!departmentCode) res.sendStatus(400);
 
-        const result = await getStaffsByDepartmentId({ departmentId });
+        const result = await getStaffsByDepartmentCode({ departmentCode });
 
         res.json(result);
     } catch (error) {
-        console.error('Error on GET /:departmentId', error);
+        console.error('Error on GET /:departmentCode', error);
 
         res.status(500).json({ error: true, message: 'An error occurred.' });
     }
