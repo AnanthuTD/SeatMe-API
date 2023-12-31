@@ -1,44 +1,36 @@
 import express from 'express';
+import { models } from '../sequelize/models.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
-import getroot from '../../getRootDir.js';
+router.post('/program', async (req, res) => {
+    const { programs } = req.body || {};
 
-import { models } from '../sequelize/models.js';
+    logger(programs)
+    const failedRecords = [];
 
+    try {
+        await Promise.all(
+            programs.map(async (program) => {
+                try {
+                    await models.program.upsert(program, {
+                        validate: true,
+                    });
+                } catch (error) {
+                    failedRecords.push({
+                        ...program,
+                        error: error.message,
+                    });
+                }
+            }),
+        );
 
-router.post('/program', (req, res) => {
-    console.log('this is called');
-    console.log(req.body);
-    let body = req.body.programs;
-    let programs = [];
-    body.forEach((item) => {
-        let id = item.id;
-        let name = item.name;
-        let duration = item.duration;
-        let level = item.level;
-        let departmentCode = item.departmentCode;
-        programs.push({
-            id,
-            name,
-            duration,
-            level,
-            departmentCode,
-        });
-        console.log(programs);
-    });
-
-    console.log(programs);
-
-    models.program
-        .bulkCreate(programs)
-        .then(() => {
-            res.send();
-        })
-        .catch((error) => {
-            console.error('Error in inserting into DB:', error);
-            res.status(500).send('Error inserting values into DB');
-        });
+        res.status(200).json({ failedRecords });
+    } catch (error) {
+        console.error('Error in processing programs:', error);
+        res.status(500).send('Error processing programs');
+    }
 });
 
 router.patch('/programupdate/', async (req, res) => {
@@ -57,7 +49,7 @@ router.patch('/programupdate/', async (req, res) => {
                 level,
                 departmentId,
             });
-          //  console.log(programs,"hai this is patch");
+            //  console.log(programs,"hai this is patch");
         });
         programs.forEach((program) => {
             const programId = program.id;
@@ -65,7 +57,7 @@ router.patch('/programupdate/', async (req, res) => {
             const programduration = program.duration;
             const programlevel = program.level;
             const programdept = program.departmentId;
-        
+
             // Use the values as needed
             console.log('program ID:', programId);
             console.log('program Name:', programName);
@@ -84,31 +76,40 @@ router.patch('/programupdate/', async (req, res) => {
 
             let updatedData = {
                 name: program1.name,
-                 duration :program1.duration,
-                 level:program1.level,
-                 departmentId:program1.departmentId,
+                duration: program1.duration,
+                level: program1.level,
+                departmentId: program1.departmentId,
             };
 
             // Update the program with the provided data
             await program.update(updatedData);
 
-            return { message: `program with ID ${program1.id} updated successfully`, updatedprogram: program };
+            return {
+                message: `program with ID ${program1.id} updated successfully`,
+                updatedprogram: program,
+            };
         });
 
         // Wait for all updates to complete before sending the response
         const results = await Promise.all(updates);
 
         // Check for errors in the results
-        const errors = results.filter(result => result.error);
+        const errors = results.filter((result) => result.error);
         if (errors.length > 0) {
             return res.status(404).json({ errors });
         }
 
         // If no errors, send a success response
-        res.status(200).json({ message: 'All programs updated successfully', results });
+        res.status(200).json({
+            message: 'All programs updated successfully',
+            results,
+        });
     } catch (error) {
         console.error('Error updating program in DB:', error);
-        res.status(500).json({ error: 'Error updating program in DB', errorMessage: error.message });
+        res.status(500).json({
+            error: 'Error updating program in DB',
+            errorMessage: error.message,
+        });
     }
 });
 
