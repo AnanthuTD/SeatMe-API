@@ -36,6 +36,10 @@ export default (sequelize) => {
                 type: DataTypes.BOOLEAN,
                 defaultValue: 1,
             },
+            hasOpenCourse: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
         },
         {
             timestamps: false,

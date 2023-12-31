@@ -284,11 +284,15 @@ const getCourses = async (programId, semester) => {
         const courses = await models.course.findAll({});
         return courses;
     }
+
+    const program = await models.program.findByPk(programId);
+    const { hasOpenCourse } = program;
+
     try {
         // Find the program by programId and include its associated courses
-        let program;
+        let courses;
         if (semester) {
-            program = await models.course.findAll({
+            const baseQuery = {
                 include: {
                     model: models.programCourse,
                 },
@@ -309,9 +313,23 @@ const getCourses = async (programId, semester) => {
                         },
                     ],
                 },
-            });
+            };
+
+            // If hasOpenCourse is false, adjust the condition
+            if (!hasOpenCourse) {
+                baseQuery.where[Op.or] = [
+                    {
+                        '$programCourses.program_id$': {
+                            [Op.eq]: programId,
+                        },
+                        type: { [Op.ne]: 'open' },
+                    },
+                ];
+            }
+
+            courses = await models.course.findAll(baseQuery);
         } else {
-            program = await models.course.findAll({
+            const baseQuery = {
                 include: {
                     model: models.programCourse,
                     where: {
@@ -339,14 +357,26 @@ const getCourses = async (programId, semester) => {
                         },
                     ],
                 },
-            });
+            };
+
+            if (!hasOpenCourse) {
+                baseQuery.where[Op.or] = [
+                    {
+                        '$programCourses.program_id$': {
+                            [Op.eq]: programId,
+                        },
+                        type: { [Op.ne]: 'open' },
+                    },
+                ];
+            }
+            courses = await models.course.findAll(baseQuery);
         }
 
-        if (!program) {
+        if (!courses) {
             return [];
         }
 
-        return program;
+        return courses;
     } catch (error) {
         console.error('Error:', error);
         return [];
