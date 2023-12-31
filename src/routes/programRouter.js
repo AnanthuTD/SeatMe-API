@@ -7,7 +7,6 @@ const router = express.Router();
 router.post('/program', async (req, res) => {
     const { programs } = req.body || {};
 
-    logger(programs)
     const failedRecords = [];
 
     try {
