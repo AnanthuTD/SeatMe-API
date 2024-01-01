@@ -22,18 +22,31 @@ export default function generateSeatingMatrixPDF(
     doc.text(`Total Assigned Seats: ${totalAssignedSeats}`, 10, 40);
     doc.text(`Total Unassigned Seats: ${totalEmptySeats}`, 10, 50);
 
-    // Create a loop to add content for each class
-    let yOffset = 60; // Vertical position for content
+    let yOffset = 60;
 
     for (let classIndex = 0; classIndex < classes.length; classIndex += 1) {
-        const { seatingMatrix, exams } = classes[classIndex];
+        const { seatingMatrix, exams, id, floor, blockName, description } =
+            classes[classIndex];
 
         if (classIndex > 0) {
-            doc.addPage(); // Start a new page for each class except the first one
+            doc.addPage();
         }
-        // Add a title for the current class
+
         doc.setFontSize(14);
-        doc.text(`Seating Matrix for Class ${classIndex + 1}`, 10, yOffset);
+        doc.text(`Seating Matrix for Room ${id}`, 10, yOffset);
+        yOffset += 10;
+
+        doc.setFontSize(12);
+        if (floor) {
+            doc.text(`Floor: ${floor}`, 10, yOffset);
+            yOffset += 10;
+        }
+        if (description) {
+            doc.text(`Description: ${description}`, 10, yOffset);
+            yOffset += 10;
+        }
+
+        doc.text(`Block: ${blockName}`, 10, yOffset);
 
         // Add a table for seating matrix
         const tableData = [];
@@ -64,7 +77,7 @@ export default function generateSeatingMatrixPDF(
 
         // Use jsPDF-AutoTable for the table
         doc.autoTable({
-            startY: yOffset + 10,
+            startY: yOffset+10,
             head: [tableHeaders],
             body: tableData.slice(1), // Exclude the header from the body
         });

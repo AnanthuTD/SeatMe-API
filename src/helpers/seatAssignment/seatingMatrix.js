@@ -77,6 +77,7 @@ async function generateSeatingMatrix(examType) {
                 ),
                 exams: [],
                 id: room.id,
+                description: room.description,
                 floor: room.floor,
                 blockId: room['block.id'],
                 blockName: room['block.name'],

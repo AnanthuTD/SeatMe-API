@@ -286,16 +286,25 @@ const getCourses = async (programId, semester) => {
     }
 
     const program = await models.program.findByPk(programId);
-    const { hasOpenCourse } = program;
+    const { hasOpenCourse, isAided } = program;
 
     try {
         // Find the program by programId and include its associated courses
         let courses;
         if (semester) {
             const baseQuery = {
-                include: {
-                    model: models.programCourse,
-                },
+                include: [
+                    {
+                        model: models.programCourse,
+                    },
+                    {
+                        model: models.program,
+                        where: {
+                            isAided,
+                        },
+                        // required: true,
+                    },
+                ],
                 where: {
                     semester,
                     [Op.or]: [
@@ -330,17 +339,26 @@ const getCourses = async (programId, semester) => {
             courses = await models.course.findAll(baseQuery);
         } else {
             const baseQuery = {
-                include: {
-                    model: models.programCourse,
-                    where: {
-                        programId: {
-                            [Op.or]: [
-                                { [Op.ne]: programId },
-                                { [Op.eq]: programId },
-                            ],
+                include: [
+                    {
+                        model: models.programCourse,
+                        where: {
+                            programId: {
+                                [Op.or]: [
+                                    { [Op.ne]: programId },
+                                    { [Op.eq]: programId },
+                                ],
+                            },
                         },
                     },
-                },
+                    {
+                        model: models.program,
+                        where: {
+                            isAided,
+                        },
+                        // required: true,
+                    },
+                ],
                 where: {
                     [Op.or]: [
                         {
