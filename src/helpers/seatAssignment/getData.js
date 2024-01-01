@@ -91,8 +91,22 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
             attributes: ['name', 'id', 'semester', 'programId', 'rollNumber'],
             raw: true,
         });
+        const supplyStudents = await models.student.findAll({
+            include: [
+                {
+                    model: models.supplementary,
+                    where: nonOpenCourses.map((value) => {
+                        return {
+                            exam_id: value.examId,
+                        };
+                    }),
+                },
+            ],
+            attributes: ['name', 'id', 'semester', 'programId', 'rollNumber'],
+            order: [[orderBy, 'ASC']],
+        });
 
-        return [...students1, ...students2];
+        return [...students1, ...students2, ...supplyStudents];
     } catch (error) {
         throw new Error(`Error fetching students: ${error.message}`);
     }

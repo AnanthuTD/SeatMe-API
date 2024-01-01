@@ -23,7 +23,6 @@ import { models } from '../../sequelize/models.js';
 import { checkCredentialsAndRetrieveData } from '../../helpers/commonHelper.js';
 import { encrypt } from '../../helpers/bcryptHelper.js';
 import { setNewRefreshToken } from '../../helpers/tokenHelpers/index.js';
-import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 
@@ -150,6 +149,7 @@ router.post('/rooms', async (req, res) => {
                 try {
                     await models.room.upsert(room, { where: { id: room.id } });
                 } catch (error) {
+                    console.error(error);
                     failedRecords.push({ room, error: error.message });
                 }
             }),
@@ -160,11 +160,24 @@ router.post('/rooms', async (req, res) => {
             failedRecords,
         });
     } catch (error) {
+        console.error('Error posting rooms:', error);
         res.status(500).json({
             success: false,
             message: 'Internal server error.',
             error: error.message,
         });
+    }
+});
+
+router.patch('/rooms', async (req, res) => {
+    const room = req.body;
+
+    try {
+        await models.room.update(room, { where: { id: room.id } });
+        res.sendStatus(200);
+    } catch (error) {
+        console.error(error);
+        res.sendStatus(400);
     }
 });
 
@@ -199,7 +212,6 @@ router.patch('/rooms-availability', async (req, res) => {
 
 router.patch('/rooms/:examType', async (req, res) => {
     const room = req.body;
-    console.log(room);
     const { examType } = req.params;
 
     try {
@@ -211,7 +223,6 @@ router.patch('/rooms/:examType', async (req, res) => {
             roomData.internalRows = room.rows;
             roomData.internalCols = room.cols;
         }
-        console.log(roomData);
         const [updateCount] = await models.room.update(roomData, {
             where: { id: room.id },
         });

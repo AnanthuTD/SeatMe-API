@@ -52,7 +52,9 @@ async function generateSeatingMatrix(examType) {
                     'seats',
                 ],
                 'description',
+                'priority',
             ],
+            order: [['priority', 'ASC']],
         });
 
         /**
