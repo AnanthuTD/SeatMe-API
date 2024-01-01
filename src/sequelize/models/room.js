@@ -40,6 +40,10 @@ export default (sequelize) => {
                 type: DataTypes.STRING,
                 allowNull: true,
             },
+            priority: {
+                type: DataTypes.TINYINT.UNSIGNED,
+                defaultValue: 1,
+            },
         },
         {
             timestamps: false,
