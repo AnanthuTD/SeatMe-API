@@ -7,6 +7,7 @@ import generateSeatingMatrix from './seatingMatrix.js';
 import SeatingArrangement from './algorithm.js';
 import generateSeatingMatrixPDF from './pdf.js';
 import optimizer from './optimizer.js';
+import generateSeatingPDF from './html.js';
 
 /**
  * Assign seats to students for a given date.
@@ -113,6 +114,8 @@ async function assignSeats({
         totalUnassignedStudents,
         fileName,
     );
+
+    generateSeatingPDF(rooms, date, fileName);
 
     return [rooms, totalUnassignedStudents];
 }

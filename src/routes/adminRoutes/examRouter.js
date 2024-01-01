@@ -119,7 +119,9 @@ router.get('/assign', async (req, res) => {
             });
         }
 
-        return res.status(201).json({ fileName: `${fileName}.pdf` });
+        return res
+            .status(201)
+            .json({ fileNames: [`matrix-${fileName}.pdf`, `${fileName}.pdf`] });
     } catch (error) {
         console.error('Error in ( /exam/assign ): ', error);
         return res.status(500).json({ error: 'Internal server error' });

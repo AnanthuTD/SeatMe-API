@@ -1,6 +1,7 @@
-import fs from 'fs';
+// import fs from 'fs';
 import pdf from 'html-pdf';
 import logger from '../logger.js';
+import getRootDir from '../../../getRootDir.js';
 
 export default async function generateSeatingArrangementPDF(
     rooms,
@@ -101,14 +102,14 @@ export default async function generateSeatingArrangementPDF(
         fullHtml += html;
     }
 
-    const htmlFileName = `${fileName}.html`;
-    fs.writeFileSync(htmlFileName, fullHtml, 'utf-8');
+    /* const htmlFileName = `${fileName}.html`;
+    fs.writeFileSync(htmlFileName, fullHtml, 'utf-8'); */
 
     const pdfOptions = { format: 'A4' };
 
     // Generate PDF
     pdf.create(fullHtml, pdfOptions).toFile(
-        `${fileName}.pdf`,
+        `${getRootDir()}/pdf/${fileName}.pdf`,
         function (err, res) {
             if (err) return logger(err);
             logger(res);
