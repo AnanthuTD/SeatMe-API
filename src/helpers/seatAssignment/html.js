@@ -3,18 +3,14 @@ import pdf from 'html-pdf';
 import logger from '../logger.js';
 
 export default async function generateSeatingArrangementPDF(
-    classes,
+    rooms,
     date,
-    totalExaminees = 'not provided',
-    totalAssignedSeats = 'not provided',
-    totalEmptySeats = 'not provided',
-    unassignedExaminees = 'not provided',
     fileName = 'seatingArrangement.pdf',
 ) {
     let fullHtml = ''; // Accumulate HTML for all classes
 
-    for (let classIndex = 0; classIndex < classes.length; classIndex += 1) {
-        const { exams, id, description } = classes[classIndex];
+    for (let classIndex = 0; classIndex < rooms.length; classIndex += 1) {
+        const { exams, id, description } = rooms[classIndex];
 
         // logger(classes[classIndex]);
 
@@ -103,12 +99,6 @@ export default async function generateSeatingArrangementPDF(
             </table>`;
 
         fullHtml += html;
-
-        // Add a new page for the next class
-        /* if (classIndex < classes.length - 1) {
-            // Add a separator between classes in the full HTML
-            fullHtml += '<div style="page-break-before: always;"></div>';
-        } */
     }
 
     const htmlFileName = `${fileName}.html`;
