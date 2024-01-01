@@ -51,6 +51,7 @@ async function generateSeatingMatrix(examType) {
                     ),
                     'seats',
                 ],
+                'description',
             ],
         });
 
