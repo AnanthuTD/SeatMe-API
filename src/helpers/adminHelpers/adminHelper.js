@@ -684,6 +684,7 @@ const getRooms = async ({ examType = 'final', availability = undefined }) => {
                 'blockId',
                 'isAvailable',
                 'floor',
+                'priority',
                 [literal(`${rowsAndCols[0][0]}*${rowsAndCols[1][0]}`), 'seats'],
             ],
             where:
