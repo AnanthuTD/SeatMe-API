@@ -40,6 +40,10 @@ export default (sequelize) => {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,
             },
+            abbreviation: {
+                type: DataTypes.STRING(50),
+                allowNull: false,
+            },
         },
         {
             timestamps: false,
