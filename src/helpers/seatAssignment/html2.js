@@ -9,7 +9,7 @@ export default async function generateSeatingArrangementPDF(
     fileName = 'seatingArrangement',
 ) {
     date = new Date(date);
-    let fullHtml = ''; // Accumulate HTML for all classes
+    let fullHtml = '';
 
     function arabicToRoman(num) {
         const romanNumerals = [
