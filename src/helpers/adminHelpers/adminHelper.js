@@ -761,12 +761,18 @@ const countExamsForDate = async ({
 
 const upsertStudents = async (students) => {
     const formattedStudents = students.map((student) => {
-        const rollNumberStr = student.rollNumber.toString();
-        const programIdDigits = rollNumberStr.slice(2, 4);
-        return {
-            ...student,
-            programId: parseInt(programIdDigits, 10),
-        };
+        if (!student.programId) {
+            const rollNumberStr = student.rollNumber?.toString() || null;
+            if (rollNumberStr) {
+                const programIdDigits = rollNumberStr.slice(2, 4);
+                return {
+                    ...student,
+                    programId: parseInt(programIdDigits, 10),
+                };
+            }
+            return student;
+        }
+        return student;
     });
 
     const uncreatedStudents = [];
@@ -790,6 +796,8 @@ const upsertStudents = async (students) => {
                 }
             }),
         );
+
+        logger(uncreatedStudents);
 
         return { success: true, uncreatedStudents, error: null };
     } catch (error) {

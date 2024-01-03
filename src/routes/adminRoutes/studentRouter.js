@@ -31,11 +31,11 @@ router.post('/', async (req, res) => {
             students,
         );
 
-        if (success) return res.status(200).json(uncreatedStudents);
-        return res.status(400).json({ uncreatedStudents, error });
+        return res.status(200).json(uncreatedStudents);
     } catch (error) {
         const errorMessage = `Error in POST /student: ${error.message}`;
         console.error(errorMessage);
+        console.error(error);
         return res.status(500).send(errorMessage);
     }
 });
