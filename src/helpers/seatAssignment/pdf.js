@@ -33,7 +33,13 @@ export default function generateSeatingMatrixPDF(
         }
 
         doc.setFontSize(14);
-        doc.text(`Seating Matrix for Room ${id}`, 10, yOffset);
+        doc.text(
+            `Seating Matrix for Room ${id} ${
+                description ? `(${description})` : ''
+            }`,
+            10,
+            yOffset,
+        );
         yOffset += 10;
 
         doc.setFontSize(12);
@@ -41,15 +47,15 @@ export default function generateSeatingMatrixPDF(
             doc.text(`Floor: ${floor}`, 10, yOffset);
             yOffset += 10;
         }
-        if (description) {
+        /* if (description) {
             doc.text(`Description: ${description}`, 10, yOffset);
             yOffset += 10;
-        }
+        } */
 
         doc.text(`Block: ${blockName}`, 10, yOffset);
 
         // Add a table for seating matrix
-        const tableData = [];
+        /* const tableData = [];
         const tableHeaders = [''];
 
         exams.forEach((program) => {
@@ -77,13 +83,13 @@ export default function generateSeatingMatrixPDF(
 
         // Use jsPDF-AutoTable for the table
         doc.autoTable({
-            startY: yOffset+10,
+            startY: yOffset + 10,
             head: [tableHeaders],
             body: tableData.slice(1), // Exclude the header from the body
         });
 
         // Add a table for seating matrix
-        yOffset += doc.autoTable.previous.finalY + 20;
+        yOffset += doc.autoTable.previous.finalY + 20; */
 
         const tableHeaders2 = [''];
         const tableData2 = [];
@@ -106,7 +112,7 @@ export default function generateSeatingMatrixPDF(
                     rowData.push(
                         `Seat: ${row * numCols + col + 1}\nRegno: ${
                             seat.id
-                        }\nExam: ${seat.courseName}`,
+                        }` /* \nExam: ${seat.courseName} */,
                     );
                 } else {
                     rowData.push('Empty');

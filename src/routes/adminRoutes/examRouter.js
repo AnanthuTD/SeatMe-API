@@ -1,5 +1,7 @@
 import express from 'express';
 
+import dayjs from 'dayjs';
+
 import {
     getOngoingExamCount,
     getExams,
@@ -13,9 +15,6 @@ import { createRecord } from '../../helpers/adminHelpers/studentSeat.js';
 import { models, sequelize } from '../../sequelize/models.js';
 
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
-
-import logger from '../../helpers/logger.js';
-import room from '../../sequelize/models/room.js';
 
 const router = express.Router();
 
@@ -78,23 +77,19 @@ router.get('/assign', async (req, res) => {
 
         let { date } = req.query;
 
-        const currentDate = new Date();
-        const currentDateString = currentDate.toISOString().split('T')[0];
-        let fileName = '';
+        const currentDate = dayjs();
+        const providedDate = dayjs(date);
 
-        date = new Date(date);
-
-        const providedDateString = date.toISOString().split('T')[0];
-        if (providedDateString < currentDateString) {
+        if (providedDate.isBefore(currentDate, 'day')) {
             return res
                 .status(400)
                 .json({ error: 'Date should not be in the past' });
         }
 
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        fileName = `${
+        const year = providedDate.year();
+        const month = String(providedDate.month() + 1).padStart(2, '0');
+        const day = String(providedDate.date()).padStart(2, '0');
+        let fileName = `${
             examType ? `${examType}-` : ''
         }${year}-${month}-${day}-${timeCode}`;
 

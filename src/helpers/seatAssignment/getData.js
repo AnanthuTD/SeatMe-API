@@ -151,7 +151,12 @@ function groupStudentsByCourseId(students) {
         groupedStudents[courseId].push(student);
     });
 
-    return Object.values(groupedStudents);
+    // Sorting the nested arrays in descending order based on length
+    const sortedGroupedStudents = Object.values(groupedStudents).sort(
+        (a, b) => b.length - a.length,
+    );
+
+    return sortedGroupedStudents;
 }
 
 // Main function to execute the code

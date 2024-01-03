@@ -8,12 +8,37 @@ export default async function generateSeatingArrangementPDF(
     date,
     fileName = 'seatingArrangement.pdf',
 ) {
+    date = new Date(date);
     let fullHtml = ''; // Accumulate HTML for all classes
+    function arabicToRoman(num) {
+        const romanNumerals = [
+            'I',
+            'II',
+            'III',
+            'IV',
+            'V',
+            'VI',
+            'VII',
+            'VIII',
+            'IX',
+            'X',
+        ];
+
+        return romanNumerals[num - 1];
+    }
 
     for (let classIndex = 0; classIndex < rooms.length; classIndex += 1) {
         const { exams, id, description } = rooms[classIndex];
 
         // logger(classes[classIndex]);
+
+        const allDistinctSemesters = [
+            ...new Set(exams.map((program) => program.semester)),
+        ];
+
+        const romanSemesters = allDistinctSemesters.map((semester) =>
+            arabicToRoman(semester),
+        );
 
         const maxExaminees = Math.max(
             ...exams.map((program) => program.examines.length),
@@ -24,7 +49,7 @@ export default async function generateSeatingArrangementPDF(
         });
 
         const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Adding 1 because months are zero-indexed
+        const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
 
         const formattedDate = `${day}.${month}.${year}`;
@@ -37,7 +62,11 @@ export default async function generateSeatingArrangementPDF(
             }
         </style>
     <h3>M.E.S COLLEGE MARAMPALLY ${classIndex + 1}</h3>
-    <p>Seating Arrangements for {semester} Semester CBCS Regular & Supple, {semester} PVT CBCS Exam ${monthAbbreviation} ${date.getFullYear()}</p>
+    <p>Seating Arrangements for ${romanSemesters.join(
+        ', ',
+    )} Semester CBCS Regular & Supple, ${romanSemesters.join(
+        ', ',
+    )} PVT CBCS Exam ${monthAbbreviation} ${date.getFullYear()}</p>
     <div style="display: flex; justify-content: space-between;">
         <h3>Hall No: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${id} ${
             description ? '(' + description + ')' : ''
@@ -78,6 +107,17 @@ export default async function generateSeatingArrangementPDF(
             count: program.examines.length,
         }));
 
+        // Calculate the total count using reduce
+        const totalCount = programExamineeCounts.reduce(
+            (sum, program) => sum + program.count,
+            0,
+        );
+
+        // Add the total count as the last object
+        programExamineeCounts.push({
+            name: 'TOTAL',
+            count: totalCount,
+        });
         // Create a table for program examinee counts
         html += `
             <table border="1">
