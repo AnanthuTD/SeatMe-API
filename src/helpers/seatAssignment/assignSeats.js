@@ -8,6 +8,8 @@ import SeatingArrangement from './algorithm.js';
 import generateSeatingMatrixPDF from './pdf.js';
 import optimizer from './optimizer.js';
 import generateSeatingPDF from './html2.js';
+import generateSeatingMatrixPDFWithCourse from './seatingMatrixPdfGeneratorWithCourse.js';
+import answerBookReport from './answerBookReport.js';
 
 /**
  * Assign seats to students for a given date.
@@ -114,8 +116,19 @@ async function assignSeats({
         totalUnassignedStudents,
         fileName,
     );
+    generateSeatingMatrixPDFWithCourse(
+        rooms,
+        date,
+        totalStudents,
+        totalAssignedSeats,
+        totalEmptySeats,
+        totalUnassignedStudents,
+        fileName,
+    );
 
     generateSeatingPDF(rooms, date, fileName);
+
+    answerBookReport(rooms, date, fileName);
 
     return [rooms, totalUnassignedStudents];
 }

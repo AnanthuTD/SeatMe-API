@@ -781,9 +781,7 @@ const upsertStudents = async (students) => {
         await Promise.all(
             formattedStudents.map(async (student) => {
                 try {
-                    await models.student.upsert(student, {
-                        returning: true,
-                    });
+                    await models.student.upsert(student);
                 } catch (error) {
                     console.error(
                         `Error creating or updating student ${student.id}:`,
