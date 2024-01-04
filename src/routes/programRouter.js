@@ -41,12 +41,14 @@ router.patch('/programupdate/', async (req, res) => {
             let duration = item.duration;
             let level = item.level;
             let departmentId = item.departmentId;
+            let abbreviation = item.abbreviation;
             programs.push({
                 id,
                 name,
                 duration,
                 level,
                 departmentId,
+                abbreviation,
             });
             //  console.log(programs,"hai this is patch");
         });
@@ -56,6 +58,7 @@ router.patch('/programupdate/', async (req, res) => {
             const programduration = program.duration;
             const programlevel = program.level;
             const programdept = program.departmentId;
+            const proabbreviation = program.abbreviation;
 
             // Use the values as needed
             console.log('program ID:', programId);
@@ -63,6 +66,7 @@ router.patch('/programupdate/', async (req, res) => {
             console.log('program duration:', programduration);
             console.log('program level:', programlevel);
             console.log('program dept:', programdept);
+            console.log('program abbreviation:',proabbreviation)
             console.log('----------------------');
         });
         const updates = programs.map(async (program1) => {
@@ -78,6 +82,7 @@ router.patch('/programupdate/', async (req, res) => {
                 duration: program1.duration,
                 level: program1.level,
                 departmentId: program1.departmentId,
+                abbreviation: program1.abbreviation,
             };
 
             // Update the program with the provided data
