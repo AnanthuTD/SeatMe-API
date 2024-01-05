@@ -6,7 +6,7 @@ import getRootDir from '../../../getRootDir.js';
 export default async function answerBookReport(
     rooms,
     date,
-    fileName = 'seatingArrangement',
+    examName = 'exam name',
 ) {
     date = new Date(date);
     let fullHtml = ''; // Accumulate HTML for all classes
@@ -48,32 +48,43 @@ export default async function answerBookReport(
         let html = `
                     <style>
                         body{
-                            margin:5%;
+                            margin-inline:5%;
+                            line-height: 1;
+                        }
+                        h3, h4, h5 {
+                            line-height: 1;
+                            margin: 1.5px;
                         }
                         table, th, td {
                             border: 1px solid black;
                             border-collapse: collapse;
                         }
-                        tr{
-                            height: 40px;
+                        tbody tr {
+                            height: 35px;
                         }
                         .align-right {
                             text-align: right;
                         } 
+                        tbody tr {
+                            height: 35px;
+                        }
+                        thead {
+                            display: table-row-group;
+                        }
                         @media print {
                             .page-break {
-                              page-break-before: always;
+                                page-break-before: always;
                             }
-                        }                       
+                        }
                     </style>
                     <body>
-                    <h2 align="center">MAHATMA GANDHI UNIVERSITY</h2>
-                    <h2 align="center">(To be Prepared in duplicate)</h2>
-                    <h3 align="center">(Account of Main And Additional Answer Books issued to Candidates)</h3>
-                    <h4>Name of Exam: ${semesterWord} SEM UG Regular & Supple Exam December 2023</h4>
-                    <h2>Date of Examination . ${formattedDate}</h2>
-                    <h2>Centre of Examination . MES COLLEGE MARAMPALLY</h2>
-                    <h2>HALL No: ${description || id}</h2>
+                    <h3 align="center" style="margin-top:5px">MAHATMA GANDHI UNIVERSITY</h3>
+                    <h3 align="center">(To be Prepared in duplicate)</h3>
+                    <h4 align="center">(Account of Main And Additional Answer Books issued to Candidates)</h4>
+                    <h5>Name of Exam: ${examName}</h5>
+                    <h3>Date of Examination . ${formattedDate}</h3>
+                    <h3>Centre of Examination . MES COLLEGE MARAMPALLY</h3>
+                    <h3>HALL No: ${description || id}</h3>
                     <table border="1" style="width: 100%;">
                         <thead>
                             <tr>
@@ -121,7 +132,7 @@ export default async function answerBookReport(
             });
         });
 
-        for (let index = 0; index < 10; index += 1) {
+        for (let index = 0; index < 6; index += 1) {
             html += `
                     <tr>
                         <td>&nbsp;</td>
@@ -133,17 +144,20 @@ export default async function answerBookReport(
 
         html += `
                 <tr>
-                    <td colspan="2">Total No.of Answer Books Received</td>
+                    <td>Total No.of Answer Books Received</td>
                     <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td colspan="2">Total No.of Answer Books issued</td>
                     <td></td>
                     <td></td>
                 </tr>
                 <tr>
-                    <td colspan="2">Balance returned to chief Superintendent</td>
+                    <td>Total No.of Answer Books issued</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Balance returned to chief Superintendent</td>
+                    <td></td>
                     <td></td>
                     <td></td>
                 </tr>
@@ -178,16 +192,16 @@ export default async function answerBookReport(
         fullHtml += html;
     }
 
-    const htmlFilePath = `${getRootDir()}/pdf/answer-book-report${fileName}.html`;
+    /* const htmlFilePath = `${getRootDir()}/pdf/answer-book-report${examName}.html`;
     fs.writeFileSync(htmlFilePath, fullHtml, 'utf-8');
-    logger(`HTML file saved: ${htmlFilePath}`);
+    logger(`HTML file saved: ${htmlFilePath}`); */
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setContent(fullHtml);
 
     // Set the path to save the PDF file
-    const pdfPath = `${getRootDir()}/pdf/answer-book-report${fileName}.pdf`;
+    const pdfPath = `${getRootDir()}/pdf/answer-book-report${examName}.pdf`;
 
     // Generate PDF
     await page.pdf({

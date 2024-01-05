@@ -55,6 +55,10 @@ export default async function generateSeatingArrangementPDF(
 
         let html = `
         <style>
+            table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
             @page {
                 size: A4;
                 margin: 0;
@@ -68,8 +72,8 @@ export default async function generateSeatingArrangementPDF(
         )} PVT CBCS Exam ${monthAbbreviation} ${date.getFullYear()}</p>
         <div style="display: flex; justify-content: space-between;">
             <h3>Hall No: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${id} ${
-            description ? '(' + description + ')' : ''
-        }</h3>
+                description ? '(' + description + ')' : ''
+            }</h3>
             <h3>${formattedDate}</h3>
         </div>
         <table border="1">
@@ -86,7 +90,9 @@ export default async function generateSeatingArrangementPDF(
             html += `<tr>`;
             exams.forEach((program) => {
                 const examinee = program.examines[row];
-                html += `<td>${examinee !== undefined ? examinee.toString() : ''}</td>`;
+                html += `<td>${
+                    examinee !== undefined ? examinee.toString() : ''
+                }</td>`;
             });
             html += `</tr>`;
         }
@@ -94,6 +100,8 @@ export default async function generateSeatingArrangementPDF(
         html += `
             </tbody>
         </table>`;
+
+        // logger(exams)
 
         const programExamineeCounts = exams.map((program) => ({
             name: program.name,

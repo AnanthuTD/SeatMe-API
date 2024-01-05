@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import getRootDir from '../../../getRootDir.js';
 
-export default function generateSeatingMatrixPDF(
+export default async function generateSeatingMatrixPDF(
     classes,
     date,
     totalExaminees = 'not provided',
