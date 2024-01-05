@@ -54,6 +54,9 @@ export default async function answerBookReport(
                             border: 1px solid black;
                             border-collapse: collapse;
                         }
+                        tr{
+                            height: 40px;
+                        }
                         .align-right {
                             text-align: right;
                         } 
@@ -70,7 +73,7 @@ export default async function answerBookReport(
                     <h4>Name of Exam: ${semesterWord} SEM UG Regular & Supple Exam December 2023</h4>
                     <h2>Date of Examination . ${formattedDate}</h2>
                     <h2>Centre of Examination . MES COLLEGE MARAMPALLY</h2>
-                    <h2>HALL No: ${id}</h2>
+                    <h2>HALL No: ${description || id}</h2>
                     <table border="1" style="width: 100%;">
                         <thead>
                             <tr>
