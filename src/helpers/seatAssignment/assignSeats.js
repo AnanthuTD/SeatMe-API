@@ -1,13 +1,12 @@
 import _ from 'lodash';
 import findRepeatingRegNos from './findRepeatingStudents.js';
 import getData from './getData.js';
-// import generateSeatingMatrixHTML from './htmlSeatingMatrix.js';
 import seatCount from './seatCount.js';
 import generateSeatingMatrix from './seatingMatrix.js';
 import SeatingArrangement from './algorithm.js';
-import generateSeatingMatrixPDF from './pdf.js';
+import generateSeatingMatrixPDF from './seatingMatrixPdfGenerator.js';
 import optimizer from './optimizer.js';
-import generateSeatingPDF from './html2.js';
+import generateSeatingArrangementPDF from './seatingArrangementMainReport.js';
 import generateSeatingMatrixPDFWithCourse from './seatingMatrixPdfGeneratorWithCourse.js';
 import answerBookReport from './answerBookReport.js';
 
@@ -24,7 +23,6 @@ async function assignSeats({
     timeCode = 'AN',
     orderBy = 'rollNumber',
     fileName = 'unnamed',
-    optimize = true,
     examType = 'internal',
 }) {
     /** @type {[NestedStudentArray, number]} */
@@ -40,10 +38,12 @@ async function assignSeats({
     );
 
     let roomIndex = 0;
+    console.log(examType);
     while (students.length > 0 && roomIndex < rooms.length) {
         const seatingArrangement = new SeatingArrangement({
             students,
             room: rooms[roomIndex],
+            examType,
         });
 
         try {
@@ -72,11 +72,12 @@ async function assignSeats({
         );
 
     // optimizing
-    if (optimize && totalUnassignedStudents > 0) {
+    if (totalUnassignedStudents > 0) {
         const optimizedRooms = await optimizer(
             _.cloneDeep(rooms),
             totalUnassignedStudents,
             students,
+            examType,
         );
 
         rooms = optimizedRooms;
@@ -107,30 +108,35 @@ async function assignSeats({
             console.log('No repeating registration numbers found.');
         }
     }
-    generateSeatingMatrixPDF(
-        rooms,
-        date,
-        totalStudents,
-        totalAssignedSeats,
-        totalEmptySeats,
-        totalUnassignedStudents,
-        fileName,
-    );
-    generateSeatingMatrixPDFWithCourse(
-        rooms,
-        date,
-        totalStudents,
-        totalAssignedSeats,
-        totalEmptySeats,
-        totalUnassignedStudents,
-        fileName,
-    );
+    try {
+        await Promise.all([
+            generateSeatingMatrixPDF(
+                rooms,
+                date,
+                totalStudents,
+                totalAssignedSeats,
+                totalEmptySeats,
+                totalUnassignedStudents,
+                fileName,
+            ),
+            generateSeatingMatrixPDFWithCourse(
+                rooms,
+                date,
+                totalStudents,
+                totalAssignedSeats,
+                totalEmptySeats,
+                totalUnassignedStudents,
+                fileName,
+            ),
+            generateSeatingArrangementPDF(rooms, date, fileName),
+            answerBookReport(rooms, date, fileName),
+        ]);
 
-    generateSeatingPDF(rooms, date, fileName);
-
-    answerBookReport(rooms, date, fileName);
-
-    return [rooms, totalUnassignedStudents];
+        return [rooms, totalUnassignedStudents];
+    } catch (error) {
+        console.error('An error occurred:', error);
+        throw error;
+    }
 }
 
 export { assignSeats };

@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
-import { models } from '../../sequelize/models.js';
+import { models, sequelize } from '../../sequelize/models.js';
+import logger from '../logger.js';
 
 async function fetchExams(date, timeCode) {
     try {
@@ -63,50 +64,89 @@ async function fetchExams(date, timeCode) {
 // fetchExams(new Date('2023-10-25'));
 
 async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
-    // console.log(JSON.stringify(nonOpenCourses, null, 2));
     try {
-        const students1 = await models.student.findAll({
+        const combinedNonOpenCourses = nonOpenCourses.map((value) => ({
+            programId: value.programId,
+            semester: value.semester,
+        }));
+
+        const combinedOpenCourses = openCourses.map((value) => ({
+            openCourseId: value.courseId,
+            semester: value.semester,
+        }));
+
+        const students = await models.student.findAll({
             where: {
-                [Op.or]: nonOpenCourses.map((value) => {
-                    return {
-                        programId: value.programId,
-                        semester: value.semester,
-                    };
-                }),
+                [Op.or]: [...combinedNonOpenCourses, ...combinedOpenCourses],
             },
+            include: [
+                {
+                    model: models.program,
+                    attributes: ['name'],
+                },
+            ],
             order: [[orderBy, 'ASC']],
-            attributes: ['name', 'id', 'semester', 'programId', 'rollNumber'],
-            raw: true,
-        });
-        const students2 = await models.student.findAll({
-            where: {
-                [Op.or]: openCourses.map((value) => {
-                    return {
-                        openCourseId: value.courseId,
-                        semester: value.semester,
-                    };
-                }),
-            },
-            order: [[orderBy, 'ASC']],
-            attributes: ['name', 'id', 'semester', 'programId', 'rollNumber'],
+            attributes: [
+                'name',
+                'id',
+                'semester',
+                'programId',
+                'rollNumber',
+                [sequelize.col('program.name'), 'programName'],
+            ],
             raw: true,
         });
         const supplyStudents = await models.student.findAll({
             include: [
                 {
                     model: models.supplementary,
-                    where: nonOpenCourses.map((value) => {
-                        return {
-                            exam_id: value.examId,
-                        };
-                    }),
+                    where: {
+                        exam_id: {
+                            [Op.in]: [
+                                ...nonOpenCourses.map((value) => value.examId),
+                                ...openCourses.map((value) => value.examId),
+                            ],
+                        },
+                    },
+                    attributes: [],
+                    required: true,
+                    include: [
+                        {
+                            model: models.exam,
+                            include: [
+                                {
+                                    model: models.course,
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    model: models.program,
+                    attributes: ['name'],
                 },
             ],
-            attributes: ['name', 'id', 'semester', 'programId', 'rollNumber'],
             order: [[orderBy, 'ASC']],
+            attributes: [
+                'name',
+                'id',
+                'semester',
+                'programId',
+                'rollNumber',
+                [sequelize.col('supplementaries.exam_id'), 'examId'],
+                [sequelize.col('supplementaries.exam.course.id'), 'courseId'],
+                [
+                    sequelize.col('supplementaries.exam.course.name'),
+                    'courseName',
+                ],
+                [sequelize.col('program.name'), 'programName'],
+            ],
+            raw: true,
         });
 
-        return [...students1, ...students2, ...supplyStudents];
+        // logger(supplyStudents, 'students');
+
+        return [...students, ...supplyStudents];
     } catch (error) {
         throw new Error(`Error fetching students: ${error.message}`);
     }
@@ -114,21 +154,28 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
 
 // Function to match students with programs and courses
 function matchStudentsWithData(students, data) {
-    return students.map((student) => {
+    const groupedStudents = students.map((student) => {
         data.forEach((value) => {
             if (
+                !student.courseId &&
                 value.programId === student.programId &&
                 value.semester === student.semester
             ) {
-                student.programName = value.programName;
+                // student.programName = value.programName;
                 student.courseName = value.courseName;
                 student.courseId = value.courseId;
                 student.examId = value.examId;
+                /* if (student.semester === 4) {
+                    logger(student, 'student');
+                    console.log(student.courseName);
+                } */
             }
         });
 
         return student;
     });
+    // logger(groupedStudents, 'grouped students')
+    return groupedStudents;
 }
 
 // Function to group students by courseId

@@ -1,10 +1,11 @@
 import _ from 'lodash';
 import SeatingArrangement from './algorithm.js';
 
-function optimizationAttempt({ students, room }) {
+function optimizationAttempt({ students, room, examType }) {
     const seatingOptimizer = new SeatingArrangement({
         students,
         room,
+        examType,
     });
 
     try {
@@ -29,6 +30,7 @@ function firstTryToOptimization(
     seatingMatrix,
     studentsData,
     roomsWithEmptySeats,
+    examType,
 ) {
     let newSeatingMatrix = _.cloneDeep(seatingMatrix);
     const reassignedStudents = [];
@@ -50,6 +52,7 @@ function firstTryToOptimization(
                 const result = optimizationAttempt({
                     students: [[studentsData[0]]],
                     room,
+                    examType,
                 });
 
                 if (result) {
@@ -63,6 +66,7 @@ function firstTryToOptimization(
                         const result2 = optimizationAttempt({
                             students: [[seat]],
                             room: roomToOptimize,
+                            examType,
                         });
                         if (result2) {
                             flag = true;
@@ -100,7 +104,12 @@ function firstTryToOptimization(
     return [newSeatingMatrix, exams, studentsData, roomsWithEmptySeats];
 }
 
-async function main(rooms, unassignedStudentCount, unassignedStudentsData) {
+async function main(
+    rooms,
+    unassignedStudentCount,
+    unassignedStudentsData,
+    examType,
+) {
     try {
         if (
             rooms.length <= 0 ||
@@ -148,6 +157,7 @@ async function main(rooms, unassignedStudentCount, unassignedStudentsData) {
                             seatingMatrix,
                             studentsCopy,
                             roomsWithEmptySeats,
+                            examType,
                         );
 
                         studentsCopy = studentDataReturned;

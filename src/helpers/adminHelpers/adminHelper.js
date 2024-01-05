@@ -752,7 +752,28 @@ const countExamsForDate = async ({
             },
         });
 
-        return count;
+        const supplyStudentsCount = await models.student.count({
+            include: [
+                {
+                    model: models.supplementary,
+                    where: {
+                        exam_id: {
+                            [Op.in]: [
+                                ...nonOpenCourses.map((value) => value.examId),
+                                ...openCourses.map((value) => value.examId),
+                            ],
+                        },
+                    },
+                    attributes: [],
+                    required: true,
+                },
+            ],
+        });
+
+
+        const totalCount = count + supplyStudentsCount;
+
+        return totalCount;
     } catch (error) {
         console.error('Error counting exams:', error);
         throw error;

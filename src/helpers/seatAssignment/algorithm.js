@@ -4,7 +4,12 @@ import logger from '../logger.js';
  * Class representing a seating arrangement for exams.
  */
 export default class SeatingArrangement {
-    constructor({ students, room = { seatingMatrix: [[]], exams: [] } }) {
+    constructor({
+        students,
+        room = { seatingMatrix: [[]], exams: [] },
+        examType,
+    }) {
+        this.examType = examType;
         this.students = students;
         this.seatingMatrix = room.seatingMatrix;
         this.numRows = this.seatingMatrix.length;
@@ -189,12 +194,15 @@ export default class SeatingArrangement {
     ) {
         let found = false;
 
-        this.room.exams = this.room.exams.map((element) => {
-            if (element.id === programId && element.semester === semester) {
-                element.examines.push(studentId);
+        this.room.exams = this.room.exams.map((program) => {
+            if (
+                program.id === programId &&
+                (this.examType === 'final' || program.semester === semester)
+            ) {
+                program.examines.push(studentId);
                 found = true;
             }
-            return element;
+            return program;
         });
 
         // If the exam with the specified id is not found, create a new entry
