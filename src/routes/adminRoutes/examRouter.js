@@ -1,22 +1,21 @@
 import express from 'express';
-
 import dayjs from 'dayjs';
-
+import path from 'path';
+import fs from 'fs';
+import archiver from 'archiver';
 import {
     getOngoingExamCount,
     getExams,
     setExam,
 } from '../../helpers/adminHelpers/adminHelper.js';
-
 import { assignSeats } from '../../helpers/seatAssignment/assignSeats.js';
-
 import { createRecord } from '../../helpers/adminHelpers/studentSeat.js';
-
-import { models, sequelize } from '../../sequelize/models.js';
-
+import { models } from '../../sequelize/models.js';
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
+import getRootDir from '../../../getRootDir.js';
 
 const router = express.Router();
+const zipDir = `${getRootDir()}/zip`;
 
 router.get('/count', async (req, res) => {
     try {
@@ -70,10 +69,7 @@ router.get('/', async (req, res) => {
 
 router.get('/assign', async (req, res) => {
     try {
-        const { orderBy, examType, timeCode = 'AN' } = req.query;
-
-        let { optimize } = req.query;
-        optimize = optimize === 'true' || optimize === '1';
+        const { orderBy, examType, timeCode = 'AN', examName } = req.query;
 
         let { date } = req.query;
 
@@ -89,9 +85,11 @@ router.get('/assign', async (req, res) => {
         const year = providedDate.year();
         const month = String(providedDate.month() + 1).padStart(2, '0');
         const day = String(providedDate.date()).padStart(2, '0');
-        let fileName = `${
+        /* let fileName = `${
             examType ? `${examType}-` : ''
-        }${year}-${month}-${day}-${timeCode}`;
+        }${year}-${month}-${day}-${timeCode}`; */
+
+        let fileName = `${examName}-${year}-${month}-${day}-${timeCode}`;
 
         if (!['rollNumber', 'id'].includes(orderBy)) {
             return res.status(400).json({ error: 'Invalid orderBy value' });
@@ -102,24 +100,53 @@ router.get('/assign', async (req, res) => {
             timeCode,
             orderBy,
             fileName,
-            optimize,
             examType,
         });
 
         await createRecord(seating);
 
         if (totalUnassignedStudents > 0) {
-            return res.status(200).json({
-                message: `There are ${totalUnassignedStudents} unassigned students. Please add more rooms to accommodate them and try again. No record has been created.`,
+            return res.status(422).json({
+                error: `There are ${totalUnassignedStudents} unassigned students. Please add more rooms to accommodate them and try again. No record has been created.`,
             });
         }
 
-        return res.status(201).json({
-            fileNames: [
-                `matrix-${fileName}.pdf`,
-                `${fileName}.pdf`,
-                `matrix-${fileName}-with-course.pdf`,
-            ],
+        const outputFilePath = path.join(zipDir, `${fileName}.zip`);
+
+        const archive = archiver('zip', { zlib: { level: 9 } });
+
+        const output = fs.createWriteStream(outputFilePath);
+        archive.pipe(output);
+
+        const pdfDir = `${getRootDir()}/pdf`;
+
+        fs.readdirSync(pdfDir).forEach((file) => {
+            const filePath = path.join(pdfDir, file);
+            archive.file(filePath, { name: file });
+        });
+
+        archive.finalize();
+
+        res.status(201).json({
+            fileName,
+            message: 'Zip file created. Ready to download.',
+        });
+
+        // After the response is sent, remove the PDF files asynchronously
+        output.on('close', async () => {
+            try {
+                const files = fs.readdirSync(pdfDir);
+                await Promise.all(
+                    files.map(async (file) => {
+                        const filePath = path.join(pdfDir, file);
+                        await fs.promises.unlink(filePath);
+                    }),
+                );
+
+                console.log('PDF files removed.');
+            } catch (error) {
+                console.error('Error removing PDF files:', error);
+            }
         });
     } catch (error) {
         console.error('Error in ( /exam/assign ): ', error);

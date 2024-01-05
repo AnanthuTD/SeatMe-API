@@ -4,6 +4,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
+import compression from 'compression';
 import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRoutes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
@@ -85,6 +86,7 @@ function setupMiddlewares() {
     app.use(express.static(path.join(dirname, 'public')));
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
+    app.use(compression());
     app.use(
         session({
             secret: process.env.SESSION_KEY, // Secret key for session data encryption
