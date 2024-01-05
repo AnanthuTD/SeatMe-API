@@ -25,6 +25,7 @@ import { encrypt } from '../../helpers/bcryptHelper.js';
 import { setNewRefreshToken } from '../../helpers/tokenHelpers/index.js';
 
 const router = express.Router();
+const zipDir = `${getRootDir()}/zip`;
 
 /**
  * @route GET /admin
@@ -258,6 +259,19 @@ router.get('/examines-count', async (req, res) => {
         console.error('Error counting exams for date:', error);
         res.status(500).json({ error: 'Error counting exams for date' });
     }
+});
+
+router.get('/download/zip/:examName', (req, res) => {
+    const { examName } = req.params;
+    const outputFilePath = path.join(zipDir, `${examName}.zip`);
+
+    // Set headers for the response
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename=output.zip');
+
+    // Pipe the saved zip file to the client response
+    const fileStream = fs.createReadStream(outputFilePath);
+    fileStream.pipe(res);
 });
 
 router.get('/public/:fileName', (req, res) => {
