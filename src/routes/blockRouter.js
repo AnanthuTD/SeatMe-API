@@ -50,11 +50,9 @@ router.patch('/blockupdate/', async (req, res) => {
         });
         blocks.forEach((block) => {
             const blockId = block.id;
-            const blockName = block.name;
 
             // Use the values as needed
             console.log('block ID:', blockId);
-            console.log('block Name:', blockName);
             console.log('----------------------');
         });
         const updates = blocks.map(async (block1) => {
@@ -65,12 +63,12 @@ router.patch('/blockupdate/', async (req, res) => {
                 return { error: `block with ID ${block1.id} not found` };
             }
 
-            let updatedData = {
+           /*  let updatedData = {
                 name: block1.name,
-            };
+            }; */
 
             // Update the block with the provided data
-            await block.update(updatedData);
+            // await block.update(updatedData);
 
             return {
                 message: `block with ID ${block1.id} updated successfully`,

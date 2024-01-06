@@ -8,17 +8,12 @@ export default (sequelize) => {
         'block',
         {
             id: {
-                type: DataTypes.INTEGER.UNSIGNED,
-                primaryKey: true,
-                autoIncrement: true,
-            },
-            name: {
                 type: DataTypes.STRING(100),
                 allowNull: false,
-                unique: true,
                 set(value) {
-                    this.setDataValue('name', value.toLowerCase());
+                    this.setDataValue('id', value.toLowerCase());
                 },
+                primaryKey: true,
             },
         },
         {

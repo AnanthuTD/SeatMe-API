@@ -25,7 +25,7 @@ export default async function generateSeatingMatrixPDFWithCourse(
     let yOffset = 60;
 
     for (let classIndex = 0; classIndex < classes.length; classIndex += 1) {
-        const { seatingMatrix, exams, id, floor, blockName, description } =
+        const { seatingMatrix, exams, id, floor, blockId, description } =
             classes[classIndex];
 
         if (classIndex > 0) {
@@ -52,7 +52,7 @@ export default async function generateSeatingMatrixPDFWithCourse(
             yOffset += 10;
         } */
 
-        doc.text(`Block: ${blockName}`, 10, yOffset);
+        doc.text(`Block: ${blockId}`, 10, yOffset);
 
         // Add a table for seating matrix
         /* const tableData = [];

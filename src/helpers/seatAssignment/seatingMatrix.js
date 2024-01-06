@@ -39,7 +39,7 @@ async function generateSeatingMatrix(examType) {
     try {
         const rooms = await models.room.findAll({
             where: { isAvailable: true },
-            include: { model: models.block, attributes: { include: ['name'] } },
+            include: { model: models.block },
             raw: true,
             attributes: [
                 'id',
@@ -72,6 +72,7 @@ async function generateSeatingMatrix(examType) {
                     Array.from({ length: room.cols }, () => ({
                         occupied: false,
                         courseName: null,
+                        courseSemester: null,
                         courseId: null,
                         id: null,
                         name: null,
@@ -83,7 +84,7 @@ async function generateSeatingMatrix(examType) {
                 description: room.description,
                 floor: room.floor,
                 blockId: room['block.id'],
-                blockName: room['block.name'],
+                // blockName: room['block.name'],
                 seats: room.seats,
             };
 

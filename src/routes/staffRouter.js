@@ -41,7 +41,6 @@ router.get('/', async (req, res) => {
                         attributes: ['floor', 'block_id'],
                         include: {
                             model: models.block,
-                            attributes: ['name'],
                         },
                     },
                 ],
