@@ -207,63 +207,6 @@ router.post('/supplementary', async (req, res) => {
     }
 });
 
-/* router.post('/supplementary', async (req, res) => {
-    const supplyStudentCourse = req.body;
-    const failedRecords = [];
-
-    try {
-        await Promise.all(
-            courseIds.map(async (courseId) => {
-                if (!courseId) return;
-                const exam = await models.exam.findOne({
-                    where: { courseId },
-                    include: [
-                        {
-                            model: models.dateTime,
-                            where: { date: { [Op.gte]: new Date() } },
-                            required: true,
-                            attributes: [],
-                        },
-                    ],
-                    attributes: ['id'],
-                });
-
-                if (!exam?.id) return;
-
-                return Promise.all(
-                    // Add return here
-                    studentIds.map(async (studentId) => {
-                        if (!studentId) return;
-                        try {
-                            console.log(courseId, studentId);
-                            await models.supplementary.create({
-                                examId: exam.id,
-                                studentId,
-                            });
-                        } catch (error) {
-                            console.log(error);
-                            failedRecords.push({
-                                courseId,
-                                studentId,
-                                error: error.message,
-                            });
-                        }
-                    }),
-                );
-            }),
-        );
-
-        console.log(failedRecords);
-
-        res.status(200).json({
-            failedRecords,
-        });
-    } catch (error) {
-        console.error('Error creating records:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-}); */
-
 router.get('/supplementary/list', async (req, res) => {
     try {
         let { query, column, offset, limit, sortField, sortOrder } = req.query;
