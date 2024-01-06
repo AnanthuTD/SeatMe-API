@@ -27,13 +27,10 @@ router.post('/room', (req, res) => {
             floor,
             blockId,
         });
-        console.log(rooms);
     });
 
-    console.log(rooms);
-
     models.room
-        .bulkCreate(rooms)
+        .bulkCreate(rooms, { validate: true })
         .then(() => {
             res.send(rooms);
         })

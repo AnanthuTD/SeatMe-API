@@ -174,8 +174,10 @@ router.patch('/rooms', async (req, res) => {
     const room = req.body;
 
     try {
-        await models.room.update(room, { where: { id: room.id } });
-        res.sendStatus(200);
+        const [updateCount] = await models.room.update(room, {
+            where: { id: room.id },
+        });
+        return res.json({ updateCount });
     } catch (error) {
         console.error(error);
         res.sendStatus(400);
