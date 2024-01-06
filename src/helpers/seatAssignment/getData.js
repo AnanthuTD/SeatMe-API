@@ -161,14 +161,10 @@ function matchStudentsWithData(students, data) {
                 value.programId === student.programId &&
                 value.semester === student.semester
             ) {
-                // student.programName = value.programName;
+                student.courseSemester = value.semester;
                 student.courseName = value.courseName;
                 student.courseId = value.courseId;
                 student.examId = value.examId;
-                /* if (student.semester === 4) {
-                    logger(student, 'student');
-                    console.log(student.courseName);
-                } */
             }
         });
 

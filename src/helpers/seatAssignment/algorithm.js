@@ -112,6 +112,7 @@ export default class SeatingArrangement {
                     programId,
                     programName,
                     semester,
+                    courseSemester,
                 } = this.students[examIndex][studentIndex];
 
                 const seat = this.findSuitableSeat(courseId);
@@ -139,6 +140,7 @@ export default class SeatingArrangement {
                         programName,
                         semester,
                         courseId,
+                        courseSemester,
                     );
                 } else {
                     this.unassignedStudents.push(
@@ -191,6 +193,7 @@ export default class SeatingArrangement {
         programName,
         semester,
         courseId,
+        courseSemester,
     ) {
         let found = false;
 
@@ -214,6 +217,7 @@ export default class SeatingArrangement {
                 name: programName,
                 semester,
                 courseId,
+                courseSemester,
             });
         }
     }
