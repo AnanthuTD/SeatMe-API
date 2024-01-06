@@ -3,11 +3,12 @@ import puppeteer from 'puppeteer';
 import logger from '../logger.js';
 import getRootDir from '../../../getRootDir.js';
 
-export default async function generateSeatingArrangementPDF(
+export default async function generateSeatingArrangementPDF({
     rooms,
     date,
     fileName = 'seatingArrangement',
-) {
+    examName,
+}) {
     date = new Date(date);
     let fullHtml = '';
 
@@ -32,7 +33,7 @@ export default async function generateSeatingArrangementPDF(
         const { exams, id, description } = rooms[classIndex];
 
         const allDistinctSemesters = [
-            ...new Set(exams.map((program) => program.semester)),
+            ...new Set(exams.map((exam) => exam.courseSemester)),
         ];
 
         const romanSemesters = allDistinctSemesters.map((semester) =>
@@ -64,20 +65,19 @@ export default async function generateSeatingArrangementPDF(
                 margin: 0;
             }
         </style>
-        <h3>M.E.S COLLEGE MARAMPALLY ${classIndex + 1}</h3>
-        <p>Seating Arrangements for ${romanSemesters.join(
-            ', ',
-        )} Semester CBCS Regular & Supple, ${romanSemesters.join(
-            ', ',
-        )} PVT CBCS Exam ${monthAbbreviation} ${date.getFullYear()}</p>
-        <div style="display: flex; justify-content: space-between;">
-            <h3>Hall No: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${id} ${
-                description ? '(' + description + ')' : ''
-            }</h3>
-            <h3>${formattedDate}</h3>
-        </div>
-        <table border="1">
-            <thead>`;
+        <section class="content">
+            <h3>M.E.S COLLEGE MARAMPALLY ${classIndex + 1}</h3>
+            <p>Seating Arrangements for ${examName}, ${romanSemesters.join(
+                ', ',
+            )} PVT CBCS Exam ${monthAbbreviation} ${date.getFullYear()}</p>
+            <div style="display: flex; justify-content: space-between;">
+                <h3>Hall No: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${id} ${
+                    description ? '(' + description + ')' : ''
+                }</h3>
+                <h3>${formattedDate}</h3>
+            </div>
+            <table border="1">
+                <thead>`;
 
         exams.forEach((program) => {
             html += `<th>${program.name}</th>`;
@@ -137,9 +137,9 @@ export default async function generateSeatingArrangementPDF(
                     </tr>`;
         });
 
-        html += `
-                </tbody>
-            </table>`;
+        html += `   </tbody>
+                </table>
+            </section>`;
 
         fullHtml += html;
     }
@@ -151,6 +151,14 @@ export default async function generateSeatingArrangementPDF(
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setContent(fullHtml);
+
+    // await page.addStyleTag({
+    //     content: `
+    //       .content {
+    //         page-break-inside: avoid; /* Avoid breaking inside the div */
+    //       }
+    //     `,
+    // });
 
     // Set the path to save the PDF file
     const pdfPath = `${getRootDir()}/pdf/${fileName}.pdf`;

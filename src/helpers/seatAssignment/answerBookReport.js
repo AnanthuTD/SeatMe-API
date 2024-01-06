@@ -3,11 +3,12 @@ import fs from 'fs';
 import logger from '../logger.js';
 import getRootDir from '../../../getRootDir.js';
 
-export default async function answerBookReport(
+export default async function answerBookReport({
     rooms,
     date,
+    fileName,
     examName = 'exam name',
-) {
+}) {
     date = new Date(date);
     let fullHtml = ''; // Accumulate HTML for all classes
 
@@ -201,7 +202,7 @@ export default async function answerBookReport(
     await page.setContent(fullHtml);
 
     // Set the path to save the PDF file
-    const pdfPath = `${getRootDir()}/pdf/answer-book-report${examName}.pdf`;
+    const pdfPath = `${getRootDir()}/pdf/answer-book-report${fileName}.pdf`;
 
     // Generate PDF
     await page.pdf({

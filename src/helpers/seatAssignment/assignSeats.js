@@ -20,6 +20,7 @@ import answerBookReport from './answerBookReport.js';
  */
 async function assignSeats({
     date = new Date(),
+    examName,
     timeCode = 'AN',
     orderBy = 'rollNumber',
     fileName = 'unnamed',
@@ -128,8 +129,8 @@ async function assignSeats({
                 totalUnassignedStudents,
                 fileName,
             ),
-            generateSeatingArrangementPDF(rooms, date, fileName),
-            answerBookReport(rooms, date, fileName),
+            generateSeatingArrangementPDF({ rooms, date, fileName, examName }),
+            answerBookReport({ rooms, date, fileName, examName }),
         ]);
 
         return [rooms, totalUnassignedStudents];

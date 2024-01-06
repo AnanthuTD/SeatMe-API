@@ -101,6 +101,7 @@ router.get('/assign', async (req, res) => {
             orderBy,
             fileName,
             examType,
+            examName,
         });
 
         await createRecord(seating);
