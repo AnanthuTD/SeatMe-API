@@ -40,8 +40,8 @@ router.patch('/blockupdate/', async (req, res) => {
     try {
         let blocks = [];
         req.body.forEach((item) => {
-            let id = item.id;
-            let name = item.name;
+            let { id } = item;
+            let { name } = item;
             blocks.push({
                 id,
                 name,
@@ -63,7 +63,7 @@ router.patch('/blockupdate/', async (req, res) => {
                 return { error: `block with ID ${block1.id} not found` };
             }
 
-           /*  let updatedData = {
+            /*  let updatedData = {
                 name: block1.name,
             }; */
 

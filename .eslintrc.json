@@ -26,6 +26,9 @@
         "sourceType": "module"
     },
     "rules": {
+        "consistent-return":"warn",
+        "no-unused-vars":"warn",
+        "no-loop-func":"off",
         "prettier/prettier": [
             "error",
             {

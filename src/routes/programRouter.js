@@ -1,6 +1,5 @@
 import express from 'express';
 import { models } from '../sequelize/models.js';
-import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
@@ -36,12 +35,12 @@ router.patch('/programupdate/', async (req, res) => {
     try {
         let programs = [];
         req.body.forEach((item) => {
-            let id = item.id;
-            let name = item.name;
-            let duration = item.duration;
-            let level = item.level;
-            let departmentId = item.departmentId;
-            let abbreviation = item.abbreviation;
+            let { id } = item;
+            let { name } = item;
+            let { duration } = item;
+            let { level } = item;
+            let { departmentId } = item;
+            let { abbreviation } = item;
             programs.push({
                 id,
                 name,
@@ -66,7 +65,7 @@ router.patch('/programupdate/', async (req, res) => {
             console.log('program duration:', programduration);
             console.log('program level:', programlevel);
             console.log('program dept:', programdept);
-            console.log('program abbreviation:',proabbreviation)
+            console.log('program abbreviation:', proabbreviation);
             console.log('----------------------');
         });
         const updates = programs.map(async (program1) => {
@@ -104,13 +103,13 @@ router.patch('/programupdate/', async (req, res) => {
         }
 
         // If no errors, send a success response
-        res.status(200).json({
+        return res.status(200).json({
             message: 'All programs updated successfully',
             results,
         });
     } catch (error) {
         console.error('Error updating program in DB:', error);
-        res.status(500).json({
+        return res.status(500).json({
             error: 'Error updating program in DB',
             errorMessage: error.message,
         });

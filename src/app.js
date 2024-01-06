@@ -61,6 +61,7 @@ async function assertDatabaseConnectionOk({ retryDelay = 5000 }) {
         }
     }
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
         // eslint-disable-next-line no-await-in-loop
         const connectionSuccessful = await attemptConnection();
@@ -160,7 +161,6 @@ async function assertRedisConnectionOk() {
     }
     return true;
 }
-
 
 function populateRedis() {
     updateSeatingInfoScheduledTasks();

@@ -1,13 +1,11 @@
 import express from 'express';
 
-const router = express.Router();
-
 import getroot from '../../getRootDir.js';
 
-import { models } from '../sequelize/models.js';
+const router = express.Router();
 
 router.get('/', (req, res) => {
-    const p = getroot() + '/src/Views/datetime.html';
+    const p = `${getroot()}/src/Views/datetime.html`;
 
     res.sendFile(p);
 });

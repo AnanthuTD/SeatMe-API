@@ -72,7 +72,7 @@ export default async function generateSeatingArrangementPDF({
             )} PVT CBCS Exam ${monthAbbreviation} ${date.getFullYear()}</p>
             <div style="display: flex; justify-content: space-between;">
                 <h3>Hall No: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${id} ${
-                    description ? '(' + description + ')' : ''
+                    description ? `(${description})` : ''
                 }</h3>
                 <h3>${formattedDate}</h3>
             </div>

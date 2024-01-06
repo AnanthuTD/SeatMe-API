@@ -770,7 +770,6 @@ const countExamsForDate = async ({
             ],
         });
 
-
         const totalCount = count + supplyStudentsCount;
 
         return totalCount;

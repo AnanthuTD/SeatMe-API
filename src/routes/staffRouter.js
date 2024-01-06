@@ -104,7 +104,7 @@ router.get('/attendance/:roomId/:dateTimeId', async (req, res) => {
                             attributes: ['program_id'],
                             include: {
                                 model: models.program,
-                                attributes: ['id', 'name','abbreviation'],
+                                attributes: ['id', 'name', 'abbreviation'],
                             },
                         },
                     },
@@ -112,10 +112,16 @@ router.get('/attendance/:roomId/:dateTimeId', async (req, res) => {
             },
         ],
         order: [
-            [{ model: models.exam, as: 'exam' }, { model: models.course }, { model: models.programCourse }, { model: models.program }, 'id', 'ASC'],
+            [
+                { model: models.exam, as: 'exam' },
+                { model: models.course },
+                { model: models.programCourse },
+                { model: models.program },
+                'id',
+                'ASC',
+            ],
         ],
     });
-    
 
     return res.json(data);
 });

@@ -1,29 +1,21 @@
 import express from 'express';
+import { models } from '../sequelize/models.js';
 
 const router = express.Router();
 
-import getroot from '../../getRootDir.js';
-
-import { models } from '../sequelize/models.js';
-
-router.get('/', (req, res) => {
-    let p = getroot() + '/src/Views/department.html';
-
-    //res.sendFile(p);
-});
 router.post('/room', (req, res) => {
     console.log('this is called');
-   // console.log(req.body);
+    // console.log(req.body);
     let body = req.body.rooms;
     let rooms = [];
     body.forEach((item) => {
-        let id = item.id;
-        let internalRows=item.internalRows;
-        let internalCols = item.internalCols;
-        let finalRows = item.finalRows;
-        let finalCols = item.finalCols;
-        let isAvailable = item.isAvailable;
-        let floor = item.floor;
+        let { id } = item;
+        let { internalRows } = item;
+        let { internalCols } = item;
+        let { finalRows } = item;
+        let { finalCols } = item;
+        let { isAvailable } = item;
+        let { floor } = item;
         let blockId = item.block;
         rooms.push({
             id,

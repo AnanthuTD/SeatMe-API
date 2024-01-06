@@ -1,12 +1,7 @@
 import express from 'express';
 import { models } from '../sequelize/models.js';
-import getroot from '../../getRootDir.js';
 
 const router = express.Router();
-
-router.get('/', (req, res) => {
-    let p = getroot() + '/src/Views/department.html';
-});
 
 router.post('/course', async (req, res) => {
     const { courses } = req.body || {};
@@ -64,10 +59,10 @@ router.post('/course', async (req, res) => {
             }),
         );
 
-        res.status(200).json({ failedRecords });
+        return res.status(200).json({ failedRecords });
     } catch (error) {
         console.error('Error in upserting records:', error.message);
-        res.status(500).json({
+        return res.status(500).json({
             error: 'Error upserting values into DB',
             errorMessage: error.message,
         });
@@ -78,11 +73,11 @@ router.patch('/courseupdate/', async (req, res) => {
     try {
         let courses = [];
         req.body.forEach((item) => {
-            let id = item.id;
-            let name = item.name;
-            let semester = item.semester;
-            let type = item.type;
-            let program = item.program;
+            let { id } = item;
+            let { name } = item;
+            let { semester } = item;
+            let { type } = item;
+            let { program } = item;
             courses.push({
                 id,
                 name,
@@ -126,13 +121,13 @@ router.patch('/courseupdate/', async (req, res) => {
         }
 
         // If no errors, send a success response
-        res.status(200).json({
+        return res.status(200).json({
             message: 'All courses updated successfully',
             results,
         });
     } catch (error) {
         console.error('Error updating course in DB:', error);
-        res.status(500).json({
+        return res.status(500).json({
             error: 'Error updating course in DB',
             errorMessage: error.message,
         });

@@ -418,7 +418,7 @@ const getTimeTableAndSeating = async (studentId) => {
                     '$programCourses.program_id$': {
                         [Op.ne]: student.programId,
                     },
-                     type: 'open',
+                    type: 'open',
                 },
                 {
                     '$programCourses.program_id$': {
