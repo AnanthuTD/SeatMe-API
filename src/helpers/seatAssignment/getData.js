@@ -1,6 +1,5 @@
 import { Op } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
-import logger from '../logger.js';
 
 async function fetchExams(date, timeCode) {
     try {
@@ -35,7 +34,7 @@ async function fetchExams(date, timeCode) {
                 courseId: course.id,
                 courseName: course.name,
                 semester: course.semester,
-                isOpenCourse: course.isOpenCourse,
+                courseType: course.type,
                 examId: course.exams[0].id,
             };
 
@@ -165,12 +164,13 @@ function matchStudentsWithData(students, data) {
                 student.courseName = value.courseName;
                 student.courseId = value.courseId;
                 student.examId = value.examId;
+                student.courseType = value.courseType;
             }
         });
 
         return student;
     });
-    // logger(groupedStudents, 'grouped students')
+    // logger(groupedStudents, 'grouped students');
     return groupedStudents;
 }
 
@@ -185,13 +185,22 @@ function groupStudentsByCourseId(students) {
     const groupedStudents = {};
 
     students.forEach((student) => {
-        const { courseId } = student;
+        const { courseId, courseType, programId } = student;
 
-        if (!groupedStudents[courseId]) {
-            groupedStudents[courseId] = [];
+        if (courseType === 'common') {
+            const programCourse = `${programId}-${courseId}`;
+            if (!groupedStudents[programCourse]) {
+                groupedStudents[programCourse] = [];
+            }
+
+            groupedStudents[programCourse].push(student);
+        } else {
+            if (!groupedStudents[courseId]) {
+                groupedStudents[courseId] = [];
+            }
+
+            groupedStudents[courseId].push(student);
         }
-
-        groupedStudents[courseId].push(student);
     });
 
     // Sorting the nested arrays in descending order based on length

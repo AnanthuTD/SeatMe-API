@@ -24,14 +24,16 @@ function optimizationAttempt({ students, room, examType }) {
     return room;
 }
 
-function firstTryToOptimization(
+function firstTryToOptimization({
     selectedCourseForReplacement, // courseId
+    selectedProgramForReplacement, // programId
     exams,
     seatingMatrix,
     studentsData,
     roomsWithEmptySeats,
     examType,
-) {
+    isCommonCourse,
+}) {
     let newSeatingMatrix = _.cloneDeep(seatingMatrix);
     const reassignedStudents = [];
 
@@ -43,7 +45,11 @@ function firstTryToOptimization(
             if (!studentsData.length) {
                 return;
             }
-            if (seat.courseId === selectedCourseForReplacement) {
+            if (
+                isCommonCourse
+                    ? seat.programId === selectedProgramForReplacement
+                    : seat.courseId === selectedCourseForReplacement
+            ) {
                 newSeatingMatrix[rowIndex][colIndex] = {
                     occupied: false,
                 };
@@ -91,12 +97,15 @@ function firstTryToOptimization(
     });
 
     exams = exams.map((x) => {
-        x.examines =
-            x.courseId === selectedCourseForReplacement
-                ? x.examines.filter(
-                      (studentId) => !reassignedStudents.includes(studentId),
-                  )
-                : x.examines;
+        x.examines = (
+            isCommonCourse
+                ? x.programId === selectedProgramForReplacement
+                : x.courseId === selectedCourseForReplacement
+        )
+            ? x.examines.filter(
+                  (studentId) => !reassignedStudents.includes(studentId),
+              )
+            : x.examines;
 
         return x;
     });
@@ -137,7 +146,7 @@ async function main(
                 return unassignedStudentCount;
             }
 
-            rooms.forEach((room, index) => {
+            rooms.forEach((room) => {
                 let { exams, seatingMatrix } = room;
 
                 exams.forEach((exam) => {
@@ -146,19 +155,27 @@ async function main(
                     }
                     if (students.length === 0) return;
 
-                    if (exam.courseId !== students[0]?.courseId) {
+                    const isCommonCourse = exam.courseType === 'common';
+
+                    if (
+                        isCommonCourse
+                            ? exam.programId !== students[0]?.programId
+                            : exam.courseId !== students[0]?.courseId
+                    ) {
                         const [
                             newSeatingMatrix,
                             newExams,
                             studentDataReturned,
-                        ] = firstTryToOptimization(
-                            exam.courseId,
-                            [...exams],
+                        ] = firstTryToOptimization({
+                            selectedCourseForReplacement: exam.courseId,
+                            selectedProgramForReplacement: exam.programId,
+                            exams: [...exams],
                             seatingMatrix,
-                            studentsCopy,
+                            studentsData: studentsCopy,
                             roomsWithEmptySeats,
                             examType,
-                        );
+                            isCommonCourse,
+                        });
 
                         studentsCopy = studentDataReturned;
 

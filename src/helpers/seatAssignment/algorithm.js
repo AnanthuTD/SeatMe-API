@@ -1,5 +1,3 @@
-import logger from '../logger.js';
-
 /**
  * Class representing a seating arrangement for exams.
  */
@@ -113,9 +111,14 @@ export default class SeatingArrangement {
                     programName,
                     semester,
                     courseSemester,
+                    courseType,
                 } = this.students[examIndex][studentIndex];
 
-                const seat = this.findSuitableSeat(courseId);
+                const seat = this.findSuitableSeat(
+                    courseId,
+                    courseType,
+                    programId,
+                );
 
                 if (seat) {
                     this.occupiedSeatsCount += 1;
@@ -141,6 +144,7 @@ export default class SeatingArrangement {
                         semester,
                         courseId,
                         courseSemester,
+                        courseType,
                     );
                 } else {
                     this.unassignedStudents.push(
@@ -194,6 +198,7 @@ export default class SeatingArrangement {
         semester,
         courseId,
         courseSemester,
+        courseType,
     ) {
         let found = false;
 
@@ -212,12 +217,14 @@ export default class SeatingArrangement {
         if (!found) {
             this.room.exams.push({
                 id: programId,
+                programId,
                 examId,
                 examines: [studentId],
                 name: programName,
                 semester,
                 courseId,
                 courseSemester,
+                courseType,
             });
         }
     }
@@ -227,12 +234,18 @@ export default class SeatingArrangement {
      * @param {string} exam - The exam the student is taking.
      * @returns {Object|null} The seat coordinates or null if no suitable seat is found.
      */
-    findSuitableSeat(courseId) {
+    findSuitableSeat(courseId, courseType, programId) {
         for (let col = 0; col < this.numCols; col += 1) {
             for (let row = 0; row < this.numRows; row += 1) {
                 if (
                     !this.seatingMatrix[row][col].occupied &&
-                    !this.isAdjacentSeatOccupied(row, col, courseId)
+                    !this.isAdjacentSeatOccupied(
+                        row,
+                        col,
+                        courseId,
+                        courseType,
+                        programId,
+                    )
                 ) {
                     return { row, col };
                 }
@@ -249,11 +262,21 @@ export default class SeatingArrangement {
      * @param {string} exam - The exam the student is taking.
      * @returns {boolean} True if adjacent seats are occupied by the same exam, false otherwise.
      */
-    isAdjacentSeatOccupied(row, col, courseId) {
+    isAdjacentSeatOccupied(row, col, courseId, courseType, programId) {
         const adjacentOffsets = [
             [0, -1],
             [0, 1],
         ];
+
+        const checkConditions = (newRow, newCol) => {
+            return (
+                newCol >= 0 &&
+                newCol < this.numCols &&
+                newRow >= 0 &&
+                newRow < this.numRows &&
+                this.seatingMatrix[newRow][newCol].occupied
+            );
+        };
 
         let isAdjacentOccupied = false;
 
@@ -262,12 +285,13 @@ export default class SeatingArrangement {
             const newCol = col + dy;
 
             if (
-                newCol >= 0 &&
-                newCol < this.numCols &&
-                newRow >= 0 &&
-                newRow < this.numRows &&
-                this.seatingMatrix[newRow][newCol].occupied &&
-                this.seatingMatrix[newRow][newCol].courseId === courseId
+                checkConditions(newRow, newCol) &&
+                ((courseType === 'common' &&
+                    this.seatingMatrix[newRow][newCol].programId ===
+                        programId) ||
+                    (courseType !== 'common' &&
+                        this.seatingMatrix[newRow][newCol].courseId ===
+                            courseId))
             ) {
                 isAdjacentOccupied = true;
                 console.error();
