@@ -11,6 +11,7 @@ export default async function generateSeatingMatrixPDF(
     unassignedExaminees = 'not provided',
     fileName = 'seatingArrangement.pdf',
 ) {
+    // eslint-disable-next-line new-cap
     const doc = new jsPDF();
 
     doc.setFontSize(16);
@@ -25,7 +26,7 @@ export default async function generateSeatingMatrixPDF(
     let yOffset = 60;
 
     for (let classIndex = 0; classIndex < classes.length; classIndex += 1) {
-        const { seatingMatrix, exams, id, floor, description, blockId } =
+        const { seatingMatrix, /* exams, */ id, floor, description, blockId } =
             classes[classIndex];
 
         if (classIndex > 0) {
@@ -132,5 +133,5 @@ export default async function generateSeatingMatrixPDF(
     }
 
     // Save the PDF
-    doc.save(`${getRootDir()}/pdf/matrix-${fileName}`);
+    doc.save(`${getRootDir()}/pdf/matrix-${fileName}.pdf`);
 }
