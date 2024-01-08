@@ -135,6 +135,10 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
                 [sequelize.col('supplementaries.exam_id'), 'examId'],
                 [sequelize.col('supplementaries.exam.course.id'), 'courseId'],
                 [
+                    sequelize.col('supplementaries.exam.course.type'),
+                    'courseType',
+                ],
+                [
                     sequelize.col('supplementaries.exam.course.name'),
                     'courseName',
                 ],
@@ -250,4 +254,4 @@ export default async function getData({
     }
 }
 // getData(new Date('2023-10-25'));
-export { fetchExams };
+export { fetchExams, groupStudentsByCourseId };

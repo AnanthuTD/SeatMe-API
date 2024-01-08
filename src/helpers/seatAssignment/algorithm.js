@@ -51,24 +51,6 @@ export default class SeatingArrangement {
             return;
         }
 
-        // Generate an array of exam indices and shuffle it
-        /* const shuffledExamIndices = Array.from(
-            { length: this.students.length },
-            (_, i) => i,
-        ); */
-
-        // logger(this.students);
-
-        /* for (let i = this.students.length - 1; i > 0; i -= 1) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [this.students[i], this.students[j]] = [
-                this.students[j],
-                this.students[i],
-            ];
-        } */
-
-        // logger(this.students);
-
         this.students.forEach((_, examIndex) => {
             if (this.unOccupiedSeatsCount <= 0) {
                 return;
@@ -135,6 +117,7 @@ export default class SeatingArrangement {
                     this.seatingMatrix[row][col].programName = programName;
                     this.seatingMatrix[row][col].programId = programId;
                     this.seatingMatrix[row][col].semester = semester;
+                    this.seatingMatrix[row][col].courseType = courseType;
 
                     this.updateExamines(
                         programId,
@@ -294,7 +277,6 @@ export default class SeatingArrangement {
                             courseId))
             ) {
                 isAdjacentOccupied = true;
-                console.error();
             }
         });
 

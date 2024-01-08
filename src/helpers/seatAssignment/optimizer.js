@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import SeatingArrangement from './algorithm.js';
+// import logger from '../logger.js';
 
 function optimizationAttempt({ students, room, examType }) {
     const seatingOptimizer = new SeatingArrangement({
@@ -19,6 +20,10 @@ function optimizationAttempt({ students, room, examType }) {
         .filter((classStudents) => classStudents.length);
 
     if (studentsLeftUnassigned.length) {
+        /*  console.log(
+            'students left unassigned: ',
+            studentsLeftUnassigned.length,
+        ); */
         return false;
     }
     return room;
@@ -54,6 +59,12 @@ function firstTryToOptimization({
                     occupied: false,
                 };
 
+                /*  console.log(
+                    seat,
+                    '\n',
+                    JSON.stringify(studentsData[0], null, 2),
+                ); */
+
                 const room = { seatingMatrix: newSeatingMatrix, exams };
                 const result = optimizationAttempt({
                     students: [[studentsData[0]]],
@@ -68,6 +79,7 @@ function firstTryToOptimization({
                     let flag = false;
 
                     roomsWithEmptySeats.forEach((roomToOptimize) => {
+                        // logger(roomToOptimize, 'roomsWithEmptySeats');
                         if (flag) return;
                         const result2 = optimizationAttempt({
                             students: [[seat]],
@@ -80,6 +92,8 @@ function firstTryToOptimization({
                     });
 
                     if (!flag) {
+                        // console.log('second failed');
+
                         newSeatingMatrix[rowIndex][colIndex] = seat;
                         return;
                     }
@@ -87,7 +101,10 @@ function firstTryToOptimization({
                     studentsData.splice(0, 1);
 
                     reassignedStudents.push(seat.id);
-                } else newSeatingMatrix[rowIndex][colIndex] = seat;
+                } else {
+                    // console.log('first failed');
+                    newSeatingMatrix[rowIndex][colIndex] = seat;
+                }
             }
         });
     });
@@ -155,7 +172,9 @@ async function main(
                     }
                     if (students.length === 0) return;
 
-                    const isCommonCourse = exam.courseType === 'common';
+                    const isCommonCourse =
+                        exam.courseType === 'common' &&
+                        students[0].courseType === 'common';
 
                     if (
                         isCommonCourse

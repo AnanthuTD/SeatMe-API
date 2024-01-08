@@ -39,7 +39,7 @@ async function assignSeats({
     );
 
     let roomIndex = 0;
-    console.log(examType);
+
     while (students.length > 0 && roomIndex < rooms.length) {
         const seatingArrangement = new SeatingArrangement({
             students,
@@ -72,8 +72,12 @@ async function assignSeats({
             `${totalUnassignedStudents} students are not been assigned`,
         );
 
+    // logger(students, 'unassigned students')
+
     // optimizing
     if (totalUnassignedStudents > 0) {
+        // const groupedStudents = groupStudentsByCourseId(students[0]);
+        // logger(groupedStudents, 'unassigned students grouped')
         const optimizedRooms = await optimizer(
             _.cloneDeep(rooms),
             totalUnassignedStudents,

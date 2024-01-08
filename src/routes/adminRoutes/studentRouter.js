@@ -181,7 +181,7 @@ router.post('/supplementary', async (req, res) => {
                         if (!studentId) return;
                         try {
                             console.log(courseId, studentId);
-                            await models.supplementary.create({
+                            await models.supplementary.upsert({
                                 examId: exam.id,
                                 studentId,
                             });
