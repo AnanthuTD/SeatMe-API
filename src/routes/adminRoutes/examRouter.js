@@ -10,7 +10,7 @@ import {
 } from '../../helpers/adminHelpers/adminHelper.js';
 import { assignSeats } from '../../helpers/seatAssignment/assignSeats.js';
 import { createRecord } from '../../helpers/adminHelpers/studentSeat.js';
-import { models } from '../../sequelize/models.js';
+import { models, sequelize } from '../../sequelize/models.js';
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
 import getRootDir from '../../../getRootDir.js';
 
@@ -368,23 +368,56 @@ router.get('/:date/:timeCode/rooms', async (req, res) => {
         date = new Date(date);
 
         const rooms = await models.room.findAll({
-            attributes: ['id', 'blockId', 'isAvailable', 'floor'],
-            include: {
-                model: models.studentSeat,
-                include: {
-                    model: models.exam,
+            attributes: [
+                'id',
+                'blockId',
+                'isAvailable',
+                'floor',
+                [sequelize.col('teacherSeats.authUser.name'), 'name'],
+                [
+                    sequelize.col('teacherSeats.authUser.department.name'),
+                    'departmentName',
+                ],
+            ],
+            include: [
+                {
+                    model: models.studentSeat,
                     include: {
-                        model: models.dateTime,
-                        where: { date, timeCode },
+                        model: models.exam,
+                        include: {
+                            model: models.dateTime,
+                            where: { date, timeCode },
+                            required: true,
+                            attributes: [],
+                        },
                         required: true,
                         attributes: [],
                     },
                     required: true,
                     attributes: [],
                 },
-                required: true,
-                attributes: [],
-            },
+                {
+                    model: models.teacherSeat,
+                    include: [
+                        {
+                            model: models.dateTime,
+                            where: { date, timeCode },
+                            required: true,
+                            attributes: [],
+                        },
+                        {
+                            model: models.authUser,
+                            attributes: ['name'],
+                            include: {
+                                model: models.department,
+                                attributes: ['name'],
+                            },
+                        },
+                    ],
+                    attributes: ['id'],
+                    required: false,
+                },
+            ],
         });
 
         return res.json(rooms);
