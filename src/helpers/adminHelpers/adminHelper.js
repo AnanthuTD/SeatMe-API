@@ -250,8 +250,9 @@ const getDepartments = async () => {
     return department;
 };
 const getBlocks = async () => {
-    const block = await models.block.findAll();
-    return block;
+    let blocks = await models.block.findAll();
+    // blocks = blocks.map((block) => block.id);
+    return blocks;
 };
 
 const getPrograms = async (departmentCode) => {
