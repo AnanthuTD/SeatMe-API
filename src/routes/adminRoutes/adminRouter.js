@@ -25,7 +25,7 @@ import { encrypt } from '../../helpers/bcryptHelper.js';
 import { setNewRefreshToken } from '../../helpers/tokenHelpers/index.js';
 
 const router = express.Router();
-const zipDir = `${getRootDir()}/zip`;
+const reportsDir = `${getRootDir()}/reports`;
 
 /**
  * @route GET /admin
@@ -263,9 +263,9 @@ router.get('/examines-count', async (req, res) => {
     }
 });
 
-router.get('/download/zip/:examName', (req, res) => {
+router.get('/download/report/:examName', (req, res) => {
     const { examName } = req.params;
-    const outputFilePath = path.join(zipDir, `${examName}.zip`);
+    const outputFilePath = path.join(reportsDir, `${examName}.zip`);
 
     // Set headers for the response
     res.setHeader('Content-Type', 'application/zip');
@@ -276,7 +276,7 @@ router.get('/download/zip/:examName', (req, res) => {
     fileStream.pipe(res);
 });
 
-router.get('/public/:fileName', (req, res) => {
+router.get('/reports/:fileName', (req, res) => {
     const { fileName } = req.params;
 
     // Validate and sanitize the fileName to prevent directory traversal attacks
@@ -316,17 +316,17 @@ router.get('/public/:fileName', (req, res) => {
     }
 });
 
-router.delete('/public/:fileName', (req, res) => {
+router.delete('/reports/:fileName', (req, res) => {
     const { fileName } = req.params;
 
     // Validate and sanitize the fileName to prevent directory traversal attacks
     if (fileName.includes('..')) {
-        const errorMessage = `Error in DELETE /public/${fileName}: Invalid file name - ${fileName}`;
+        const errorMessage = `Error in DELETE /reports/${fileName}: Invalid file name - ${fileName}`;
         console.error(errorMessage);
         return res.status(400).send('Invalid file name');
     }
 
-    const filePath = path.join(getRootDir(), 'pdf', fileName);
+    const filePath = path.join(reportsDir, fileName);
 
     try {
         // Check if the file exists
@@ -337,24 +337,22 @@ router.delete('/public/:fileName', (req, res) => {
             return res.status(204).send(); // Send a success response with no content
         }
         // Handle the case when the file does not exist
-        const errorMessage = `Error in DELETE /public/${fileName}: File not found - ${filePath}`;
+        const errorMessage = `Error in DELETE /reports/${fileName}: File not found - ${filePath}`;
         console.error(errorMessage);
         return res.status(404).send('File not found');
     } catch (error) {
-        const errorMessage = `Error in DELETE /public/${fileName}: Error removing file - ${error}`;
+        const errorMessage = `Error in DELETE /reports/${fileName}: Error removing file - ${error}`;
         console.error(errorMessage);
         return res.status(500).send('Internal Server Error');
     }
 });
 
-router.get('/list-pdfs', async (req, res) => {
-    const pdfDirectory = path.join(getRootDir(), 'pdf');
+router.get('/reports', async (req, res) => {
     try {
-        const files = await fs.promises.readdir(pdfDirectory);
+        const files = await fs.promises.readdir(reportsDir);
 
-        // Use Promise.all to asynchronously get file metadata
-        const pdfListPromises = files.map(async (file) => {
-            const filePath = path.join(pdfDirectory, file);
+        const reportsListPromises = files.map(async (file) => {
+            const filePath = path.join(reportsDir, file);
             const stats = await fs.promises.stat(filePath);
 
             return {
@@ -363,15 +361,15 @@ router.get('/list-pdfs', async (req, res) => {
             };
         });
 
-        const pdfList = await Promise.all(pdfListPromises);
+        const reportsList = await Promise.all(reportsListPromises);
 
-        pdfList.sort((a, b) => b.created - a.created);
+        reportsList.sort((a, b) => b.created - a.created);
 
-        const sortedFileNames = pdfList.map((file) => file.name);
+        const sortedFileNames = reportsList.map((file) => file.name);
 
         res.json(sortedFileNames);
     } catch (error) {
-        const errorMessage = `Error in GET /list-pdfs: ${error.message}`;
+        const errorMessage = `Error in GET /reports: ${error.message}`;
         console.error(errorMessage);
         res.status(500).send('Error listing PDFs.');
     }

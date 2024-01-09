@@ -34,17 +34,12 @@ const generateTeacherDetailsPDF = async (dateTimeId) => {
         'room.block.name': teacher.room.block.name,
     }));
 
-    // Set table options
-    const tableOptions = {
-        headStyles: { fillColor: [100, 100, 100] },
-    };
-
     // Add the table to the PDF
     doc.autoTable({ columns, body: rows });
 
     // Save or display the PDF
     doc.save(
-        `${getRootDir()}/pdf/${teacherDetails[0].dateTime.date}-${
+        `${getRootDir()}/reports/${teacherDetails[0].dateTime.date}-${
             teacherDetails[0].dateTime.timeCode
         }.pdf`,
     );

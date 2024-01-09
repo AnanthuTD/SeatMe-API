@@ -39,4 +39,6 @@ pdf
 src/Views/
 
 credentials
-zip
+reports
+
+.cache

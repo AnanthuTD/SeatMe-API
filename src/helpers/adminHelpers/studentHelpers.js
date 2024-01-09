@@ -2,117 +2,43 @@ import { Op } from 'sequelize';
 import { models } from '../../sequelize/models.js';
 import logger from '../logger.js';
 
-const findSupplementaryStudents = async (
-    query = [''],
-    columns = ['id'],
-    offset = 0,
-    limit = 10,
-    sortField = 'updatedAt',
-    sortOrder = 'DESC',
-) => {
+const findSupplementaryStudents = async ({ date, courseIds }) => {
     try {
-        sortOrder = sortOrder.toUpperCase();
-
-        const nestedColumns = [];
-        const nestedColumnsQuery = [];
-        const nonNestedColumns = [];
-        const nonNestedColumnsQuery = [];
-
-        columns.forEach((column, index) => {
-            if (column.includes('.')) {
-                nestedColumns.push(column);
-                nestedColumnsQuery.push(query[index]);
-            } else {
-                nonNestedColumns.push(column);
-                nonNestedColumnsQuery.push(query[index]);
-            }
-        });
-
-        const isNestedSortField = sortField.includes('.');
-
-        const whereConditionNested = {
-            [Op.and]: nestedColumns.map((col, index) => ({
-                [col.split('.')[1]]: {
-                    [Op.like]: `${query[index]}%`,
-                },
-            })),
-        };
-
-        const whereCondition = {
-            [Op.and]: nonNestedColumns.map((col, index) => ({
-                [col]: {
-                    [Op.like]:
-                        col === 'programId' || col === 'semester'
-                            ? query[index]
-                            : `${query[index]}%`,
-                },
-            })),
-        };
-
-        const orderCondition = [];
-
-        if (sortField && sortOrder) {
-            const field = isNestedSortField
-                ? sortField.split('.')[1]
-                : sortField;
-
-            if (sortOrder === 'ASC' || sortOrder === 'DESC') {
-                if (isNestedSortField) {
-                    orderCondition.push([models.program, field, sortOrder]);
-                } else orderCondition.push([field, sortOrder]);
-            }
-        }
-
-        let data = await models.student.findAll({
-            limit,
-            offset,
-            where:
-                nonNestedColumns.length && columns[0] !== 'courses'
-                    ? whereCondition
-                    : undefined,
-            order: orderCondition,
+        const students = await models.student.findAll({
             include: [
                 {
-                    model: models.program,
-                    attributes: ['name'],
-                    required: true,
-                    where:
-                        nestedColumns.length && columns[0] !== 'courses'
-                            ? whereConditionNested
-                            : undefined,
-                },
-                {
                     model: models.supplementary,
-                    attributes: ['examId'],
                     include: [
                         {
                             model: models.exam,
-                            where:
-                                columns[0] === 'courses'
-                                    ? { courseId: query }
-                                    : undefined,
+                            where: {
+                                courseId: courseIds,
+                            },
+                            include: [
+                                {
+                                    model: models.dateTime,
+                                    where: {
+                                        date,
+                                    },
+                                    required: true,
+                                    attributes: [],
+                                },
+                            ],
+                            attributes: [],
+                            required: true,
                         },
                     ],
                     required: true,
+                    attributes: ['id'],
+                },
+                {
+                    model: models.program,
+                    attributes: ['name'],
                 },
             ],
         });
 
-        data = data.map((d) => {
-            const exams = d.supplementaries.map((supply) => {
-                return {
-                    courseId: supply?.exam?.courseId,
-                    examId: supply?.examId,
-                };
-            });
-            const courses = d.supplementaries.map(
-                (supply) => supply?.exam?.courseId,
-            );
-            d = d.toJSON();
-            return { courses, exams, ...d, supplementaries: null };
-        });
-
-        return data;
+        return students;
     } catch (error) {
         console.error('Error in getStudents:', error);
         throw new Error(

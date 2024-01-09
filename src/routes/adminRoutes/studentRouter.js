@@ -7,6 +7,7 @@ import {
     upsertStudents,
     deleteStudent,
     findStudentsByProgramSem,
+    deleteSupply,
 } from '../../helpers/adminHelpers/adminHelper.js';
 import logger from '../../helpers/logger.js';
 import { models } from '../../sequelize/models.js';
@@ -207,42 +208,13 @@ router.post('/supplementary', async (req, res) => {
     }
 });
 
-router.get('/supplementary/list', async (req, res) => {
+router.get('/supplementary', async (req, res) => {
     try {
-        let { query, column, offset, limit, sortField, sortOrder } = req.query;
+        let { date, courseIds } = req.query;
 
-        const allowedColumns = [
-            'id',
-            'name',
-            'rollNumber',
-            'semester',
-            'program.name',
-            'programId',
-            'courses',
-        ];
+        console.log(req.query);
 
-        // Validate and adjust the 'column' parameter
-        if (
-            !Array.isArray(column) ||
-            !column.every((col) => allowedColumns.includes(col))
-        ) {
-            column = ['id'];
-        }
-
-        query = query || [''];
-        sortField = sortField || 'updatedAt';
-        sortOrder = sortOrder || 'DESC';
-        offset = parseInt(offset, 10) || 0;
-        limit = parseInt(limit, 10) || 10;
-
-        const data = await findSupplementaryStudents(
-            query,
-            column,
-            offset,
-            limit,
-            sortField,
-            sortOrder,
-        );
+        const data = await findSupplementaryStudents({ date, courseIds });
 
         res.json(data);
     } catch (error) {
@@ -275,24 +247,24 @@ router.patch('/supplementary', async (req, res) => {
     }
 });
 
-router.delete('/supplementary', async (req, res) => {
-    const { studentId } = req.query;
+router.delete('/supplementary/:supplyId', async (req, res) => {
+    const { supplyId } = req.params;
 
-    if (!studentId) {
+    if (!supplyId) {
         return res.status(400).json({ error: 'Missing required data' });
     }
 
     try {
-        const deletionCount = await deleteStudent(studentId);
+        const deletionCount = await deleteSupply(supplyId);
 
         if (deletionCount > 0) {
             return res.status(200).json({
-                message: `Student with ID ${studentId} deleted successfully.`,
+                message: `Supply ID ${supplyId} deleted successfully.`,
             });
         }
         return res
             .status(404)
-            .json({ error: `Student with ID ${studentId} not found` });
+            .json({ error: `Supply ID ${supplyId} not found` });
     } catch (error) {
         console.error(`Error in DELETE /student: ${error.message}`);
         return res.status(500).json({ error: 'Internal server error' });

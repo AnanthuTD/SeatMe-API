@@ -15,7 +15,7 @@ import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmen
 import getRootDir from '../../../getRootDir.js';
 
 const router = express.Router();
-const zipDir = `${getRootDir()}/zip`;
+const reportsDir = `${getRootDir()}/reports`;
 
 router.get('/count', async (req, res) => {
     try {
@@ -85,9 +85,6 @@ router.get('/assign', async (req, res) => {
         const year = providedDate.year();
         const month = String(providedDate.month() + 1).padStart(2, '0');
         const day = String(providedDate.date()).padStart(2, '0');
-        /* let fileName = `${
-            examType ? `${examType}-` : ''
-        }${year}-${month}-${day}-${timeCode}`; */
 
         let fileName = `${examName}-${year}-${month}-${day}-${timeCode}`;
 
@@ -106,13 +103,7 @@ router.get('/assign', async (req, res) => {
 
         await createRecord(seating);
 
-        if (totalUnassignedStudents > 0) {
-            return res.status(422).json({
-                error: `There are ${totalUnassignedStudents} unassigned students. Please add more rooms to accommodate them and try again. No record has been created.`,
-            });
-        }
-
-        const outputFilePath = path.join(zipDir, `${fileName}.zip`);
+        const outputFilePath = path.join(reportsDir, `${fileName}.zip`);
 
         const archive = archiver('zip', { zlib: { level: 9 } });
 
@@ -126,11 +117,15 @@ router.get('/assign', async (req, res) => {
             archive.file(filePath, { name: file });
         });
 
-        archive.finalize();
+        await archive.finalize();
 
+        let errorMessage = null;
+        if (totalUnassignedStudents > 0) {
+            errorMessage = `There are ${totalUnassignedStudents} unassigned students. Please add more rooms to accommodate them and try again. No record has been created.`;
+        }
         res.status(201).json({
             fileName,
-            message: 'Zip file created. Ready to download.',
+            error: errorMessage,
         });
 
         // After the response is sent, remove the PDF files asynchronously
@@ -398,5 +393,7 @@ router.get('/:date/:timeCode/rooms', async (req, res) => {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+router.get('');
 
 export default router;

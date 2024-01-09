@@ -567,7 +567,6 @@ const getExams = async ({
         let courseWhereCondition = {};
         let dateTimesWhereCondition = {};
 
-        console.log(column);
         if (['date', 'timeCode'].includes(column)) {
             dateTimesWhereCondition[column] = {
                 [Op.like]: `${query}%`,
@@ -602,8 +601,6 @@ const getExams = async ({
                     ]);
             }
         }
-
-        console.log(orderCondition);
 
         const data = await models.exam.findAll({
             limit,
@@ -846,6 +843,20 @@ const deleteStudent = async (studentId) => {
     }
 };
 
+const deleteSupply = async (id) => {
+    try {
+        const deletedSupply = await models.supplementary.destroy({
+            where: {
+                id,
+            },
+        });
+
+        return deletedSupply;
+    } catch (error) {
+        throw Error(error.message);
+    }
+};
+
 const getAvailableOpenCourses = async (programId) => {
     const program = await models.program.findByPk(programId, {
         attributes: ['isAided'],
@@ -935,4 +946,5 @@ export {
     deleteStudent,
     findStudentsByProgramSem,
     getCoursesExams,
+    deleteSupply,
 };
