@@ -23,6 +23,7 @@ import { models } from '../../sequelize/models.js';
 import { checkCredentialsAndRetrieveData } from '../../helpers/commonHelper.js';
 import { encrypt } from '../../helpers/bcryptHelper.js';
 import { setNewRefreshToken } from '../../helpers/tokenHelpers/index.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 const reportsDir = `${getRootDir()}/reports`;
@@ -77,6 +78,7 @@ router.get('/courses', async (req, res) => {
     try {
         const { programId, semester } = req.query;
         const courses = await getCourses(programId, semester);
+        logger(courses);
         res.json(courses);
     } catch (error) {
         console.error(`Error in GET /courses: ${error.message}`);
