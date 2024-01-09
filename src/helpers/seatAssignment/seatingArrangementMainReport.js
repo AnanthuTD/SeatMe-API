@@ -148,7 +148,7 @@ export default async function generateSeatingArrangementPDF({
     fs.writeFileSync(htmlFilePath, fullHtml, 'utf-8');
     logger(`HTML file saved: ${htmlFilePath}`); */
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.setContent(fullHtml);
 
