@@ -74,7 +74,7 @@ router.get('/assign', async (req, res) => {
         let { date } = req.query;
 
         const currentDate = dayjs();
-        const providedDate = dayjs(date);
+        const providedDate = dayjs(date).tz('Asia/Kolkata');
 
         if (providedDate.isBefore(currentDate, 'day')) {
             return res

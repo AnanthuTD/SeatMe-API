@@ -1,4 +1,5 @@
 import { Op, literal } from 'sequelize';
+import dayjs from 'dayjs';
 import { models, sequelize } from '../../sequelize/models.js';
 import { fetchExams } from '../seatAssignment/getData.js';
 import { retrieveAndStoreExamsInRedis } from './studentSeat.js';
@@ -732,9 +733,14 @@ const updateRoomAvailability = async ({ roomIds = [] }) => {
 };
 
 const countExamsForDate = async ({
-    targetDate = new Date(),
+    targetDate = new dayjs(),
     timeCode = 'AN',
 }) => {
+    try {
+        targetDate = dayjs(targetDate).tz('Asia/Kolkata');
+    } catch (error) {
+        console.error('Invalid date!');
+    }
     const { openCourses, nonOpenCourses } = await fetchExams(
         targetDate,
         timeCode,
