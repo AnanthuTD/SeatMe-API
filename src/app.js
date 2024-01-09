@@ -178,6 +178,14 @@ async function init() {
     await assertRedisConnectionOk();
     setupMiddlewares();
     setupRoutes();
+
+    const directoriesToCreate = ['reports', 'pdf'];
+
+    directoriesToCreate.forEach((dirName) => {
+        const dirPath = path.join(getRootDir(), dirName);
+        if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+    });
+
     startServer();
     populateRedis();
 }
