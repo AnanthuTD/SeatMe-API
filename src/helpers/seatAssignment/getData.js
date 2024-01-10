@@ -1,8 +1,11 @@
 import { Op } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
+import dayjs from '../dayjs.js';
 
 async function fetchExams(date, timeCode) {
     try {
+        date = dayjs(date).tz('Asia/Kolkata').format('YYYY-MM-DD');
+        console.log(date);
         const data = await models.course.findAll({
             attributes: ['id', 'name', 'semester', 'type'],
             include: [
