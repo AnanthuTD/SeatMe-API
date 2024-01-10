@@ -73,6 +73,7 @@ const retrieveAndStoreSeatingInfoInRedis = async () => {
                 'roomId',
                 [sequelize.col('room.floor'), 'floor'],
                 [sequelize.col('room.block.id'), 'blockId'],
+                [sequelize.col('room.description'), 'roomName'],
                 // [sequelize.col('room.block.name'), 'blockName'],
                 [sequelize.col('exam.course.id'), 'courseId'],
                 [sequelize.col('exam.course.name'), 'courseName'],
