@@ -737,7 +737,11 @@ const countExamsForDate = async ({
     timeCode = 'AN',
 }) => {
     try {
+        console.log('targetDate: ', targetDate);
         targetDate = dayjs(targetDate).utcOffset(330);
+        console.log('targetDate: ', targetDate);
+        targetDate = dayjs(targetDate).tz('Asia/Kolkata');
+        console.log('targetDate: ', targetDate);
     } catch (error) {
         console.error('Invalid date!');
     }
