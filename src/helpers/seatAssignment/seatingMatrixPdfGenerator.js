@@ -12,7 +12,12 @@ export default async function generateSeatingMatrixPDF(
     fileName = 'seatingArrangement.pdf',
 ) {
     // eslint-disable-next-line new-cap
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+        margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    });
 
     doc.setFontSize(16);
     doc.text('Seating Matrices', 10, 10);
@@ -103,6 +108,7 @@ export default async function generateSeatingMatrixPDF(
         tableData2.push([...tableHeaders2]); // Create a copy of tableHeaders2
 
         // Add rows for seating matrix
+        doc.setFontSize(14);
         const numRows = seatingMatrix.length;
         for (let row = 0; row < numRows; row += 1) {
             const numCols = seatingMatrix[row].length;
@@ -111,9 +117,9 @@ export default async function generateSeatingMatrixPDF(
                 const seat = seatingMatrix[row][col];
                 if (seat.occupied) {
                     rowData.push(
-                        `Seat: ${row * numCols + col + 1}\nRegno: ${
-                            seat.id
-                        }` /* \nExam: ${seat.courseName} */,
+                        seat.id,
+                        /* \nExam: ${seat.courseName} */
+                        /* Seat: ${row * numCols + col + 1}\n */
                     );
                 } else {
                     rowData.push('Empty');
@@ -122,11 +128,18 @@ export default async function generateSeatingMatrixPDF(
             tableData2.push(rowData);
         }
 
+        const styles = {
+            fontSize: 16,
+            margin: '0px',
+        };
+
         // Use jsPDF-AutoTable for the second table
         doc.autoTable({
             startY: yOffset + 10,
             head: [tableHeaders2],
             body: tableData2.slice(1), // Exclude the header from the body
+            styles,
+            margin: { top: 0, right: 0, bottom: 0, left: 0 },
         });
 
         yOffset = 20;
