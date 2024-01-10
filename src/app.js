@@ -5,9 +5,6 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import compression from 'compression';
-import utc from 'dayjs/plugin/utc.js';
-import timezone from 'dayjs/plugin/timezone.js'; // dependent on utc plugin
-import dayjs from 'dayjs';
 import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRoutes/adminRouter.js';
 import staffRouter from './routes/staffRouter.js';
@@ -34,11 +31,7 @@ import { isRedisAvailable } from './redis/config.js';
 import updateSeatingInfoScheduledTasks from './redis/seatingInfoScheduler.js';
 import { loadSeatingAvailabilityTimesToRedis } from './redis/loadSeatingAvailabilityTimes.js';
 import loadRefreshTokensToRedis from './redis/loadRefreshTokens.js';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-dayjs.tz.setDefault('Asia/Kolkata');
+import { updateSeatingInfoRedis } from './redis/seatingInfo.js';
 
 const dirname = getRootDir();
 
@@ -175,6 +168,7 @@ function populateRedis() {
     loadRefreshTokensToRedis();
     loadSeatingAvailabilityTimesToRedis();
     retrieveAndStoreExamsInRedis();
+    updateSeatingInfoRedis();
 }
 
 /**

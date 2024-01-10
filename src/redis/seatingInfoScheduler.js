@@ -4,6 +4,7 @@ import {
     clearSeatingInfoFromRedis,
     retrieveAndStoreSeatingInfoInRedis,
 } from '../helpers/adminHelpers/studentSeat.js';
+import { updateSeatingInfoRedis } from './seatingInfo.js';
 
 const TIME_ZONE = 'Asia/Kolkata';
 
@@ -63,6 +64,8 @@ const updateScheduledTasks = async () => {
     } catch (error) {
         console.error('Error updating scheduled tasks:', error);
         // Log more details about the error, if possible
+    } finally {
+        updateSeatingInfoRedis();
     }
 };
 

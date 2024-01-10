@@ -8,6 +8,7 @@ const getRefreshTokenFromRedis = async (userId) => {
         const refreshToken = await redisClient.get(
             `${keyNames.refreshToken}:${userId}`,
         );
+        console.log('refresh token from redis: ', refreshToken);
         return refreshToken;
     } catch (error) {
         console.error('Error retrieving refresh token from Redis:', error);
@@ -25,7 +26,8 @@ const verifyRefreshToken = async (refreshToken) => {
             decodedToken.id,
         );
 
-        if (!refreshTokenRecord) {
+        if (!refreshTokenRecord /* || refreshTokenRecord !== refreshToken */) {
+            // TODO Re-enable this refresh token verification before production deployment
             throw new Error('Invalid refresh token');
         }
 

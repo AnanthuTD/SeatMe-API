@@ -3,37 +3,54 @@ import { models, sequelize } from '../../sequelize/models.js';
 import redisClient from '../../redis/config.js';
 import logger from '../logger.js';
 import keyNames from '../../redis/keyNames.js';
+import dayjs from '../dayjs.js';
 
-const getTimeCodeForNow = async (seatingTimes) => {
-    const currentTime = new Date();
+const findMatchingConfig = (currentTime, seatingTimes) => {
+    return seatingTimes.find((config) => {
+        const configStartTime = dayjs(`1970-01-01T${config.startTime}`);
+        const configEndTime = dayjs(`1970-01-01T${config.endTime}`);
 
-    logger(seatingTimes, 'seating times');
-
-    const matchingConfig = seatingTimes.find((config) => {
-        const configStartTime = new Date(`1970-01-01T${config.startTime}`);
-        const configEndTime = new Date(`1970-01-01T${config.endTime}`);
+        console.log('Current Time:', currentTime.format());
+        console.log('Config Start Time:', configStartTime.format());
+        console.log('Config End Time:', configEndTime.format());
 
         const isAfterStartTime =
-            currentTime.getHours() > configStartTime.getHours() ||
-            (currentTime.getHours() === configStartTime.getHours() &&
-                currentTime.getMinutes() >= configStartTime.getMinutes());
+            currentTime.hour() > configStartTime.hour() ||
+            (currentTime.hour() === configStartTime.hour() &&
+                currentTime.minute() >= configStartTime.minute());
 
         const isBeforeEndTime =
-            currentTime.getHours() < configEndTime.getHours() ||
-            (currentTime.getHours() === configEndTime.getHours() &&
-                currentTime.getMinutes() < configEndTime.getMinutes());
+            currentTime.hour() < configEndTime.hour() ||
+            (currentTime.hour() === configEndTime.hour() &&
+                currentTime.minute() < configEndTime.minute());
 
         console.log(isAfterStartTime, isBeforeEndTime);
 
         // Check if the current time is within the range of config.startTime and config.endTime
         return isAfterStartTime && isBeforeEndTime;
     });
-
-    return matchingConfig ? matchingConfig.timeCode : null;
 };
 
-const clearSeatingInfoFromRedis = () => {
+const getTimeCodeForNow = async (seatingTimes) => {
     try {
+        const currentTime = dayjs();
+
+        // Ensure logger is defined and functioning correctly
+        logger(seatingTimes, 'seating times');
+
+        const matchingConfig = findMatchingConfig(currentTime, seatingTimes);
+
+        return matchingConfig ? matchingConfig.timeCode : null;
+    } catch (error) {
+        // Add proper error handling
+        console.error('Error in getTimeCodeForNow:', error.message);
+        return null;
+    }
+};
+
+const clearSeatingInfoFromRedis = async () => {
+    try {
+        await redisClient.flushall();
         redisClient.del(keyNames.seatingInfo);
     } catch (error) {
         console.error('Failed to clear seating info from redis!');
@@ -41,6 +58,7 @@ const clearSeatingInfoFromRedis = () => {
 };
 
 const retrieveAndStoreSeatingInfoInRedis = async () => {
+    console.log('retrieving and storing seating info to redis');
     try {
         const currentDate = new Date();
         const currentDayOfWeek = currentDate.getDay();
@@ -57,13 +75,16 @@ const retrieveAndStoreSeatingInfoInRedis = async () => {
 
         const day = daysOfWeek[currentDayOfWeek];
 
-        console.log(day);
-
         const seatingTimes = await models.seatingTimeConfig.findAll({
             where: { day },
         });
 
         const timeCode = await getTimeCodeForNow(seatingTimes);
+
+        if (!timeCode)
+            return console.warn(
+                'No info available to store currently into redis.',
+            );
 
         const seatingData = await models.studentSeat.findAll({
             attributes: [
@@ -74,7 +95,6 @@ const retrieveAndStoreSeatingInfoInRedis = async () => {
                 [sequelize.col('room.floor'), 'floor'],
                 [sequelize.col('room.block.id'), 'blockId'],
                 [sequelize.col('room.description'), 'roomName'],
-                // [sequelize.col('room.block.name'), 'blockName'],
                 [sequelize.col('exam.course.id'), 'courseId'],
                 [sequelize.col('exam.course.name'), 'courseName'],
                 [sequelize.col('exam.dateTime.time_code'), 'timeCode'],
@@ -122,7 +142,7 @@ const retrieveAndStoreSeatingInfoInRedis = async () => {
             ],
         });
 
-        // logger(seatingData);
+        console.log('length of seatingData: ', seatingData.length);
 
         await redisClient.del(keyNames.seatingInfo);
 
@@ -208,7 +228,7 @@ const createRecord = async (seating) => {
         });
 
         // retrieve and store data into redis
-        // retrieveAndStoreSeatingInfoInRedis();
+        retrieveAndStoreSeatingInfoInRedis();
     } catch (error) {
         console.error(
             'Error during bulk insert or update of studentSeat:',

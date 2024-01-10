@@ -1,8 +1,8 @@
 import express from 'express';
-import dayjs from 'dayjs';
 import path from 'path';
 import fs from 'fs';
 import archiver from 'archiver';
+import dayjs from '../../helpers/dayjs.js';
 import {
     getOngoingExamCount,
     getExams,

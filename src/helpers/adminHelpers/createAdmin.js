@@ -1,12 +1,12 @@
 import { createAdmin } from '../bcryptHelper.js';
 
 const userData = {
-    id: 'AAA',
+    id: 'AAA1',
     name: 'admin',
-    email: 'admin@gmail.com',
-    phone: '1234567890',
+    email: 'seatmemes@gmail.com',
+    phone: '1234567891',
     isAdmin: true,
-    password: 'admin',
+    password: 'dca2024',
     designation: 'admin',
 };
 createAdmin(userData);

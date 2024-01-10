@@ -18,8 +18,15 @@ redisClient.on('reconnecting', () => {
     console.log('Reconnecting to Redis server...');
 });
 
-redisClient.on('ready', () => {
-    console.log('Connected to Redis server');
+redisClient.on('ready', async () => {
+    try {
+        await redisClient.flushall();
+        console.log('Redis cleared successfully');
+    } catch (error) {
+        console.error('Clearing Redis failed:', error);
+    } finally {
+        console.log('Connected to Redis server');
+    }
 });
 
 redisClient.on('error', (err) => {
