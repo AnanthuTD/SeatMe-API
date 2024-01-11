@@ -20,7 +20,7 @@ redisClient.on('reconnecting', () => {
 
 redisClient.on('ready', async () => {
     try {
-        await redisClient.flushall();
+        await redisClient.flushall(); // TODO uncomment before deployment
         console.log('Redis cleared successfully');
     } catch (error) {
         console.error('Clearing Redis failed:', error);
