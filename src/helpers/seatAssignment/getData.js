@@ -79,9 +79,7 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
 
         const students = await models.student.findAll({
             where: {
-                // [Op.or]: [...combinedNonOpenCourses, ...combinedOpenCourses],
-                programId: [29, 18, 17, 13, 16, 14, 15, 19, 20],
-                semester: 1,
+                [Op.or]: [...combinedNonOpenCourses, ...combinedOpenCourses],
             },
             include: [
                 {

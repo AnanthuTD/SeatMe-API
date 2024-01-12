@@ -753,10 +753,10 @@ const countExamsForDate = async ({
     try {
         const count = await models.student.count({
             where: {
-                // [Op.or]: data.map((value) => ({
-                programId: [29, 18, 17, 13, 16, 14, 15, 19, 20],
-                semester: 1,
-                // })),
+                [Op.or]: data.map((value) => ({
+                    programId: value.programId,
+                    semester: value.semester,
+                })),
             },
         });
 

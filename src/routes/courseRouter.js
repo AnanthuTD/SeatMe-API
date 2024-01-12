@@ -1,5 +1,6 @@
 import express from 'express';
 import { models } from '../sequelize/models.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
@@ -30,13 +31,19 @@ router.post('/course', async (req, res) => {
 
                     if (programId) {
                         try {
-                            await courseInstance.addProgram(programId.id);
+                            await models.programCourse.upsert({
+                                programId: course.programId,
+                                courseId: course.id,
+                            });
                         } catch (error) {
-                            if (
-                                error.name !== 'SequelizeUniqueConstraintError'
-                            ) {
-                                throw error;
-                            }
+                            console.error(
+                                'Error upserting record in to programCourse:',
+                                error,
+                            );
+                            failedRecords.push({
+                                ...course,
+                                error: error.message,
+                            });
                         }
                     } else {
                         console.error(
@@ -44,7 +51,7 @@ router.post('/course', async (req, res) => {
                         );
 
                         failedRecords.push({
-                            record: course,
+                            ...course,
                             error: `Program with ID ${course.programId} not found`,
                         });
                     }
@@ -52,7 +59,7 @@ router.post('/course', async (req, res) => {
                     console.error('Error upserting record:', error);
 
                     failedRecords.push({
-                        record: course,
+                        ...course,
                         error: error.message,
                     });
                 }

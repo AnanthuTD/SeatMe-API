@@ -9,7 +9,7 @@ export default (sequelize) => {
         'course',
         {
             id: {
-                type: DataTypes.STRING(20),
+                type: DataTypes.STRING(100),
                 primaryKey: true,
             },
             name: {
@@ -27,6 +27,9 @@ export default (sequelize) => {
                     'skill',
                     'general',
                     'project',
+                    'vocational',
+                    'choice',
+                    'language',
                 ]),
                 allowNull: true,
             },

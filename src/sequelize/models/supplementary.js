@@ -15,7 +15,7 @@ export default (sequelize) => {
                 type: DataTypes.INTEGER.UNSIGNED,
             },
             studentId: {
-                type: DataTypes.INTEGER.UNSIGNED,
+                type: DataTypes.BIGINT.UNSIGNED,
             },
         },
         {

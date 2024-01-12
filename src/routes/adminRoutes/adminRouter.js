@@ -78,7 +78,6 @@ router.get('/courses', async (req, res) => {
     try {
         const { programId, semester } = req.query;
         const courses = await getCourses(programId, semester);
-        logger(courses);
         res.json(courses);
     } catch (error) {
         console.error(`Error in GET /courses: ${error.message}`);

@@ -14,7 +14,6 @@ const department = (sequelize) => {
             },
             code: {
                 type: DataTypes.STRING(20),
-                allowNull: false,
                 primaryKey: true,
             },
             name: {
