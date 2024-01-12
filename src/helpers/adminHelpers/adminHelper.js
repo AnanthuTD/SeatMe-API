@@ -320,7 +320,12 @@ const getCourses = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            type: { [Op.ne]: 'open' },
+                            type: {
+                                [Op.or]: [
+                                    { [Op.ne]: 'open' },
+                                    { [Op.is]: null },
+                                ],
+                            },
                         },
                     ],
                 },
@@ -333,7 +338,9 @@ const getCourses = async (programId, semester) => {
                         '$programCourses.program_id$': {
                             [Op.eq]: programId,
                         },
-                        type: { [Op.ne]: 'open' },
+                        type: {
+                            [Op.or]: [{ [Op.ne]: 'open' }, { [Op.is]: null }],
+                        },
                     },
                 ];
             }
@@ -385,7 +392,9 @@ const getCourses = async (programId, semester) => {
                         '$programCourses.program_id$': {
                             [Op.eq]: programId,
                         },
-                        type: { [Op.ne]: 'open' },
+                        type: {
+                            [Op.or]: [{ [Op.ne]: 'open' }, { [Op.is]: null }],
+                        },
                     },
                 ];
             }
@@ -737,8 +746,6 @@ const countExamsForDate = async ({
     timeCode = 'AN',
 }) => {
     try {
-        console.log('targetDate: ', targetDate);
-        targetDate = dayjs(targetDate).utcOffset(330);
         console.log('targetDate: ', targetDate);
         targetDate = dayjs(targetDate).tz('Asia/Kolkata');
         console.log('targetDate: ', targetDate);
