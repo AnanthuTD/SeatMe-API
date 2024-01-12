@@ -49,7 +49,7 @@ router.get('/', async (req, res) => {
         sortField = sortField || 'date';
         sortOrder = sortOrder || 'DESC';
         offset = parseInt(offset, 10) || 0;
-        limit = parseInt(limit, 10) || 10;
+        limit = parseInt(limit, 10) || null;
 
         const data = await getExams({
             query,
