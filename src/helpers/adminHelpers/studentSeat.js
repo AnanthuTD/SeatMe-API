@@ -50,7 +50,6 @@ const getTimeCodeForNow = async (seatingTimes) => {
 
 const clearSeatingInfoFromRedis = async () => {
     try {
-        await redisClient.flushall();
         redisClient.del(keyNames.seatingInfo);
     } catch (error) {
         console.error('Failed to clear seating info from redis!');
@@ -315,44 +314,35 @@ const getUpcomingExamsById = async (studentId) => {
 };
 
 const getUpcomingExamsFromDB = async () => {
-    const currentDate = new Date();
+    const currentDate = new dayjs();
 
     try {
-        const upcomingExams = await models.exam.findAll({
+        const upcomingExams = await models.course.findAll({
             attributes: [
-                'id',
-                'dateTimeId',
-                'courseId',
-                [sequelize.col('dateTime.date'), 'date'],
-                [sequelize.col('dateTime.time_code'), 'timeCode'],
-                [sequelize.col('course.name'), 'courseName'],
-                [sequelize.col('course.semester'), 'semester'],
-                [sequelize.col('course.type'), 'type'],
-                [
-                    sequelize.col('course.programCourses.program_id'),
-                    'programId',
-                ],
+                ['id', 'courseId'],
+                ['name', 'courseName'],
+                'semester',
+                [sequelize.col('exams.dateTime.date'), 'date'],
+                [sequelize.col('exams.dateTime.time_code'), 'timeCode'],
+                [sequelize.col('exams.dateTime.id'), 'dateTimeId'],
+                [sequelize.col('exams.id'), 'examId'],
+                [sequelize.col('`programCourses.program_id'), 'programId'],
             ],
             include: [
                 {
-                    model: models.dateTime,
-                    where: {
-                        date: { [Op.gte]: currentDate },
-                    },
-                    required: true,
-                    attributes: [],
-                },
-                {
-                    model: models.course,
-                    required: true,
-                    attributes: [],
+                    model: models.exam,
                     include: [
                         {
-                            model: models.programCourse,
-                            required: true,
-                            attributes: [],
+                            model: models.dateTime,
+                            where: { date: { [Op.gte]: currentDate } },
                         },
                     ],
+                    required: true,
+                },
+                {
+                    model: models.programCourse,
+                    attributes: ['programId'],
+                    required: true,
                 },
             ],
             raw: true,
@@ -392,6 +382,7 @@ const getUpcomingExams = async (
     openCourseId = undefined,
 ) => {
     try {
+        console.log(programId, semester, openCourseId);
         let key = `${keyNames.coursesProgram}:${programId}:${semester}`;
         const members = await redisClient.smembers(key);
         const examDataNormal = members.map((member) => JSON.parse(member));

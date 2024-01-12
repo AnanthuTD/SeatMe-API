@@ -9,7 +9,10 @@ import {
     setExam,
 } from '../../helpers/adminHelpers/adminHelper.js';
 import { assignSeats } from '../../helpers/seatAssignment/assignSeats.js';
-import { createRecord } from '../../helpers/adminHelpers/studentSeat.js';
+import {
+    createRecord,
+    retrieveAndStoreExamsInRedis,
+} from '../../helpers/adminHelpers/studentSeat.js';
 import { models, sequelize } from '../../sequelize/models.js';
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
 import getRootDir from '../../../getRootDir.js';
@@ -172,11 +175,12 @@ router.post('/timetable', async (req, res) => {
         }
 
         const status = await setExam(body);
-        if (status)
+        if (status) {
             res.status(200).send(
                 `Exam for course ${courseName}(${courseId}) has been set for ${date}.`,
             );
-        else
+            retrieveAndStoreExamsInRedis();
+        } else
             res.status(404).send(`Course ${courseName}(${courseId}) not found`);
     } catch (error) {
         console.error(`Error in POST /timetable: ${error.message}`);

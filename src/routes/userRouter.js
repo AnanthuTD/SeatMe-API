@@ -8,6 +8,7 @@ import {
     checkSameStudent,
     checkSeatingAvailability,
 } from '../middlewares/userMiddleware.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
@@ -41,7 +42,10 @@ router.get(
                     error: 'Seating arrangement not available at this time.',
                 });
 
-            const { programId, semester, openCourseId } = seatingInfo;
+            const { programId, semester, openCourseId } =
+                seatingInfo?.student || {};
+
+            logger(seatingInfo, 'seating info');
 
             res.cookie('programId', programId);
             res.cookie('semester', semester);
@@ -59,21 +63,10 @@ router.get('/exams', async (req, res) => {
     try {
         const { programId, semester, openCourseId, studentId } = req.cookies;
 
-        if (!programId || !semester) {
-            if (!studentId)
-                return res.status(400).json({
-                    error: 'No necessary data to process the request!',
-                });
-
-            try {
-                const upcomingExams = await getUpcomingExamsFromDB(studentId);
-
-                return res.status(200).json(upcomingExams);
-            } catch (error) {
-                console.error('An error occurred:', error);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-        }
+        if (!studentId || !programId || !semester)
+            return res.status(400).json({
+                error: 'No necessary data to process the request!',
+            });
 
         let upcomingExams = [];
 
