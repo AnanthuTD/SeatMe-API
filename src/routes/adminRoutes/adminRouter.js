@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import express from 'express';
+import dayjs from 'dayjs';
 import {
     getDepartments,
     getBlocks,
@@ -187,7 +188,7 @@ router.patch('/rooms', async (req, res) => {
 
 router.get('/date-time-id', async (req, res) => {
     try {
-        const { date = new Date(), timeCode = 'AN' } = req.query;
+        const { date = new dayjs(), timeCode = 'AN' } = req.query;
         const dateTime = await getDateTimeId(date, timeCode);
         res.status(200).json({ dateTimeId: dateTime.id });
     } catch (error) {

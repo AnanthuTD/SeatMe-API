@@ -365,7 +365,7 @@ router.delete('/:examId', async (req, res) => {
 router.get('/:date/:timeCode/rooms', async (req, res) => {
     try {
         let { date, timeCode } = req.params;
-        date = new Date(date);
+        date = new dayjs(date);
 
         const rooms = await models.room.findAll({
             attributes: [

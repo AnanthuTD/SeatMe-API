@@ -1,5 +1,6 @@
 import express from 'express';
 import { Op } from 'sequelize';
+import dayjs from '../../helpers/dayjs.js';
 import {
     getStudentCount,
     findStudent,
@@ -32,7 +33,7 @@ router.post('/', async (req, res) => {
             students,
         );
 
-        return res.status(200).json(uncreatedStudents);
+        return res.status(200).json({ failedRecords: uncreatedStudents });
     } catch (error) {
         const errorMessage = `Error in POST /student: ${error.message}`;
         console.error(errorMessage);
@@ -166,7 +167,7 @@ router.post('/supplementary', async (req, res) => {
                     include: [
                         {
                             model: models.dateTime,
-                            where: { date: { [Op.gte]: new Date() } },
+                            where: { date: { [Op.gte]: new dayjs() } },
                             required: true,
                             attributes: [],
                         },

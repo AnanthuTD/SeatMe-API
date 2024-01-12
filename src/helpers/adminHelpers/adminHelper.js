@@ -1,5 +1,5 @@
 import { Op, literal } from 'sequelize';
-import dayjs from 'dayjs';
+import dayjs from '../dayjs.js';
 import { models, sequelize } from '../../sequelize/models.js';
 import { fetchExams } from '../seatAssignment/getData.js';
 import { retrieveAndStoreExamsInRedis } from './studentSeat.js';
@@ -420,7 +420,7 @@ const getCoursesExams = async (programId, semester) => {
                     include: [
                         {
                             model: models.dateTime,
-                            where: { date: { [Op.gte]: new Date() } },
+                            where: { date: { [Op.gte]: new dayjs() } },
                             required: true,
                         },
                     ],
@@ -444,7 +444,7 @@ const getCoursesExams = async (programId, semester) => {
                         include: [
                             {
                                 model: models.dateTime,
-                                where: { date: { [Op.gte]: new Date() } },
+                                where: { date: { [Op.gte]: new dayjs() } },
                                 required: true,
                             },
                         ],
@@ -488,7 +488,7 @@ const getCoursesExams = async (programId, semester) => {
                         include: [
                             {
                                 model: models.dateTime,
-                                where: { date: { [Op.gte]: new Date() } },
+                                where: { date: { [Op.gte]: new dayjs() } },
                                 required: true,
                             },
                         ],
@@ -556,7 +556,7 @@ const getExamDateTime = async ({ courseId = undefined }) => {
         include: {
             model: models.dateTime,
             attributes: ['date', 'timeCode'],
-            where: { date: { [Op.gte]: new Date() } },
+            where: { date: { [Op.gte]: new dayjs() } },
             required: true,
         },
         attributes: [],
@@ -651,7 +651,7 @@ const getExams = async ({
 };
 
 const getOngoingExamCount = async () => {
-    const currentDate = new Date();
+    const currentDate = new dayjs();
     const totalCount = await models.exam.count({
         include: [
             {
