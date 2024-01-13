@@ -754,7 +754,7 @@ const updateRoomAvailability = async ({ roomIds = [] }) => {
     }
 };
 
-const countExamsForDate = async ({
+const countExamineesByProgramForDate = async ({
     targetDate = new dayjs(),
     timeCode = 'AN',
 }) => {
@@ -764,22 +764,44 @@ const countExamsForDate = async ({
         console.log('targetDate: ', targetDate);
     } catch (error) {
         console.error('Invalid date!');
+        throw error;
     }
+
     const { openCourses, nonOpenCourses } = await fetchExams(
         targetDate,
         timeCode,
     );
+
     const data = [...nonOpenCourses, ...openCourses];
+
     try {
-        const count = await models.student.count({
+        const programCounts = await models.student.count({
+            attributes: [
+                [sequelize.col('program.abbreviation'), 'programId'],
+                [sequelize.fn('count', sequelize.literal('1')), 'count'],
+            ],
             where: {
                 [Op.or]: data.map((value) => ({
                     programId: value.programId,
                     semester: value.semester,
                 })),
             },
+            include: {
+                model: models.program,
+                attributes: ['abbreviation'],
+            },
+            group: ['programId'],
         });
 
+        // Create an object from the result for easier handling
+        const totalCountsByProgram = {};
+
+        // Use forEach to accumulate counts
+        programCounts.forEach(({ programId, count }) => {
+            totalCountsByProgram[programId] = count;
+        });
+
+        // Calculate supplyStudentsCount
         const supplyStudentsCount = await models.student.count({
             include: [
                 {
@@ -792,15 +814,34 @@ const countExamsForDate = async ({
                             ],
                         },
                     },
-                    attributes: [],
                     required: true,
                 },
+                {
+                    model: models.program,
+                    attributes: ['abbreviation'],
+                },
             ],
+            attributes: [
+                [sequelize.col('program.abbreviation'), 'programId'],
+                [sequelize.fn('count', sequelize.literal('1')), 'count'],
+            ],
+            group: ['programId'],
         });
 
-        const totalCount = count + supplyStudentsCount;
+        supplyStudentsCount.forEach(({ programId, count }) => {
+            totalCountsByProgram[programId] += count;
+        });
 
-        return totalCount;
+        let totalStudents = 0;
+
+        Object.values(totalCountsByProgram).forEach((count) => {
+            totalStudents += count;
+        });
+
+        // Add total to totalCountsByProgram
+        totalCountsByProgram.total = totalStudents;
+
+        return totalCountsByProgram;
     } catch (error) {
         console.error('Error counting exams:', error);
         throw error;
@@ -970,7 +1011,7 @@ export {
     getRooms,
     updateRoomAvailability,
     getExamDateTime,
-    countExamsForDate,
+    countExamineesByProgramForDate,
     upsertStudents,
     updateStudent,
     getAvailableOpenCourses,

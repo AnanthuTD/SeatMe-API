@@ -116,7 +116,7 @@ export default async function generateSeatingMatrixPDFWithCourse(
                         }\nExam: ${seat.courseName}`,
                     ); */
                     rowData.push(
-                        `program: ${seat.programId}\nExam: ${seat.courseName}`,
+                        `program: ${seat.programName}\nExam: ${seat.courseName}`,
                     );
                 } else {
                     rowData.push('Empty');

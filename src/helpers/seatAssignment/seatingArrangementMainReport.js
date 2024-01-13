@@ -60,9 +60,16 @@ export default async function generateSeatingArrangementPDF({
                 border: 1px solid black;
                 border-collapse: collapse;
             }
+            td{
+                text-align: center;
+                padding: 2px;
+            }
             @page {
                 size: A4;
                 margin: 0;
+            }
+            .content {
+                page-break-inside: avoid; /* Avoid breaking inside the div */
             }
         </style>
         <section class="content">
@@ -76,7 +83,7 @@ export default async function generateSeatingArrangementPDF({
                 }</h3>
                 <h3>${formattedDate}</h3>
             </div>
-            <table border="1">
+            <table border="1" style="width:100%;">
                 <thead>`;
 
         exams.forEach((program) => {
@@ -152,13 +159,13 @@ export default async function generateSeatingArrangementPDF({
     const page = await browser.newPage();
     await page.setContent(fullHtml);
 
-    // await page.addStyleTag({
-    //     content: `
-    //       .content {
-    //         page-break-inside: avoid; /* Avoid breaking inside the div */
-    //       }
-    //     `,
-    // });
+    await page.addStyleTag({
+        content: `
+          .content {
+            page-break-inside: avoid; /* Avoid breaking inside the div */
+          }
+        `,
+    });
 
     // Set the path to save the PDF file
     const pdfPath = `${getRootDir()}/pdf/${fileName}.pdf`;

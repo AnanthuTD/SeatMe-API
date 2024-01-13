@@ -22,7 +22,7 @@ async function fetchExams(date, timeCode) {
                 {
                     model: models.program,
                     required: true,
-                    attributes: ['id', 'name'],
+                    attributes: ['id', ['abbreviation', 'name']],
                 },
             ],
         });
@@ -84,7 +84,7 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
             include: [
                 {
                     model: models.program,
-                    attributes: ['name'],
+                    attributes: [['abbreviation', 'name']],
                 },
             ],
             order: [[orderBy, 'ASC']],
@@ -94,7 +94,7 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
                 'semester',
                 'programId',
                 'rollNumber',
-                [sequelize.col('program.name'), 'programName'],
+                [sequelize.col('program.abbreviation'), 'programName'],
             ],
             raw: true,
         });
@@ -125,7 +125,7 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
                 },
                 {
                     model: models.program,
-                    attributes: ['name'],
+                    attributes: [['abbreviation', 'name']],
                 },
             ],
             order: [[orderBy, 'ASC']],
@@ -145,7 +145,7 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
                     sequelize.col('supplementaries.exam.course.name'),
                     'courseName',
                 ],
-                [sequelize.col('program.name'), 'programName'],
+                [sequelize.col('program.abbreviation'), 'programName'],
             ],
             raw: true,
         });

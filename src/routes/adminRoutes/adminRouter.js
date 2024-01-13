@@ -10,7 +10,7 @@ import {
     getRooms,
     updateRoomAvailability,
     getAvailableOpenCourses,
-    countExamsForDate,
+    countExamineesByProgramForDate,
     getExamDateTime,
     getCoursesExams,
 } from '../../helpers/adminHelpers/adminHelper.js';
@@ -257,8 +257,11 @@ router.get('/exam', async (req, res) => {
 router.get('/examines-count', async (req, res) => {
     const { date, timeCode } = req.query;
     try {
-        const count = await countExamsForDate({ targetDate: date, timeCode });
-        res.json(count);
+        const examineesByProgram = await countExamineesByProgramForDate({
+            targetDate: date,
+            timeCode,
+        });
+        res.json(examineesByProgram);
     } catch (error) {
         console.error('Error counting exams for date:', error);
         res.status(500).json({ error: 'Error counting exams for date' });
