@@ -89,7 +89,8 @@ router.delete('/', async (req, res) => {
 
 router.get('/count', async (req, res) => {
     try {
-        const count = await getStudentCount();
+        const { programId, semester } = req.query || {};
+        const count = await getStudentCount(programId, semester);
         res.json(count);
     } catch (error) {
         console.error(`Error in GET /student/count: ${error.message}`);

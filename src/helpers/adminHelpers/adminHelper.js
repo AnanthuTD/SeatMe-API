@@ -135,10 +135,23 @@ const getStudents = async (offset, limit) => {
     return data;
 };
 
-const getStudentCount = async () => {
-    const totalCount = await models.student.count();
-
-    return totalCount;
+const getStudentCount = async (programId = null, semester = null) => {
+    if (programId) {
+        if (semester) {
+            return models.student.count({
+                where: {
+                    programId,
+                    semester,
+                },
+            });
+        }
+        return models.student.count({
+            where: {
+                programId,
+            },
+        });
+    }
+    return models.student.count();
 };
 
 const findStudent = async (
