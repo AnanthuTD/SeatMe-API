@@ -775,10 +775,11 @@ const countExamineesByProgramForDate = async ({
     const data = [...nonOpenCourses, ...openCourses];
 
     try {
-        const programCounts = await models.student.count({
+        const regularStudentsCounts = await models.student.count({
             attributes: [
                 [sequelize.col('program.abbreviation'), 'programId'],
-                [sequelize.fn('count', sequelize.literal('1')), 'count'],
+                [sequelize.fn('count', sequelize.literal('1')), 'regular'],
+                [sequelize.literal('0'), 'supply'],
             ],
             where: {
                 [Op.or]: data.map((value) => ({
@@ -791,14 +792,6 @@ const countExamineesByProgramForDate = async ({
                 attributes: ['abbreviation'],
             },
             group: ['programId'],
-        });
-
-        // Create an object from the result for easier handling
-        const totalCountsByProgram = {};
-
-        // Use forEach to accumulate counts
-        programCounts.forEach(({ programId, count }) => {
-            totalCountsByProgram[programId] = count;
         });
 
         // Calculate supplyStudentsCount
@@ -823,23 +816,25 @@ const countExamineesByProgramForDate = async ({
             ],
             attributes: [
                 [sequelize.col('program.abbreviation'), 'programId'],
-                [sequelize.fn('count', sequelize.literal('1')), 'count'],
+                [sequelize.fn('count', sequelize.literal('1')), 'supply'],
             ],
             group: ['programId'],
         });
 
-        supplyStudentsCount.forEach(({ programId, count }) => {
-            totalCountsByProgram[programId] += count;
-        });
+        const totalCountsByProgram = [...regularStudentsCounts];
 
-        let totalStudents = 0;
+        supplyStudentsCount.forEach(
+            ({ programId: supplyProgramId, supply }) => {
+                const matchingProgram = totalCountsByProgram.find(
+                    ({ programId }) => programId === supplyProgramId,
+                );
 
-        Object.values(totalCountsByProgram).forEach((count) => {
-            totalStudents += count;
-        });
-
-        // Add total to totalCountsByProgram
-        totalCountsByProgram.total = totalStudents;
+                if (matchingProgram) {
+                    matchingProgram.supply = supply;
+                    delete matchingProgram.count;
+                }
+            },
+        );
 
         return totalCountsByProgram;
     } catch (error) {
