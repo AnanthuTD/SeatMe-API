@@ -1,4 +1,4 @@
-// import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer';
 import fs from 'fs';
 import logger from '../logger.js';
 import getRootDir from '../../../getRootDir.js';
@@ -155,29 +155,33 @@ export default async function generateSeatingArrangementPDF({
     fs.writeFileSync(htmlFilePath, fullHtml, 'utf-8');
     logger(`HTML file saved: ${htmlFilePath}`);
 
-    /* const browser = await puppeteer.launch({ headless: true });
-    const page = await browser.newPage();
-    await page.setContent(fullHtml); */
+    try {
+        const browser = await puppeteer.launch({ headless: true });
+        const page = await browser.newPage();
+        await page.setContent(fullHtml);
 
-    // await page.addStyleTag({
-    //     content: `
-    //       .content {
-    //         page-break-inside: avoid; /* Avoid breaking inside the div */
-    //       }
-    //     `,
-    // });
+        await page.addStyleTag({
+            content: `
+          .content {
+            page-break-inside: avoid; /* Avoid breaking inside the div */
+          }
+        `,
+        });
 
-    // Set the path to save the PDF file
-    // const pdfPath = `${getRootDir()}/pdf/${fileName}.pdf`;
+        // Set the path to save the PDF file
+        const pdfPath = `${getRootDir()}/pdf/${fileName}.pdf`;
 
-    // Generate PDF
-    /* await page.pdf({
-        path: pdfPath,
-        format: 'A4',
-    });
+        // Generate PDF
+        await page.pdf({
+            path: pdfPath,
+            format: 'A4',
+        });
 
-    await browser.close(); */
+        await browser.close();
 
-    // Log success
-    // logger(`PDF generated successfully: ${pdfPath}`);
+        // Log success
+        logger(`PDF generated successfully: ${pdfPath}`);
+    } catch (error) {
+        console.log('puppeteer failed: ', error);
+    }
 }
