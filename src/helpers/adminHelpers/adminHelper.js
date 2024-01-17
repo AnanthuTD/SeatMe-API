@@ -393,7 +393,7 @@ const getCourses = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            type: [Op.ne, 'open'],
+                            [Op.or]: [{ [Op.ne]: 'open' }, { [Op.is]: null }],
                         },
                     ],
                 },
@@ -477,7 +477,12 @@ const getCoursesExams = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            type: { [Op.ne]: 'open' },
+                            type: {
+                                [Op.or]: [
+                                    { [Op.ne]: 'open' },
+                                    { [Op.is]: null },
+                                ],
+                            },
                         },
                     ],
                 },
@@ -520,7 +525,12 @@ const getCoursesExams = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            type: [Op.ne, 'open'],
+                            type: {
+                                [Op.or]: [
+                                    { [Op.ne]: 'open' },
+                                    { [Op.is]: null },
+                                ],
+                            },
                         },
                     ],
                 },
