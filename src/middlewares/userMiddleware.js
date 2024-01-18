@@ -63,7 +63,8 @@ const checkSeatingAvailability = async (req, res, next) => {
     }
 
     const seatingConfigurations = JSON.parse(seatingConfigList);
-    const currentTime = new dayjs();
+    const currentTime = new dayjs().tz('Asia/Kolkata');
+    console.log('current: ', currentTime);
 
     // Check if the current time is within any of the configured ranges
     const matchingConfig = seatingConfigurations.find((config) => {
