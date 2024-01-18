@@ -31,6 +31,7 @@ async function fetchExams(date, timeCode) {
 
         const openCourses = [];
         const nonOpenCourses = [];
+        const commonCourse2 = [];
 
         data.forEach((course) => {
             const courseDetails = {
@@ -49,6 +50,8 @@ async function fetchExams(date, timeCode) {
 
                 if (course.type === 'open') {
                     openCourses.push({ ...courseDetails, ...programInfo });
+                } else if (course.type === 'common2') {
+                    commonCourse2.push({ ...courseDetails, ...programInfo });
                 } else {
                     nonOpenCourses.push({ ...courseDetails, ...programInfo });
                 }
@@ -57,7 +60,7 @@ async function fetchExams(date, timeCode) {
 
         // console.log(JSON.stringify(students, null, 2));
 
-        return { openCourses, nonOpenCourses };
+        return { openCourses, nonOpenCourses, commonCourse2 };
     } catch (error) {
         throw new Error(`Error fetching data: ${error.message}`);
     }
@@ -65,7 +68,12 @@ async function fetchExams(date, timeCode) {
 
 // fetchExams(new Date('2023-10-25'));
 
-async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
+async function fetchStudents({
+    nonOpenCourses,
+    openCourses,
+    commonCourse2,
+    orderBy = '',
+}) {
     try {
         const combinedNonOpenCourses = nonOpenCourses.map((value) => ({
             programId: value.programId,
@@ -77,9 +85,29 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
             semester: value.semester,
         }));
 
+        const combinedCommonCourse2 = commonCourse2
+            .map((value) => {
+                if (value.semester === 1)
+                    return {
+                        secondLang_1: value.courseId,
+                        semester: value.semester,
+                    };
+                if (value.semester === 2)
+                    return {
+                        secondLang_2: value.courseId,
+                        semester: value.semester,
+                    };
+                return null;
+            })
+            .filter((item) => item !== null);
+
         const students = await models.student.findAll({
             where: {
-                [Op.or]: [...combinedNonOpenCourses, ...combinedOpenCourses],
+                [Op.or]: [
+                    ...combinedNonOpenCourses,
+                    ...combinedOpenCourses,
+                    ...combinedCommonCourse2,
+                ],
             },
             include: [
                 {
@@ -107,6 +135,7 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
                             [Op.in]: [
                                 ...nonOpenCourses.map((value) => value.examId),
                                 ...openCourses.map((value) => value.examId),
+                                ...commonCourse2.map((value) => value.examId),
                             ],
                         },
                     },
@@ -225,7 +254,7 @@ export default async function getData({
     orderBy = 'rollNumber',
 }) {
     try {
-        const { nonOpenCourses, openCourses } = await fetchExams(
+        const { nonOpenCourses, openCourses, commonCourse2 } = await fetchExams(
             date,
             timeCode,
         );
@@ -235,6 +264,7 @@ export default async function getData({
             orderBy,
             nonOpenCourses,
             openCourses,
+            commonCourse2,
         });
         // console.log(JSON.stringify(students, null, 4));
 
@@ -243,6 +273,7 @@ export default async function getData({
         const updateStudents = matchStudentsWithData(students, [
             ...openCourses,
             ...nonOpenCourses,
+            ...commonCourse2,
         ]);
         // console.log(JSON.stringify(updateStudents, null, 4));
 
