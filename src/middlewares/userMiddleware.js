@@ -2,8 +2,6 @@ import redisClient from '../redis/config.js';
 import keyNames from '../redis/keyNames.js';
 import dayjs from '../helpers/dayjs.js';
 
-dayjs.tz.setDefault('Asia/Kolkata');
-
 const checkSameStudent = (req, res, next) => {
     try {
         const { studentId } = req.query;
@@ -36,7 +34,7 @@ const checkSeatingAvailability = async (req, res, next) => {
     const { studentId } = req.query;
     res.cookie('studentId', studentId);
 
-    const currentDayOfWeek = new dayjs().day();
+    const currentDayOfWeek = new dayjs.tz().day();
 
     const daysOfWeek = [
         'Sunday',
@@ -63,13 +61,13 @@ const checkSeatingAvailability = async (req, res, next) => {
     }
 
     const seatingConfigurations = JSON.parse(seatingConfigList);
-    const currentTime = new dayjs().tz('Asia/Kolkata');
+    const currentTime = new dayjs.tz();
     console.log('current: ', currentTime);
 
     // Check if the current time is within any of the configured ranges
     const matchingConfig = seatingConfigurations.find((config) => {
-        const configStartTime = new dayjs(`1970-01-01T${config.startTime}`);
-        const configEndTime = new dayjs(`1970-01-01T${config.endTime}`);
+        const configStartTime = new dayjs.tz(`1970-01-01T${config.startTime}`);
+        const configEndTime = new dayjs.tz(`1970-01-01T${config.endTime}`);
 
         console.log('Current Time:', currentTime.format());
         console.log('Config Start Time:', configStartTime.format());

@@ -104,7 +104,7 @@ function setupMiddlewares() {
     }
 
     app.use((req, res, next) => {
-        const startTime = dayjs(); // Use dayjs for the start timestamp
+        const startTime = dayjs.tz(); // Use dayjs for the start timestamp
 
         console.log(
             `[${startTime.format('YYYY-MM-DD HH:mm:ss')}] Request: ${
@@ -113,7 +113,7 @@ function setupMiddlewares() {
         );
 
         res.on('finish', () => {
-            const endTime = dayjs();
+            const endTime = dayjs.tz();
             const duration = endTime.diff(startTime);
 
             console.log(

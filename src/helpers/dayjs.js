@@ -7,6 +7,4 @@ dayjs.extend(timezone);
 
 dayjs.tz.setDefault('Asia/Kolkata');
 
-console.log(dayjs());
-
 export default dayjs;

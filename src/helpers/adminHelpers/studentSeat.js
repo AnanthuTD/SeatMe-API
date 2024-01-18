@@ -7,8 +7,8 @@ import dayjs from '../dayjs.js';
 
 const findMatchingConfig = (currentTime, seatingTimes) => {
     return seatingTimes.find((config) => {
-        const configStartTime = dayjs(`1970-01-01T${config.startTime}`);
-        const configEndTime = dayjs(`1970-01-01T${config.endTime}`);
+        const configStartTime = dayjs.tz(`1970-01-01T${config.startTime}`);
+        const configEndTime = dayjs.tz(`1970-01-01T${config.endTime}`);
 
         console.log('Current Time:', currentTime.format());
         console.log('Config Start Time:', configStartTime.format());
@@ -33,7 +33,7 @@ const findMatchingConfig = (currentTime, seatingTimes) => {
 
 const getTimeCodeForNow = async (seatingTimes) => {
     try {
-        const currentTime = dayjs();
+        const currentTime = dayjs.tz();
 
         // Ensure logger is defined and functioning correctly
         logger(seatingTimes, 'seating times');
@@ -59,7 +59,7 @@ const clearSeatingInfoFromRedis = async () => {
 const retrieveAndStoreSeatingInfoInRedis = async () => {
     console.log('retrieving and storing seating info to redis');
     try {
-        const currentDate = new dayjs();
+        const currentDate = new dayjs.tz();
         const currentDayOfWeek = currentDate.day();
 
         const daysOfWeek = [
@@ -249,7 +249,7 @@ async function removeAllSetsWithPattern(pattern) {
 
 const getUpcomingExamsById = async (studentId) => {
     const student = await models.student.findByPk(studentId, {});
-    const currentDate = new dayjs();
+    const currentDate = new dayjs.tz();
 
     let data = await models.course.findAll({
         attributes: [
@@ -314,7 +314,7 @@ const getUpcomingExamsById = async (studentId) => {
 };
 
 const getUpcomingExamsFromDB = async () => {
-    const currentDate = new dayjs();
+    const currentDate = new dayjs.tz();
 
     try {
         const upcomingExams = await models.course.findAll({
