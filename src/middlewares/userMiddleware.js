@@ -2,6 +2,8 @@ import redisClient from '../redis/config.js';
 import keyNames from '../redis/keyNames.js';
 import dayjs from '../helpers/dayjs.js';
 
+dayjs.tz.setDefault('Asia/Kolkata');
+
 const checkSameStudent = (req, res, next) => {
     try {
         const { studentId } = req.query;
