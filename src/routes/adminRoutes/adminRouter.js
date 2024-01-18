@@ -269,16 +269,41 @@ router.get('/examines-count', async (req, res) => {
 });
 
 router.get('/download/report/:examName', (req, res) => {
-    const { examName } = req.params;
-    const outputFilePath = path.join(reportsDir, `${examName}.zip`);
+    try {
+        const { examName } = req.params;
 
-    // Set headers for the response
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename=output.zip');
+        if (!examName) {
+            res.sendStatus(400);
+            return;
+        }
 
-    // Pipe the saved zip file to the client response
-    const fileStream = fs.createReadStream(outputFilePath);
-    fileStream.pipe(res);
+        const outputFilePath = path.join(reportsDir, `${examName}`);
+
+        // Check if the file exists
+        if (!fs.existsSync(outputFilePath)) {
+            res.status(404).send('Report not found');
+            return;
+        }
+
+        // Set headers for the response
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', 'attachment; filename=output.zip');
+
+        // Pipe the saved zip file to the client response
+        const fileStream = fs.createReadStream(outputFilePath);
+
+        // Handle stream errors
+        fileStream.on('error', (error) => {
+            console.error('Error streaming report file: ', error);
+            res.sendStatus(500);
+        });
+
+        // Pipe the file stream to the response
+        fileStream.pipe(res);
+    } catch (error) {
+        console.error('Error on report download: ', error);
+        res.sendStatus(500);
+    }
 });
 
 router.get('/reports/:fileName', (req, res) => {
