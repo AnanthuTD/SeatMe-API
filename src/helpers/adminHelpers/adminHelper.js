@@ -280,8 +280,6 @@ const getPrograms = async (departmentCode) => {
             },
             raw: true,
         });
-        console.log('hi');
-        logger('programs', programs);
         return programs;
     }
     const allPrograms = await models.program.findAll({
@@ -777,12 +775,12 @@ const countExamineesByProgramForDate = async ({
         throw error;
     }
 
-    const { openCourses, nonOpenCourses } = await fetchExams(
+    const { openCourses, nonOpenCourses, commonCourse2 } = await fetchExams(
         targetDate,
         timeCode,
     );
 
-    const data = [...nonOpenCourses, ...openCourses];
+    const data = [...nonOpenCourses, ...openCourses, ...commonCourse2];
 
     try {
         const regularStudentsCounts = await models.student.count({
@@ -814,6 +812,7 @@ const countExamineesByProgramForDate = async ({
                             [Op.in]: [
                                 ...nonOpenCourses.map((value) => value.examId),
                                 ...openCourses.map((value) => value.examId),
+                                ...commonCourse2.map((value) => value.examId),
                             ],
                         },
                     },
