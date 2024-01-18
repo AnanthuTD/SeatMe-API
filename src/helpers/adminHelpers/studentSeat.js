@@ -237,7 +237,7 @@ const createRecord = async (seating) => {
 };
 
 async function removeAllSetsWithPattern(pattern) {
-    const keysToDelete = await redisClient.keys(`${pattern}'*'`);
+    const keysToDelete = await redisClient.keys(`${pattern}*`);
 
     if (keysToDelete.length > 0) {
         await redisClient.del(keysToDelete);
