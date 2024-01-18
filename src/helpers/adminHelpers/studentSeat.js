@@ -59,8 +59,8 @@ const clearSeatingInfoFromRedis = async () => {
 const retrieveAndStoreSeatingInfoInRedis = async () => {
     console.log('retrieving and storing seating info to redis');
     try {
-        const currentDate = new Date();
-        const currentDayOfWeek = currentDate.getDay();
+        const currentDate = new dayjs();
+        const currentDayOfWeek = currentDate.day();
 
         const daysOfWeek = [
             'Sunday',
@@ -249,7 +249,7 @@ async function removeAllSetsWithPattern(pattern) {
 
 const getUpcomingExamsById = async (studentId) => {
     const student = await models.student.findByPk(studentId, {});
-    const currentDate = new Date();
+    const currentDate = new dayjs();
 
     let data = await models.course.findAll({
         attributes: [

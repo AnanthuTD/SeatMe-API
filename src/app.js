@@ -32,6 +32,7 @@ import updateSeatingInfoScheduledTasks from './redis/seatingInfoScheduler.js';
 import { loadSeatingAvailabilityTimesToRedis } from './redis/loadSeatingAvailabilityTimes.js';
 import loadRefreshTokensToRedis from './redis/loadRefreshTokens.js';
 import { updateSeatingInfoRedis } from './redis/seatingInfo.js';
+import dayjs from './helpers/dayjs.js';
 
 const dirname = getRootDir();
 
@@ -103,18 +104,25 @@ function setupMiddlewares() {
     }
 
     app.use((req, res, next) => {
-        const start = Date.now();
+        const startTime = dayjs(); // Use dayjs for the start timestamp
+
         console.log(
-            `[${new Date().toISOString()}] Request: ${req.method} ${req.url}`,
+            `[${startTime.format('YYYY-MM-DD HH:mm:ss')}] Request: ${
+                req.method
+            } ${req.url}`,
         );
+
         res.on('finish', () => {
-            const duration = Date.now() - start;
+            const endTime = dayjs();
+            const duration = endTime.diff(startTime);
+
             console.log(
-                `[${new Date().toISOString()}] Response: ${
+                `[${endTime.format('YYYY-MM-DD HH:mm:ss')}] Response: ${
                     res.statusCode
                 } - ${duration}ms`,
             );
         });
+
         next();
     });
 }
