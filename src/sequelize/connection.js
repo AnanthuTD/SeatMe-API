@@ -1,6 +1,7 @@
 import path from 'path';
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
+import logger from '../helpers/logger.js';
 import getRootDir from '../../getRootDir.js';
 
 // Specify the path to your .env file
@@ -14,6 +15,14 @@ const password = process.env.DB_PASSWORD;
 const database = process.env.DB_NAME;
 const host = process.env.DB_HOST;
 const port = process.env.DB_PORT;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Configure Sequelize logging
+const logging = isProduction
+    ? false
+    : (query, options) => {
+          logger.debug(query);
+      };
 
 const config = {
     host,
@@ -22,7 +31,7 @@ const config = {
     dialectOptions: {
         connectTimeout: 30000,
     },
-    // logging: false,
+    logging,
 };
 
 const sequelize = new Sequelize(database, username, password, config);

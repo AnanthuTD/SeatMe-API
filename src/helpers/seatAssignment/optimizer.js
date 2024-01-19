@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import SeatingArrangement from './algorithm.js';
-// import logger from '../logger.js';
+import logger from '../logger.js';
 
 function optimizationAttempt({ students, room, examType }) {
     const seatingOptimizer = new SeatingArrangement({
@@ -20,7 +20,7 @@ function optimizationAttempt({ students, room, examType }) {
         .filter((classStudents) => classStudents.length);
 
     if (studentsLeftUnassigned.length) {
-        /*  console.log(
+        /*  console.trace(
             'students left unassigned: ',
             studentsLeftUnassigned.length,
         ); */
@@ -59,12 +59,6 @@ function firstTryToOptimization({
                     occupied: false,
                 };
 
-                /*  console.log(
-                    seat,
-                    '\n',
-                    JSON.stringify(studentsData[0], null, 2),
-                ); */
-
                 const room = { seatingMatrix: newSeatingMatrix, exams };
                 const result = optimizationAttempt({
                     students: [[studentsData[0]]],
@@ -79,7 +73,7 @@ function firstTryToOptimization({
                     let flag = false;
 
                     roomsWithEmptySeats.forEach((roomToOptimize) => {
-                        // logger(roomToOptimize, 'roomsWithEmptySeats');
+                        // logger.trace(roomToOptimize, 'roomsWithEmptySeats');
                         if (flag) return;
                         const result2 = optimizationAttempt({
                             students: [[seat]],
@@ -92,7 +86,7 @@ function firstTryToOptimization({
                     });
 
                     if (!flag) {
-                        // console.log('second failed');
+                        logger.trace('second failed');
 
                         newSeatingMatrix[rowIndex][colIndex] = seat;
                         return;
@@ -102,7 +96,7 @@ function firstTryToOptimization({
 
                     reassignedStudents.push(seat.id);
                 } else {
-                    // console.log('first failed');
+                    logger.trace('first failed');
                     newSeatingMatrix[rowIndex][colIndex] = seat;
                 }
             }
@@ -142,7 +136,7 @@ async function main(
             unassignedStudentCount <= 0 ||
             unassignedStudentsData.length <= 0
         ) {
-            console.warn('Lack necessary data to start optimization!');
+            logger.warn('Lack necessary data to start optimization!');
             return unassignedStudentCount;
         }
 
@@ -159,7 +153,7 @@ async function main(
             );
 
             if (roomsWithEmptySeats.length <= 0) {
-                console.warn('Unable to optimize due to lack of empty seats');
+                logger.warn('Unable to optimize due to lack of empty seats');
                 return unassignedStudentCount;
             }
 
@@ -223,7 +217,7 @@ async function main(
             });
         });
     } catch (error) {
-        console.error('Error:', error);
+        logger.error('Error:', error);
     }
 
     return rooms;

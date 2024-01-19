@@ -1,4 +1,5 @@
 import { models, sequelize } from '../../sequelize/models.js';
+import logger from '../logger.js';
 
 /**
  * Generates a seating matrix for classes based on available rooms.
@@ -93,7 +94,7 @@ async function generateSeatingMatrix(examType) {
 
         return { rooms: defineRooms, totalSeats };
     } catch (error) {
-        console.error('Error generating seating matrix:', error);
+        logger.error('Error generating seating matrix:', error);
         throw error;
     }
 }

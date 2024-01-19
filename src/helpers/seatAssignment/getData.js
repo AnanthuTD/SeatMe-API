@@ -1,11 +1,12 @@
 import { Op } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
 import dayjs from '../dayjs.js';
+import logger from '../logger.js';
 
 async function fetchExams(date, timeCode) {
     try {
         date = dayjs(date).tz('Asia/Kolkata').format('YYYY-MM-DD');
-        console.log(date);
+        logger.trace(date);
         const data = await models.course.findAll({
             attributes: ['id', 'name', 'semester', 'type'],
             include: [
@@ -27,7 +28,7 @@ async function fetchExams(date, timeCode) {
             ],
         });
 
-        // console.log(JSON.stringify(data, null, 2));
+        logger.trace(JSON.stringify(data, null, 2));
 
         const openCourses = [];
         const nonOpenCourses = [];
@@ -54,8 +55,6 @@ async function fetchExams(date, timeCode) {
                 }
             });
         });
-
-        // console.log(JSON.stringify(students, null, 2));
 
         return { openCourses, nonOpenCourses };
     } catch (error) {
@@ -150,7 +149,7 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
             raw: true,
         });
 
-        // logger(supplyStudents, 'students');
+        // logger.trace(supplyStudents, 'students');
 
         return [...students, ...supplyStudents];
     } catch (error) {
@@ -177,7 +176,7 @@ function matchStudentsWithData(students, data) {
 
         return student;
     });
-    // logger(groupedStudents, 'grouped students');
+    // logger.trace(groupedStudents, 'grouped students');
     return groupedStudents;
 }
 
@@ -229,14 +228,13 @@ export default async function getData({
             date,
             timeCode,
         );
-        // console.log(JSON.stringify(data, null, 4));
 
         const students = await fetchStudents({
             orderBy,
             nonOpenCourses,
             openCourses,
         });
-        // console.log(JSON.stringify(students, null, 4));
+        logger.trace(JSON.stringify(students, null, 4));
 
         const totalStudents = students.length;
 
@@ -244,15 +242,15 @@ export default async function getData({
             ...openCourses,
             ...nonOpenCourses,
         ]);
-        // console.log(JSON.stringify(updateStudents, null, 4));
+        logger.trace(JSON.stringify(updateStudents, null, 4));
 
         const groupedStudents = groupStudentsByCourseId(updateStudents);
 
-        // console.log(JSON.stringify(groupedStudents, null, 4));
+        logger.trace(JSON.stringify(groupedStudents, null, 4));
 
         return [groupedStudents, totalStudents];
     } catch (error) {
-        console.error(error.message);
+        logger.error(error.message);
         return null;
     }
 }

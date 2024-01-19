@@ -3,6 +3,7 @@ import env from '../../env.js';
 import { models } from '../../sequelize/models.js';
 import redisClient from '../../redis/config.js';
 import keyNames from '../../redis/keyNames.js';
+import logger from '../logger.js';
 
 const setNewRefreshToken = async (res, userData) => {
     const config = env();
@@ -50,7 +51,7 @@ const setNewRefreshToken = async (res, userData) => {
         });
         return true;
     } catch (error) {
-        console.error('Error setting new refresh token:', error);
+        logger.error('Error setting new refresh token:', error);
         return false;
     }
 };

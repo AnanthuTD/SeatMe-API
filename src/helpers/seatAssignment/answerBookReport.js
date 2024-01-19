@@ -195,7 +195,7 @@ export default async function answerBookReport({
 
     const htmlFilePath = `${getRootDir()}/pdf/answer-book-report${examName}.html`;
     fs.writeFileSync(htmlFilePath, fullHtml, 'utf-8');
-    logger(`HTML file saved: ${htmlFilePath}`);
+    logger.trace(`HTML file saved: ${htmlFilePath}`);
 
     try {
         const browser = await puppeteer.launch();
@@ -214,8 +214,8 @@ export default async function answerBookReport({
         await browser.close();
 
         // Log success
-        logger(`PDF generated successfully: ${pdfPath}`);
+        logger.trace(`PDF generated successfully: ${pdfPath}`);
     } catch (error) {
-        console.log('puppeteer failed: ', error);
+        logger.error('puppeteer failed: ', error);
     }
 }

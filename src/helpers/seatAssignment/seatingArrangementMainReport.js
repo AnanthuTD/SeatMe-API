@@ -108,7 +108,7 @@ export default async function generateSeatingArrangementPDF({
             </tbody>
         </table>`;
 
-        // logger(exams)
+        // logger.trace(exams)
 
         const programExamineeCounts = exams.map((program) => ({
             name: program.name,
@@ -153,7 +153,7 @@ export default async function generateSeatingArrangementPDF({
 
     const htmlFilePath = `${getRootDir()}/pdf/${fileName}.html`;
     fs.writeFileSync(htmlFilePath, fullHtml, 'utf-8');
-    logger(`HTML file saved: ${htmlFilePath}`);
+    logger.trace(`HTML file saved: ${htmlFilePath}`);
 
     try {
         const browser = await puppeteer.launch({ headless: true });
@@ -180,8 +180,8 @@ export default async function generateSeatingArrangementPDF({
         await browser.close();
 
         // Log success
-        logger(`PDF generated successfully: ${pdfPath}`);
+        logger.trace(`PDF generated successfully: ${pdfPath}`);
     } catch (error) {
-        console.log('puppeteer failed: ', error);
+        logger.error('puppeteer failed: ', error);
     }
 }
