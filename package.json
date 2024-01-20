@@ -4,8 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
+        "start": "node src/app.js",
         "dev": "nodemon src/app.js",
-        "lint": "eslint .",
+        "lint": "eslint . --fix",
         "format": "prettier --write .",
         "prepare": "husky install",
         "lint-staged": "lint-staged",
@@ -36,9 +37,12 @@
         "mysql2": "^3.6.0",
         "passport": "^0.6.0",
         "passport-http-bearer": "^1.0.1",
+        "pino": "^8.17.2",
+        "pino-http": "^9.0.0",
         "puppeteer": "^21.7.0",
         "sequelize": "^6.32.1",
-        "zxcvbn": "^4.4.2"
+        "zxcvbn": "^4.4.2",
+        "pino-pretty": "^10.3.1"
     },
     "devDependencies": {
         "eslint": "^8.47.0",
@@ -51,6 +55,7 @@
         "husky": "^8.0.0",
         "lint-staged": "^13.2.3",
         "nodemon": "^3.0.1",
+        "pino-colada": "^2.2.2",
         "prettier": "3.0.1"
     }
 }

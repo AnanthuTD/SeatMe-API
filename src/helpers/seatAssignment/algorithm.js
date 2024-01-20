@@ -1,3 +1,5 @@
+import logger from '../logger.js';
+
 /**
  * Class representing a seating arrangement for exams.
  */
@@ -288,13 +290,13 @@ export default class SeatingArrangement {
      */
     displaySeatingArrangement() {
         for (let i = 0; i < this.numRows; i += 1) {
-            console.log(
+            logger.trace(
                 this.seatingMatrix[i]
                     .map((seat) => (seat.occupied ? `${seat.id}` : 'O'))
                     .join(' '),
             );
         }
-        this.room.exams.forEach((exam) => console.log(exam));
+        this.room.exams.forEach((exam) => logger.trace(exam));
     }
 
     getUnsignedStudents() {

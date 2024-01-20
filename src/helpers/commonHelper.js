@@ -1,5 +1,6 @@
 import { models } from '../sequelize/models.js';
 import { comparePasswords } from './bcryptHelper.js';
+import logger from './logger.js';
 
 /**
  * Check user credentials and retrieve user data for authorized user.
@@ -39,7 +40,7 @@ async function checkCredentialsAndRetrieveData(email, password) {
         // Credentials are incorrect or user is not authorized
         return null;
     } catch (error) {
-        console.error('Error:', error);
+        logger.error(error);
         return null; // Handle database errors or exceptions
     }
 }

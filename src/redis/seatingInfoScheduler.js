@@ -5,6 +5,7 @@ import {
     retrieveAndStoreSeatingInfoInRedis,
 } from '../helpers/adminHelpers/studentSeat.js';
 import { updateSeatingInfoRedis } from './seatingInfo.js';
+import logger from '../helpers/logger.js';
 
 const TIME_ZONE = 'Asia/Kolkata';
 
@@ -57,12 +58,12 @@ const updateScheduledTasks = async () => {
             })
             .flat();
 
-        console.log(
+        logger.info(
             `Successfully updated ${newJobs.length} scheduled tasks based on seatingTimeConfig changes.`,
         );
         existingJobs = newJobs; // Store new jobs for future reference
     } catch (error) {
-        console.error('Error updating scheduled tasks:', error);
+        logger.error('Error updating scheduled tasks:', error);
         // Log more details about the error, if possible
     } finally {
         updateSeatingInfoRedis();

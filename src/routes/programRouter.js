@@ -1,5 +1,6 @@
 import express from 'express';
 import { models } from '../sequelize/models.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.post('/program', async (req, res) => {
 
         res.status(200).json({ failedRecords });
     } catch (error) {
-        console.error('Error in processing programs:', error);
+        logger.error('Error in processing programs:', error);
         res.status(500).send('Error processing programs');
     }
 });
@@ -49,7 +50,7 @@ router.patch('/programupdate/', async (req, res) => {
                 departmentId,
                 abbreviation,
             });
-            //  console.log(programs,"hai this is patch");
+            //  logger.trace(programs,"hai this is patch");
         });
         programs.forEach((program) => {
             const programId = program.id;
@@ -60,13 +61,13 @@ router.patch('/programupdate/', async (req, res) => {
             const proabbreviation = program.abbreviation;
 
             // Use the values as needed
-            console.log('program ID:', programId);
-            console.log('program Name:', programName);
-            console.log('program duration:', programduration);
-            console.log('program level:', programlevel);
-            console.log('program dept:', programdept);
-            console.log('program abbreviation:', proabbreviation);
-            console.log('----------------------');
+            logger.trace('program ID:', programId);
+            logger.trace('program Name:', programName);
+            logger.trace('program duration:', programduration);
+            logger.trace('program level:', programlevel);
+            logger.trace('program dept:', programdept);
+            logger.trace('program abbreviation:', proabbreviation);
+            logger.trace('----------------------');
         });
         const updates = programs.map(async (program1) => {
             // Find the program by programId
@@ -108,7 +109,7 @@ router.patch('/programupdate/', async (req, res) => {
             results,
         });
     } catch (error) {
-        console.error('Error updating program in DB:', error);
+        logger.error('Error updating program in DB:', error);
         return res.status(500).json({
             error: 'Error updating program in DB',
             errorMessage: error.message,

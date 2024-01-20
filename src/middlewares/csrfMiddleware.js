@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import logger from '../helpers/logger.js';
 
 /**
  * Generate a CSRF token and store it in the user's session.
@@ -26,7 +27,7 @@ const csrfProtectionMiddleware = (req, res, next) => {
         const clientToken = req.headers['x-csrftoken'];
         const sessionToken = req.session['X-CSRFToken'];
 
-        console.log(clientToken, sessionToken, req.headers);
+        logger.trace(clientToken, sessionToken, req.headers);
 
         if (!clientToken || clientToken !== sessionToken) {
             return res.status(403).send('CSRF token validation failed.');

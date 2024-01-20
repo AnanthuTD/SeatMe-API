@@ -40,7 +40,7 @@ const findSupplementaryStudents = async ({ date, courseIds }) => {
 
         return students;
     } catch (error) {
-        console.error('Error in getStudents:', error);
+        logger.error('Error in getStudents:', error);
         throw new Error(
             'An error occurred while fetching supplementary students data.',
         );

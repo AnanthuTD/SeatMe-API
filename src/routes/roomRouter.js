@@ -1,11 +1,12 @@
 import express from 'express';
 import { models } from '../sequelize/models.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
 router.post('/room', (req, res) => {
-    console.log('this is called');
-    // console.log(req.body);
+    logger.trace('this is called');
+    // logger.trace(req.body);
     let body = req.body.rooms;
     let rooms = [];
     body.forEach((item) => {
@@ -35,7 +36,7 @@ router.post('/room', (req, res) => {
             res.send(rooms);
         })
         .catch((error) => {
-            console.error('Error in inserting into DB:', error);
+            logger.error('Error in inserting into DB:', error);
             res.status(500).send('Error inserting values into DB');
         });
 });

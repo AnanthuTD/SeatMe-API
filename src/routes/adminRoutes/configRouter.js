@@ -3,6 +3,7 @@ import { models } from '../../sequelize/models.js';
 import { retrieveAndStoreSeatingInfoInRedis } from '../../helpers/adminHelpers/studentSeat.js';
 import { loadSeatingAvailabilityTimesToRedis } from '../../redis/loadSeatingAvailabilityTimes.js';
 import { updateSeatingInfoRedis } from '../../redis/seatingInfo.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.get('/seating-availability-schedule', async (req, res) => {
             await models.seatingTimeConfig.findAll();
         res.json(seatingAvailabilitySchedule);
     } catch (error) {
-        console.error('Error retrieving seating arrangement time:', error);
+        logger.error('Error retrieving seating arrangement time:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -31,7 +32,7 @@ router.delete('/seating-availability-schedule/:id', async (req, res) => {
             message: 'Seating arrangement time updated successfully.',
         });
     } catch (error) {
-        console.error('Error setting seating arrangement time:', error);
+        logger.error('Error setting seating arrangement time:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -39,7 +40,7 @@ router.post('/seating-availability-schedule', async (req, res) => {
     try {
         const { day, startTime, endTime, timeCode } = req.body;
 
-        console.log(req.body);
+        logger.trace(req.body);
 
         await models.seatingTimeConfig.upsert(
             {
@@ -59,7 +60,7 @@ router.post('/seating-availability-schedule', async (req, res) => {
             message: 'Seating arrangement time updated successfully.',
         });
     } catch (error) {
-        console.error('Error setting seating arrangement time:', error);
+        logger.error('Error setting seating arrangement time:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });

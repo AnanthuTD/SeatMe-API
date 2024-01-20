@@ -1,5 +1,6 @@
 import { Redis } from 'ioredis';
 import dotenv from 'dotenv';
+import logger from '../helpers/logger.js';
 
 dotenv.config();
 
@@ -11,26 +12,26 @@ const redisClient = new Redis({
 });
 
 redisClient.on('connecting', () => {
-    console.log('Connecting to Redis server...');
+    logger.trace('Connecting to Redis server...');
 });
 
 redisClient.on('reconnecting', () => {
-    console.log('Reconnecting to Redis server...');
+    logger.trace('Reconnecting to Redis server...');
 });
 
 redisClient.on('ready', async () => {
     try {
         // await redisClient.flushall(); // TODO don't remove all from redis
-        console.log('Redis cleared successfully');
+        logger.trace('Redis cleared successfully');
     } catch (error) {
-        console.error('Clearing Redis failed:', error);
+        logger.error('Clearing Redis failed:', error);
     } finally {
-        console.log('Connected to Redis server');
+        logger.trace('Connected to Redis server');
     }
 });
 
 redisClient.on('error', (err) => {
-    console.error('Redis Error:', err);
+    logger.error('Redis Error:', err);
 });
 
 async function isRedisAvailable() {

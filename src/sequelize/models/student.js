@@ -70,7 +70,6 @@ export default (sequelize) => {
         instances.forEach((instance) => {
             const rollNumberStr = instance.rollNumber.toString();
             const programIdDigits = rollNumberStr.slice(2, 4);
-            console.log('programIdDigits: ', programIdDigits);
             instance.programId = parseInt(programIdDigits, 10);
         });
     });

@@ -7,6 +7,7 @@ import {
 import { getStaffsByDepartmentCode } from '../../helpers/adminHelpers/staffHelper.js';
 import { models } from '../../sequelize/models.js';
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 
@@ -22,7 +23,7 @@ router.post('/', async (req, res) => {
         const result = await createStaff(staffs);
         res.status(result.status).json(result);
     } catch (error) {
-        console.error(`Error in POST /staff: ${error.message}`);
+        logger.error(`Error in POST /staff: ${error.message}`);
         res.status(500).json({ error: 'Error creating staff members' });
     }
 });
@@ -35,7 +36,7 @@ router.patch('/update-password', async (req, res) => {
 
         return res.status(result.status).json({ message: result.message });
     } catch (error) {
-        console.error('Error:', error);
+        logger.error('Error:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -64,7 +65,7 @@ router.patch('/:staffId', async (req, res) => {
 
         return res.status(404).json({ error: 'Staff not found' });
     } catch (error) {
-        console.error(`Error in PATCH /staff: ${error.message}`);
+        logger.error(`Error in PATCH /staff: ${error.message}`);
         return res.status(500).json({ error: 'Error updating staff' });
     }
 });
@@ -84,7 +85,7 @@ router.delete('/:staffId', async (req, res) => {
 
         return res.status(404).json({ error: 'Staff not found' });
     } catch (error) {
-        console.error(`Error in DELETE /staff/:staffId: ${error.message}`);
+        logger.error(`Error in DELETE /staff/:staffId: ${error.message}`);
         return res.status(500).json({ error: 'Error deleting staff' });
     }
 });
@@ -94,7 +95,7 @@ router.get('/count', async (req, res) => {
         const count = await getStaffCount();
         res.json(count);
     } catch (error) {
-        console.error(`Error in GET /staff/count: ${error.message}`);
+        logger.error(`Error in GET /staff/count: ${error.message}`);
         res.status(500).json({ error: 'Error counting staff members' });
     }
 });
@@ -138,7 +139,7 @@ router.get('/list', async (req, res) => {
 
         res.json(data);
     } catch (error) {
-        console.error(`Error in GET /staff/list: ${error.message}`);
+        logger.error(`Error in GET /staff/list: ${error.message}`);
         res.status(500).json({ error: 'Error fetching staff list' });
     }
 });
@@ -156,7 +157,7 @@ router.get('/:departmentCode', async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        console.error('Error on GET /:departmentCode', error);
+        logger.error('Error on GET /:departmentCode', error);
 
         res.status(500).json({ error: true, message: 'An error occurred.' });
     }
@@ -195,7 +196,7 @@ router.post('/assign', async (req, res) => {
                         await models.teacherSeat.create(insertData);
                     }
                 } catch (error) {
-                    console.error(error);
+                    logger.error(error);
                     failedAssignments.push({ roomId, authUserId });
                 }
             }),
@@ -216,7 +217,7 @@ router.post('/assign', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         res.status(500).json({ error: 'Failed to assign teachers' });
     }
 });

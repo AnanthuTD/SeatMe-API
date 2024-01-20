@@ -16,6 +16,7 @@ import {
 import { models, sequelize } from '../../sequelize/models.js';
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
 import getRootDir from '../../../getRootDir.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 const reportsDir = `${getRootDir()}/reports`;
@@ -25,7 +26,7 @@ router.get('/count', async (req, res) => {
         const count = await getOngoingExamCount();
         res.json(count);
     } catch (error) {
-        console.error(`Error in GET /exams/count: ${error.message}`);
+        logger.error(`Error in GET /exams/count: ${error.message}`);
         res.status(500).json({ error: 'Error fetching exam count' });
     }
 });
@@ -65,7 +66,7 @@ router.get('/', async (req, res) => {
 
         return res.json(data);
     } catch (error) {
-        console.error(`Error in GET /exams: ${error.message}`);
+        logger.error(`Error in GET /exams: ${error.message}`);
         return res.status(500).json({ error: 'Error fetching exams' });
     }
 });
@@ -144,13 +145,13 @@ router.get('/assign', async (req, res) => {
                     }),
                 );
 
-                console.log('PDF files removed.');
+                logger.trace('PDF files removed.');
             } catch (error) {
-                console.error('Error removing PDF files:', error);
+                logger.error('Error removing PDF files:', error);
             }
         });
     } catch (error) {
-        console.error('Error in ( /exam/assign ): ', error);
+        logger.error('Error in ( /exam/assign ): ', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -185,7 +186,7 @@ router.post('/timetable', async (req, res) => {
         } else
             res.status(404).send(`Course ${courseName}(${courseId}) not found`);
     } catch (error) {
-        console.error(`Error in POST /timetable: ${error.message}`);
+        logger.error(`Error in POST /timetable: ${error.message}`);
         res.status(500).json({
             error: 'Error processing the timetable request',
         });
@@ -229,7 +230,7 @@ router.get('/:examId', async (req, res) => {
         // Exam not found
         return res.status(404).json({ error: 'Exam not found' });
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         return res.status(500).json({ error: 'Failed to get exam' });
     }
 });
@@ -258,7 +259,7 @@ router.get('/attendance/:examId/:programId', async (req, res) => {
             res.status(404).json({ error: 'Exam not found' });
         }
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         res.status(500).json({ error: 'Failed to get attendance' });
     }
 });
@@ -286,7 +287,7 @@ router.put('/:examId', async (req, res) => {
         // If the exam with the given ID doesn't exist
         return res.status(404).json({ error: 'Exam not found' });
     } catch (error) {
-        console.error('Error:', error);
+        logger.error('Error:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -308,7 +309,7 @@ router.delete('/:examId', async (req, res) => {
         // If the exam with the given ID doesn't exist
         return res.status(404).json({ error: 'Exam not found' });
     } catch (error) {
-        console.error('Error:', error);
+        logger.error('Error:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -373,7 +374,7 @@ router.get('/:date/:timeCode/rooms', async (req, res) => {
 
         return res.json(rooms);
     } catch (error) {
-        console.error('Error:', error);
+        logger.error('Error:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });

@@ -68,7 +68,7 @@ const createStaff = async (staffDataArray) => {
                         where: { id: staffData.id },
                     });
                 } catch (error) {
-                    console.error(error);
+                    logger.error(error);
                     uncreatedStaffs.push({
                         ...staffData,
                         error:
@@ -92,7 +92,7 @@ const createStaff = async (staffDataArray) => {
             message: 'Users registered or updated successfully',
         };
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         return {
             status: 500,
             message:
@@ -120,7 +120,7 @@ const updatePassword = async (staffId, newPassword) => {
 
         return { status: 400, message: 'Staff not found' };
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         return {
             status: 500,
             message: 'An error occurred during updating password!',
@@ -129,7 +129,7 @@ const updatePassword = async (staffId, newPassword) => {
 };
 
 const createAdmin = async (adminData) => {
-    // console.log(adminData);
+    logger.trace(adminData);
     try {
         if (await doesUserExist(adminData.email, adminData.id)) {
             return { status: 409, message: 'Id or Email already exists' };
@@ -143,7 +143,7 @@ const createAdmin = async (adminData) => {
 
         return { status: 201, message: 'User registered successfully' };
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         return {
             status: 500,
             message: 'An error occurred during registration',
