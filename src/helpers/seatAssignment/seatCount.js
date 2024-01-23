@@ -16,7 +16,6 @@ export default function seatCount(classes) {
         .flatMap(({ seatingMatrix }) => seatingMatrix.flat())
         .reduce(
             (counts, seat) => {
-                logger.trace(seat);
                 if (seat.occupied) {
                     counts.totalAssignedSeats += 1;
                 } else {
@@ -26,7 +25,6 @@ export default function seatCount(classes) {
             },
             { totalEmptySeats: 0, totalAssignedSeats: 0 },
         );
-    logger.trace('seatData', seatData);
     return seatData;
 }
 

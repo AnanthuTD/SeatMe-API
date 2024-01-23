@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
         return res.status(401).send('Invalid credentials or not Authorized.');
     } catch (error) {
         // Handle errors during authentication
-        logger.error('error');
+        logger.error(error, 'error');
         return res.status(500).send('An error occurred during authentication.');
     }
 });

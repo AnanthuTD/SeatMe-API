@@ -43,7 +43,7 @@ const getTimeCodeForNow = async (seatingTimes) => {
         return matchingConfig ? matchingConfig.timeCode : null;
     } catch (error) {
         // Add proper error handling
-        logger.error('Error in getTimeCodeForNow:', error.message);
+        logger.error(error, 'Error in getTimeCodeForNow');
         return null;
     }
 };
@@ -52,7 +52,7 @@ const clearSeatingInfoFromRedis = async () => {
     try {
         redisClient.del(keyNames.seatingInfo);
     } catch (error) {
-        logger.error('Failed to clear seating info from redis!');
+        logger.error(error, 'Failed to clear seating info from redis!');
     }
 };
 
@@ -183,7 +183,7 @@ const retrieveStudentDetails = async (studentId) => {
 
         return studentDetails;
     } catch (error) {
-        logger.error('Error retrieving student details from Redis:', error);
+        logger.error(error, 'Error retrieving student details from Redis:');
         return null;
     }
 };
@@ -231,8 +231,8 @@ const createRecord = async (seating) => {
         retrieveAndStoreSeatingInfoInRedis();
     } catch (error) {
         logger.error(
-            'Error during bulk insert or update of studentSeat:',
             error,
+            'Error during bulk insert or update of studentSeat:',
         );
     }
 };
@@ -350,7 +350,7 @@ const getUpcomingExamsFromDB = async () => {
 
         return upcomingExams;
     } catch (error) {
-        logger.error('Something went wrong!', error);
+        logger.error(error, 'Something went wrong!');
         return [];
     }
 };
@@ -410,11 +410,9 @@ const getUpcomingExams = async (
             }
         }
 
-        logger.trace(combinedResults);
-
         return combinedResults;
     } catch (err) {
-        logger.error('Error retrieving exam data:', err);
+        logger.error(err, 'Error retrieving exam data:');
         throw err; // Re-throw the error to handle it at a higher level if needed.
     }
 };
@@ -483,9 +481,6 @@ const getTimeTableAndSeating = async (studentId) => {
         ],
     });
 
-    logger.trace('data: ', JSON.stringify(data, null, 4));
-    logger.trace('student: ', JSON.stringify(student, null, 2));
-
     data = data.map((value) => {
         if (value.exams.length > 1) {
             value.exams.splice(1);
@@ -493,7 +488,6 @@ const getTimeTableAndSeating = async (studentId) => {
         return value;
     });
 
-    logger.trace('data: ', JSON.stringify(data, null, 2));
     return data;
 };
 

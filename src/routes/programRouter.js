@@ -27,7 +27,7 @@ router.post('/program', async (req, res) => {
 
         res.status(200).json({ failedRecords });
     } catch (error) {
-        logger.error('Error in processing programs:', error);
+        logger.error(error, 'Error in processing programs:');
         res.status(500).send('Error processing programs');
     }
 });
@@ -109,7 +109,7 @@ router.patch('/programupdate/', async (req, res) => {
             results,
         });
     } catch (error) {
-        logger.error('Error updating program in DB:', error);
+        logger.error(error, 'Error updating program in DB:');
         return res.status(500).json({
             error: 'Error updating program in DB',
             errorMessage: error.message,

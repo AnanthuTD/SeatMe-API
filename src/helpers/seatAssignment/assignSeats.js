@@ -140,7 +140,7 @@ async function assignSeats({
 
         return [rooms, totalUnassignedStudents];
     } catch (error) {
-        logger.error('An error occurred:', error);
+        logger.error(error, 'An error occurred:');
         throw error;
     }
 }

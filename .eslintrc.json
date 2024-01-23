@@ -26,6 +26,7 @@
         "sourceType": "module"
     },
     "rules": {
+        "no-process-exit":"off",
         "consistent-return": "off",
         "no-unused-vars": "off",
         "new-cap": "off",

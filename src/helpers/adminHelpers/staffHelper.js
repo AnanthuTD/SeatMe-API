@@ -26,7 +26,7 @@ async function getStaffsByDepartmentCode({ departmentCode }) {
             message: 'Staff members retrieved successfully',
         };
     } catch (error) {
-        logger.error('Error on getStaffsByDepartmentCode', error);
+        logger.error(error, 'Error on getStaffsByDepartmentCode');
         throw new Error('Error on fetching staff members');
     }
 }

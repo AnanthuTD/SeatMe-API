@@ -205,7 +205,7 @@ router.post('/supplementary', async (req, res) => {
             failedRecords,
         });
     } catch (error) {
-        logger.error('Error creating records:', error);
+        logger.error(error, 'Error creating records:');
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -244,7 +244,7 @@ router.patch('/supplementary', async (req, res) => {
         }
         return res.status(404).json({ error: 'Student not found!' });
     } catch (error) {
-        logger.error(`Error in PATCH /student: ${error}`, error);
+        logger.error(`Error in PATCH /student: ${error}`);
         return res.status(500).json({ error: 'Error updating students' });
     }
 });

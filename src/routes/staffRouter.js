@@ -59,7 +59,7 @@ router.get('/', async (req, res) => {
 
         res.json({ onDuty, examDetails });
     } catch (error) {
-        logger.error('Error:', error);
+        logger.error(error, 'Error:');
         res.status(500).send('Internal Server Error');
     }
 });
@@ -180,7 +180,7 @@ router.post('/attendance/:teacherSeatId', async (req, res) => {
             });
         });
     } catch (error) {
-        logger.error('Error updating the database:', error);
+        logger.error(error, 'Error updating the database:');
         res.status(500).json({
             message: 'Internal Server Error',
             error: error.message,

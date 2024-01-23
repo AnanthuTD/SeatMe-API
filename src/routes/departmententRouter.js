@@ -31,7 +31,7 @@ router.post('/department', (req, res) => {
             res.send();
         })
         .catch((error) => {
-            logger.error('Error in inserting into DB:', error);
+            logger.error(error, 'Error in inserting into DB:');
 
             // Sending SQL error message to frontend
             res.status(500).json({
@@ -91,7 +91,7 @@ router.patch('/departmentupdate/', async (req, res) => {
             results,
         });
     } catch (error) {
-        logger.error('Error updating department in DB:', error);
+        logger.error(error, 'Error updating department in DB:');
         res.status(500).json({
             error: 'Error updating department in DB',
             errorMessage: error.message,

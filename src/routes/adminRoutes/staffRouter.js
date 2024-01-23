@@ -36,7 +36,7 @@ router.patch('/update-password', async (req, res) => {
 
         return res.status(result.status).json({ message: result.message });
     } catch (error) {
-        logger.error('Error:', error);
+        logger.error(error, 'Error:');
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -157,7 +157,7 @@ router.get('/:departmentCode', async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        logger.error('Error on GET /:departmentCode', error);
+        logger.error(error, 'Error on GET /:departmentCode');
 
         res.status(500).json({ error: true, message: 'An error occurred.' });
     }

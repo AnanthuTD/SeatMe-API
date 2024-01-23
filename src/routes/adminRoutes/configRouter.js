@@ -13,7 +13,7 @@ router.get('/seating-availability-schedule', async (req, res) => {
             await models.seatingTimeConfig.findAll();
         res.json(seatingAvailabilitySchedule);
     } catch (error) {
-        logger.error('Error retrieving seating arrangement time:', error);
+        logger.error(error, 'Error retrieving seating arrangement time:');
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -32,7 +32,7 @@ router.delete('/seating-availability-schedule/:id', async (req, res) => {
             message: 'Seating arrangement time updated successfully.',
         });
     } catch (error) {
-        logger.error('Error setting seating arrangement time:', error);
+        logger.error(error, 'Error setting seating arrangement time:');
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -60,7 +60,7 @@ router.post('/seating-availability-schedule', async (req, res) => {
             message: 'Seating arrangement time updated successfully.',
         });
     } catch (error) {
-        logger.error('Error setting seating arrangement time:', error);
+        logger.error(error, 'Error setting seating arrangement time:');
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });

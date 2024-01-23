@@ -30,7 +30,7 @@ const loadRefreshTokensToRedis = async () => {
 
         logger.info('Refresh tokens loaded into Redis successfully.');
     } catch (error) {
-        logger.error('Error loading refresh tokens into Redis:', error);
+        logger.error(error, 'Error loading refresh tokens into Redis:');
     }
 };
 
@@ -38,7 +38,7 @@ const removeRefreshTokenFromRedis = async (authUserId) => {
     try {
         await redisClient.del(`${keyNames.refreshToken}:${authUserId}`);
     } catch (error) {
-        logger.error('Error removing refresh token from Redis:', error);
+        logger.error(error, 'Error removing refresh token from Redis:');
     }
 };
 

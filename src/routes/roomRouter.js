@@ -36,7 +36,7 @@ router.post('/room', (req, res) => {
             res.send(rooms);
         })
         .catch((error) => {
-            logger.error('Error in inserting into DB:', error);
+            logger.error(error, 'Error in inserting into DB:');
             res.status(500).send('Error inserting values into DB');
         });
 });

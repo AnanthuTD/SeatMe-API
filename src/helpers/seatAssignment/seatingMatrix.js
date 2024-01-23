@@ -94,7 +94,7 @@ async function generateSeatingMatrix(examType) {
 
         return { rooms: defineRooms, totalSeats };
     } catch (error) {
-        logger.error('Error generating seating matrix:', error);
+        logger.error(error, 'Error generating seating matrix:');
         throw error;
     }
 }

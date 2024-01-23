@@ -20,7 +20,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 // Configure Sequelize logging
 const logging = isProduction
     ? false
-    : (query, options) => {
+    : (query) => {
           logger.debug(query);
       };
 

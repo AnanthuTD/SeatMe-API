@@ -148,8 +148,35 @@ function setupRoutes() {
  */
 function startServer() {
     const port = process.env.PORT;
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
         logger.info(`Server is running on port ${port}`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            logger.error(`Port ${port} is already in use`);
+            process.exit(1);
+        } else {
+            logger.error(err, `Error starting server on port ${port}`);
+            process.exit(1);
+        }
+    });
+
+    process.on('uncaughtException', (err) => {
+        // Log the exception
+        logger.fatal(err, 'Uncaught exception detected', { stderr: true });
+
+        // Attempt to shut down the server gracefully
+        server.close((error) => {
+            if (error) {
+                logger.error(error, 'Error during server shutdown');
+            } else {
+                logger.info('Server closed gracefully');
+            }
+
+            // Exit the process completely
+            process.exit(1);
+        });
     });
 }
 
@@ -199,23 +226,3 @@ const folderPath = path.join(getRootDir(), 'pdf');
 if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
 
 init();
-
-process.on('uncaughtException', (err) => {
-    // Log the exception
-    logger.fatal(err, 'Uncaught exception detected');
-
-    // Attempt to shut down the server gracefully
-    app.close((error) => {
-        if (error) {
-            logger.error(error, 'Error during server shutdown');
-        } else {
-            logger.info('Server closed gracefully');
-        }
-
-        // If a graceful shutdown is not achieved after 1 second,
-        // shut down the process completely
-        setTimeout(() => {
-            process.abort(); // Exit immediately and generate a core dump file
-        }, 1000).unref();
-    });
-});

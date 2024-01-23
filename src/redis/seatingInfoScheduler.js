@@ -63,7 +63,7 @@ const updateScheduledTasks = async () => {
         );
         existingJobs = newJobs; // Store new jobs for future reference
     } catch (error) {
-        logger.error('Error updating scheduled tasks:', error);
+        logger.error(error, 'Error updating scheduled tasks:');
         // Log more details about the error, if possible
     } finally {
         updateSeatingInfoRedis();

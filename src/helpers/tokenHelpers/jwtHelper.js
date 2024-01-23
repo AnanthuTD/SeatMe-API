@@ -11,7 +11,7 @@ try {
     blacklist = JSON.parse(fs.readFileSync(BLACKLIST_FILE, 'utf8'));
 } catch (err) {
     // Handle errors such as file not found.
-    logger.error('Error reading blacklist:', err);
+    logger.error(err, 'Error reading blacklist:');
 }
 
 // Function to check if a JWT is blacklisted.

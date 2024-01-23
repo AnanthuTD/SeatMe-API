@@ -217,7 +217,7 @@ async function main(
             });
         });
     } catch (error) {
-        logger.error('Error:', error);
+        logger.error(error, 'Error:');
     }
 
     return rooms;

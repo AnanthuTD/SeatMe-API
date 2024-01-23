@@ -12,7 +12,7 @@ const getRefreshTokenFromRedis = async (userId) => {
         logger.trace('refresh token from redis: ', refreshToken);
         return refreshToken;
     } catch (error) {
-        logger.error('Error retrieving refresh token from Redis:', error);
+        logger.error(error, 'Error retrieving refresh token from Redis:');
         throw error; // Handle the error appropriately in your application
     }
 };

@@ -769,7 +769,7 @@ const countExamineesByProgramForDate = async ({
         targetDate = dayjs(targetDate).tz('Asia/Kolkata');
         logger.trace('targetDate: ', targetDate);
     } catch (error) {
-        logger.error('Invalid date!');
+        logger.error(error, 'Invalid date!');
         throw error;
     }
 
@@ -845,7 +845,7 @@ const countExamineesByProgramForDate = async ({
 
         return totalCountsByProgram;
     } catch (error) {
-        logger.error('Error counting exams:', error);
+        logger.error(error, 'Error counting exams');
         throw error;
     }
 };
@@ -888,7 +888,7 @@ const upsertStudents = async (students) => {
 
         return { success: true, uncreatedStudents, error: null };
     } catch (error) {
-        logger.error('Error creating or updating students:', error);
+        logger.error(error, 'Error creating or updating students:');
         return { success: false, uncreatedStudents: [], error: error.message };
     }
 };
@@ -990,7 +990,7 @@ const findStudentsByProgramSem = async (programId, semester = undefined) => {
             });
         return students;
     } catch (error) {
-        logger.error('Error querying students:', error);
+        logger.error(error, 'Error querying students:');
         throw error;
     }
 };

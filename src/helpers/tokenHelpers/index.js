@@ -51,7 +51,7 @@ const setNewRefreshToken = async (res, userData) => {
         });
         return true;
     } catch (error) {
-        logger.error('Error setting new refresh token:', error);
+        logger.error(error, 'Error setting new refresh token:');
         return false;
     }
 };

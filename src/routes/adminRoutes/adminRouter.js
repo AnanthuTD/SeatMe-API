@@ -19,6 +19,7 @@ import staffRouter from './staffRouter.js';
 import studentRouter from './studentRouter.js';
 import examRouter from './examRouter.js';
 import configRouter from './configRouter.js';
+import courseRouter from './courseRouter.js';
 import { getDateTimeId } from '../../helpers/adminHelpers/examHelper.js';
 import { models } from '../../sequelize/models.js';
 import { checkCredentialsAndRetrieveData } from '../../helpers/commonHelper.js';
@@ -44,6 +45,8 @@ router.use('/student', studentRouter);
 router.use('/exams', examRouter);
 
 router.use('/config', configRouter);
+
+router.use('/course', courseRouter);
 
 router.get('/departments', async (req, res) => {
     try {
@@ -121,7 +124,7 @@ router.get('/rooms/:examType', async (req, res) => {
         const rooms = await getRooms({ examType, availability });
         res.json(rooms);
     } catch (error) {
-        logger.error('Error fetching rooms:', error);
+        logger.error(error, 'Error fetching rooms:');
         res.status(500).json({ error: 'Error fetching rooms' });
     }
 });
@@ -137,7 +140,7 @@ router.get('/rooms', async (req, res) => {
         });
         res.json(rooms);
     } catch (error) {
-        logger.error('Error fetching rooms:', error);
+        logger.error(error, 'Error fetching rooms:');
         res.status(500).json({ error: 'Error fetching rooms' });
     }
 });
@@ -163,7 +166,7 @@ router.post('/rooms', async (req, res) => {
             failedRecords,
         });
     } catch (error) {
-        logger.error('Error posting rooms:', error);
+        logger.error(error, 'Error posting rooms:');
         res.status(500).json({
             success: false,
             message: 'Internal server error.',
@@ -192,7 +195,7 @@ router.get('/date-time-id', async (req, res) => {
         const dateTime = await getDateTimeId(date, timeCode);
         res.status(200).json({ dateTimeId: dateTime.id });
     } catch (error) {
-        logger.error('Error getting dateTimeId:', error);
+        logger.error(error, 'Error getting dateTimeId:');
         res.status(500).json({ error: 'Error fetching dateTimeId' });
     }
 });
@@ -263,7 +266,7 @@ router.get('/examines-count', async (req, res) => {
         });
         res.json(examineesByProgram);
     } catch (error) {
-        logger.error('Error counting exams for date:', error);
+        logger.error(error, 'Error counting exams for date:');
         res.status(500).json({ error: 'Error counting exams for date' });
     }
 });
@@ -294,14 +297,14 @@ router.get('/download/report/:examName', (req, res) => {
 
         // Handle stream errors
         fileStream.on('error', (error) => {
-            logger.error('Error streaming report file: ', error);
+            logger.error(error, 'Error streaming report file: ');
             res.sendStatus(500);
         });
 
         // Pipe the file stream to the response
         fileStream.pipe(res);
     } catch (error) {
-        logger.error('Error on report download: ', error);
+        logger.error(error, 'Error on report download: ');
         res.sendStatus(500);
     }
 });
@@ -478,7 +481,7 @@ router.patch('/profile', async (req, res) => {
         // Authentication failed or user not found
         return res.status(403).send('Invalid credentials or not authorized.');
     } catch (error) {
-        logger.error('Error updating profile!', error);
+        logger.error(error, 'Error updating profile!');
         return res.status(500).send('Internal Server Error');
     }
 });

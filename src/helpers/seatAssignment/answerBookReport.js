@@ -216,6 +216,6 @@ export default async function answerBookReport({
         // Log success
         logger.trace(`PDF generated successfully: ${pdfPath}`);
     } catch (error) {
-        logger.error('puppeteer failed: ', error);
+        logger.error(error, 'puppeteer failed: ');
     }
 }

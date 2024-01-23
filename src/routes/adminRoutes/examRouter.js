@@ -147,11 +147,11 @@ router.get('/assign', async (req, res) => {
 
                 logger.trace('PDF files removed.');
             } catch (error) {
-                logger.error('Error removing PDF files:', error);
+                logger.error(error, 'Error removing PDF files:');
             }
         });
     } catch (error) {
-        logger.error('Error in ( /exam/assign ): ', error);
+        logger.error(error, 'Error in ( /exam/assign ): ');
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -287,7 +287,7 @@ router.put('/:examId', async (req, res) => {
         // If the exam with the given ID doesn't exist
         return res.status(404).json({ error: 'Exam not found' });
     } catch (error) {
-        logger.error('Error:', error);
+        logger.error(error, 'Error:');
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -309,7 +309,7 @@ router.delete('/:examId', async (req, res) => {
         // If the exam with the given ID doesn't exist
         return res.status(404).json({ error: 'Exam not found' });
     } catch (error) {
-        logger.error('Error:', error);
+        logger.error(error, 'Error:');
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -374,7 +374,7 @@ router.get('/:date/:timeCode/rooms', async (req, res) => {
 
         return res.json(rooms);
     } catch (error) {
-        logger.error('Error:', error);
+        logger.error(error, 'Error:');
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });

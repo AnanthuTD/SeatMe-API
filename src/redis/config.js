@@ -24,14 +24,14 @@ redisClient.on('ready', async () => {
         // await redisClient.flushall(); // TODO don't remove all from redis
         logger.trace('Redis cleared successfully');
     } catch (error) {
-        logger.error('Clearing Redis failed:', error);
+        logger.error(error, 'Clearing Redis failed:');
     } finally {
         logger.trace('Connected to Redis server');
     }
 });
 
 redisClient.on('error', (err) => {
-    logger.error('Redis Error:', err);
+    logger.error(err, 'Redis Error:');
 });
 
 async function isRedisAvailable() {

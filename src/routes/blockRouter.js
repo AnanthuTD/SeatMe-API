@@ -28,7 +28,7 @@ router.post('/block', async (req, res) => {
 
         res.send(successfulBlocks);
     } catch (error) {
-        logger.error('Error inserting into DB:', error);
+        logger.error(error, 'Error inserting into DB:');
         res.status(500).send('Error inserting values into DB');
     }
 });
