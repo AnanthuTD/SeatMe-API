@@ -6,7 +6,6 @@ import logger from '../logger.js';
 async function fetchExams(date, timeCode) {
     try {
         date = dayjs(date).tz('Asia/Kolkata').format('YYYY-MM-DD');
-        logger.trace(date);
         const data = await models.course.findAll({
             attributes: ['id', 'name', 'semester', 'type'],
             include: [
@@ -28,11 +27,10 @@ async function fetchExams(date, timeCode) {
             ],
         });
 
-        logger.trace(JSON.stringify(data, null, 2));
-
         const openCourses = [];
         const nonOpenCourses = [];
         const commonCourse2 = [];
+        const uniqueCourseIds = new Set();
 
         data.forEach((course) => {
             const courseDetails = {
@@ -52,7 +50,13 @@ async function fetchExams(date, timeCode) {
                 if (course.type === 'open') {
                     openCourses.push({ ...courseDetails, ...programInfo });
                 } else if (course.type === 'common2') {
-                    commonCourse2.push({ ...courseDetails, ...programInfo });
+                    if (!uniqueCourseIds.has(course.id)) {
+                        commonCourse2.push({
+                            ...courseDetails,
+                            ...programInfo,
+                        });
+                        uniqueCourseIds.add(course.id);
+                    }
                 } else {
                     nonOpenCourses.push({ ...courseDetails, ...programInfo });
                 }
@@ -65,7 +69,21 @@ async function fetchExams(date, timeCode) {
     }
 }
 
-// fetchExams(new Date('2023-10-25'));
+function countStudentsByProgram(students) {
+    const programCounts = {};
+
+    students.forEach((student) => {
+        const { programName } = student;
+
+        if (!programCounts[programName]) {
+            programCounts[programName] = 1;
+        } else {
+            programCounts[programName] += 1;
+        }
+    });
+
+    return programCounts;
+}
 
 async function fetchStudents({
     nonOpenCourses,
@@ -84,8 +102,31 @@ async function fetchStudents({
             semester: value.semester,
         }));
 
+        const studentsOpenCourse = await models.student.findAll({
+            where: {
+                [Op.or]: [...combinedOpenCourses],
+            },
+            include: [
+                {
+                    model: models.program,
+                    attributes: [['abbreviation', 'name']],
+                },
+            ],
+            order: [[orderBy, 'ASC']],
+            attributes: [
+                'name',
+                'id',
+                'semester',
+                'programId',
+                'rollNumber',
+                [sequelize.col('program.abbreviation'), 'programName'],
+                [sequelize.col('open_course_id'), 'courseId'],
+            ],
+            raw: true,
+        });
+
         const combinedCommonCourse2 = commonCourse2
-            .map((value) => {
+            ?.map((value) => {
                 if (value.semester === 1)
                     return {
                         secondLang_1: value.courseId,
@@ -100,13 +141,42 @@ async function fetchStudents({
             })
             .filter((item) => item !== null);
 
-        const students = await models.student.findAll({
+        const secondLang = await Promise.all(
+            (combinedCommonCourse2 || []).map(async (course) => {
+                const studentsSecondLang = await models.student.findAll({
+                    where: course,
+                    include: [
+                        {
+                            model: models.program,
+                            attributes: [['abbreviation', 'name']],
+                        },
+                    ],
+                    order: [[orderBy, 'ASC']],
+                    attributes: [
+                        'name',
+                        'id',
+                        'semester',
+                        'programId',
+                        'rollNumber',
+                        [sequelize.col('program.abbreviation'), 'programName'],
+                    ],
+                    raw: true,
+                });
+
+                studentsSecondLang.forEach((student) => {
+                    student.courseId =
+                        course?.secondLang_2 || course?.secondLang_1;
+                });
+
+                return studentsSecondLang;
+            }),
+        );
+
+        const studentsSecondLang = [].concat(...secondLang);
+
+        const studentsNonOpenCourse = await models.student.findAll({
             where: {
-                [Op.or]: [
-                    ...combinedNonOpenCourses,
-                    ...combinedOpenCourses,
-                    ...combinedCommonCourse2,
-                ],
+                [Op.or]: [...combinedNonOpenCourses],
             },
             include: [
                 {
@@ -125,6 +195,7 @@ async function fetchStudents({
             ],
             raw: true,
         });
+
         const supplyStudents = await models.student.findAll({
             include: [
                 {
@@ -180,7 +251,20 @@ async function fetchStudents({
 
         // logger.trace(supplyStudents, 'students');
 
-        return [...students, ...supplyStudents];
+        const students = [
+            ...studentsSecondLang,
+            ...studentsNonOpenCourse,
+            ...studentsOpenCourse,
+            ...supplyStudents,
+        ];
+
+        // logger.debug(students, 'students');
+
+        const result = countStudentsByProgram(students);
+
+        logger.debug(result);
+
+        return students;
     } catch (error) {
         throw new Error(`Error fetching students: ${error.message}`);
     }
@@ -200,6 +284,13 @@ function matchStudentsWithData(students, data) {
                 student.courseId = value.courseId;
                 student.examId = value.examId;
                 student.courseType = value.courseType;
+            } else if (student.courseId && !student.examId) {
+                if (student.courseId === value.courseId) {
+                    student.examId = value.examId;
+                    student.courseName = value.courseName;
+                    student.courseType = value.courseType;
+                    student.courseSemester = value.semester;
+                }
             }
         });
 
@@ -264,7 +355,6 @@ export default async function getData({
             openCourses,
             commonCourse2,
         });
-        logger.trace(JSON.stringify(students, null, 4));
 
         const totalStudents = students.length;
 
@@ -273,11 +363,8 @@ export default async function getData({
             ...nonOpenCourses,
             ...commonCourse2,
         ]);
-        logger.trace(JSON.stringify(updateStudents, null, 4));
 
         const groupedStudents = groupStudentsByCourseId(updateStudents);
-
-        logger.trace(JSON.stringify(groupedStudents, null, 4));
 
         return [groupedStudents, totalStudents];
     } catch (error) {

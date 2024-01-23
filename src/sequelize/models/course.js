@@ -30,6 +30,7 @@ export default (sequelize) => {
                     'vocational',
                     'choice',
                     'language',
+                    'common2',
                 ]),
                 allowNull: true,
             },
