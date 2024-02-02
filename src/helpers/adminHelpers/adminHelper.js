@@ -843,6 +843,8 @@ const countExamineesByProgramForDate = async ({
             },
         );
 
+        logger.debug(totalCountsByProgram, 'totalStudentsByProgram');
+
         return totalCountsByProgram;
     } catch (error) {
         logger.error(error, 'Error counting exams');
