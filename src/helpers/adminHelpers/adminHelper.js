@@ -837,13 +837,18 @@ const countExamineesByProgramForDate = async ({
                 );
 
                 if (matchingProgram) {
-                    logger.trace('No matching regular');
-                    matchingProgram.programId = supplyProgramId;
                     matchingProgram.supply = supply;
-                    matchingProgram.regular = 0;
                     delete matchingProgram.count;
+                } else {
+                    logger.trace('No matching regular');
+                    const newProgram = {
+                        programId: supplyProgramId,
+                        supply,
+                        regular: 0,
+                    };
+                    totalCountsByProgram.push(newProgram);
                     logger.debug(
-                        matchingProgram,
+                        totalCountsByProgram,
                         'matchingProgram only supply',
                     );
                 }
