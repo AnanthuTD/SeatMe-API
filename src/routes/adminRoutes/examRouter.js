@@ -73,7 +73,13 @@ router.get('/', async (req, res) => {
 
 router.get('/assign', async (req, res) => {
     try {
-        const { orderBy, examType, timeCode = 'AN', examName } = req.query;
+        const {
+            orderBy,
+            examType,
+            timeCode = 'AN',
+            examName,
+            examOrder,
+        } = req.query;
 
         let { date } = req.query;
 
@@ -103,6 +109,7 @@ router.get('/assign', async (req, res) => {
             fileName,
             examType,
             examName,
+            examOrder,
         });
 
         await createRecord(seating);

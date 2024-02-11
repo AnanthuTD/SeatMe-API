@@ -26,9 +26,15 @@ async function assignSeats({
     orderBy = 'rollNumber',
     fileName = 'unnamed',
     examType = 'internal',
+    examOrder = undefined,
 }) {
     /** @type {[NestedStudentArray, number]} */
-    let [students, totalStudents] = await getData({ date, orderBy, timeCode });
+    let [students, totalStudents] = await getData({
+        date,
+        orderBy,
+        timeCode,
+        examOrder,
+    });
 
     logger.info(`total subjects : ${students.length}`);
     logger.info(`Generated ${totalStudents} students`);

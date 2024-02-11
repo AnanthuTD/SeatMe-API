@@ -307,7 +307,7 @@ function matchStudentsWithData(students, data) {
  * @type {import('./type.js').NestedStudentArray } NestedStudentArray
  * @returns {NestedStudentArray}
  */
-function groupStudentsByCourseId(students) {
+function groupStudentsByCourseId(students, examOrder) {
     const groupedStudents = {};
 
     students.forEach((student) => {
@@ -330,9 +330,18 @@ function groupStudentsByCourseId(students) {
     });
 
     // Sorting the nested arrays in descending order based on length
-    const sortedGroupedStudents = Object.values(groupedStudents).sort(
+    let sortedGroupedStudents = Object.values(groupedStudents).sort(
         (a, b) => b.length - a.length,
     );
+
+    if (Array.isArray(examOrder)) {
+        sortedGroupedStudents = examOrder.flatMap((examId) => {
+            const filteredGroups = sortedGroupedStudents.filter(
+                (group) => group[0].examId === parseInt(examId, 10),
+            );
+            return filteredGroups;
+        });
+    }
 
     return sortedGroupedStudents;
 }
@@ -341,6 +350,7 @@ function groupStudentsByCourseId(students) {
 export default async function getData({
     date,
     timeCode,
+    examOrder,
     orderBy = 'rollNumber',
 }) {
     try {
@@ -364,7 +374,10 @@ export default async function getData({
             ...commonCourse2,
         ]);
 
-        const groupedStudents = groupStudentsByCourseId(updateStudents);
+        const groupedStudents = groupStudentsByCourseId(
+            updateStudents,
+            examOrder,
+        );
 
         return [groupedStudents, totalStudents];
     } catch (error) {
