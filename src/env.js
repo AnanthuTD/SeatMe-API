@@ -15,7 +15,7 @@ const requiredEnvVars = [
 function validateEnvVars() {
     requiredEnvVars.forEach((envVar) => {
         if (!process.env[envVar] || process.env[envVar].trim() === '') {
-            throw new Error(`Missing or empty environment variable: ${envVar}`);
+            // throw new Error(`Missing or empty environment variable: ${envVar}`);
         }
     });
 }

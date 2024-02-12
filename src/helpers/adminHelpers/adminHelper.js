@@ -780,6 +780,8 @@ const countExamineesByProgramForDate = async ({
 
     const data = [...nonOpenCourses, ...openCourses, ...commonCourse2];
 
+    logger.debug(data, 'data');
+
     try {
         const regularStudentsCounts = await models.student.count({
             attributes: [
@@ -799,6 +801,8 @@ const countExamineesByProgramForDate = async ({
             },
             group: ['programId'],
         });
+
+        logger.debug(regularStudentsCounts, 'regularStudentCounts')
 
         // Calculate supplyStudentsCount
         const supplyStudentsCount = await models.student.count({

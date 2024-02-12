@@ -17,6 +17,7 @@ import { models, sequelize } from '../../sequelize/models.js';
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
 import getRootDir from '../../../getRootDir.js';
 import logger from '../../helpers/logger.js';
+import { getExamsByProgram } from '../../helpers/adminHelpers/examHelper.js';
 
 const router = express.Router();
 const reportsDir = `${getRootDir()}/reports`;
@@ -63,6 +64,8 @@ router.get('/', async (req, res) => {
             sortField,
             sortOrder,
         });
+
+        getExamsByProgram({ date: dayjs.tz(), timeCode: 'AN' });
 
         return res.json(data);
     } catch (error) {
