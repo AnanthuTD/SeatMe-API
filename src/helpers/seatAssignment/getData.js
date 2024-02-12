@@ -313,7 +313,7 @@ function groupStudentsByCourseId(students, examOrder) {
     students.forEach((student) => {
         const { courseId, courseType, programId } = student;
 
-        if (courseType === 'common' || true) {
+        if (courseType === 'common' || true) { // TODO: sorting all courses based on program
             const programCourse = `${programId}-${courseId}`;
             if (!groupedStudents[programCourse]) {
                 groupedStudents[programCourse] = [];
@@ -334,16 +334,17 @@ function groupStudentsByCourseId(students, examOrder) {
         (a, b) => b.length - a.length,
     );
 
-   /*  if (Array.isArray(examOrder)) {
-        sortedGroupedStudents = examOrder.flatMap((examId) => {
+    logger.debug(examOrder, 'examOrder');
+    if (Array.isArray(examOrder)) {
+        sortedGroupedStudents = examOrder.flatMap((programId) => {
             const filteredGroups = sortedGroupedStudents.filter(
-                (group) => group[0].programId === parseInt(examId, 10),
+                (group) => group[0].programId === parseInt(programId, 10),
             );
             return filteredGroups;
         });
-    } */
+    }
 
-    logger.debug(sortedGroupedStudents, 'grouped students')
+    // logger.debug(sortedGroupedStudents, 'grouped students')
 
     return sortedGroupedStudents;
 }
@@ -355,6 +356,7 @@ export default async function getData({
     examOrder,
     orderBy = 'rollNumber',
 }) {
+    console.log('examOrder getData: ', examOrder);
     try {
         const { nonOpenCourses, openCourses, commonCourse2 } = await fetchExams(
             date,

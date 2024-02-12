@@ -31,7 +31,7 @@ const config = {
     dialectOptions: {
         connectTimeout: 30000,
     },
-    logging,
+    logging: false,
 };
 
 const sequelize = new Sequelize(database, username, password, config);

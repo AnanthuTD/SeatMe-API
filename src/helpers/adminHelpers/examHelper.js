@@ -14,14 +14,14 @@ const getDateTimeId = async (date, timeCode = 'AN') => {
 };
 
 const getExamsByProgram = async ({ date, timeCode }) => {
-    console.log('getExamsByProgram', date, timeCode);
+    console.log('getExamsByProgram', dayjs.tz(date).toDate(), timeCode);
     try {
         const data = await models.exam.findAll({
             include: [
                 {
                     model: models.dateTime,
                     attributes: [],
-                    where: { date: { [Op.like]: date }, timeCode },
+                    where: { date: { [Op.like]: dayjs.tz(date).toDate()}, timeCode },
                     required: true,
                 },
                 {
@@ -40,8 +40,9 @@ const getExamsByProgram = async ({ date, timeCode }) => {
                 },
             ],
             attributes: [
-                'id',
+                // 'id',
                 [sequelize.col('course.programs.abbreviation'), 'program'],
+                [sequelize.col('course.programs.id'), 'id'],
                 [sequelize.col('course.name'), 'courseName'],
                 [sequelize.col('course.id'), 'courseId'],
             ],

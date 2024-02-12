@@ -32,6 +32,18 @@ router.get('/count', async (req, res) => {
     }
 });
 
+router.get('/program', async (req, res) => {
+    let { date, timeCode} = req.query;
+
+    console.log(date, timeCode);
+
+    const data = await getExamsByProgram({ date, timeCode });
+
+    logger.debug(data, 'data');
+
+    return res.json(data);
+});
+
 router.get('/', async (req, res) => {
     try {
         let { query, column, offset, limit, sortField, sortOrder } = req.query;
@@ -65,8 +77,6 @@ router.get('/', async (req, res) => {
             sortOrder,
         });
 
-        getExamsByProgram({ date: dayjs.tz(), timeCode: 'AN' });
-
         return res.json(data);
     } catch (error) {
         logger.error(`Error in GET /exams: ${error.message}`);
@@ -83,6 +93,8 @@ router.get('/assign', async (req, res) => {
             examName,
             examOrder,
         } = req.query;
+
+        logger.debug(examOrder, 'examOrder')
 
         let { date } = req.query;
 
