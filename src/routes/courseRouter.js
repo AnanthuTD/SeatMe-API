@@ -75,6 +75,46 @@ router.post('/course', async (req, res) => {
         });
     }
 });
+// Import the deleteCourse function
+// import { deleteCourse } from './yourModuleFileName.js';
+
+// Use the deleteCourse function in your route or other logic
+router.delete('/course/:courseId', async (req, res) => {
+    const deleteCourse = async (courseId) => {
+        try {
+            // Find the course by courseId
+            const course = await models.course.findByPk(courseId);
+            console.error(course);
+            if (!course) {
+                throw new Error(`Course with ID ${courseId} not found`);
+            }
+
+            // Delete the course
+            const deletedCourseCount = await course.destroy();
+            console.error('check', deletedCourseCount.dataValues.id);
+            console.error('deleted course', deletedCourseCount);
+            if (deletedCourseCount.dataValues.id) {
+                console.error('succes');
+                return {
+                    message: `Course with ID ${deletedCourseCount.dataValues.id} deleted successfully`,
+                };
+            }
+            throw new Error(`Failed to delete course with ID ${courseId}`);
+        } catch (error) {
+            console.error('Error deleting course:', error.message);
+            // throw Error(error.message);
+        }
+    };
+    const { courseId } = req.params;
+    // AGFX403 B.G DESIGN FOR CEL ANIMATION (AOC) skill 4
+    try {
+        const result = deleteCourse(courseId);
+        console.error('rsult : ', result);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+});
 
 router.patch('/courseupdate/', async (req, res) => {
     try {
@@ -140,4 +180,25 @@ router.patch('/courseupdate/', async (req, res) => {
         });
     }
 });
+const updateCourse = async (course) => {
+    const [updateCount] = await models.course.update(course, {
+        where: { id: course.id },
+    });
+
+    return updateCount;
+};
+
+const deleteCourse = async (courseId) => {
+    try {
+        const deletedCourse = await models.course.destroy({
+            where: {
+                id: courseId,
+            },
+        });
+
+        return deletedCourse;
+    } catch (error) {
+        throw Error(error.message);
+    }
+};
 export default router;

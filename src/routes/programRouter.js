@@ -3,6 +3,41 @@ import { models } from '../sequelize/models.js';
 
 const router = express.Router();
 
+router.delete('/program/:programId', async (req, res) => {
+    const deleteProgram = async (programId) => {
+        try {
+            // Find the program by programId
+            const program = await models.program.findByPk(programId);
+
+            if (!program) {
+                throw new Error(`Program with ID ${programId} not found`);
+            }
+
+            // Delete the program
+            const deletedProgramCount = await program.destroy();
+
+            if (deletedProgramCount > 0) {
+                return {
+                    message: `Program with ID ${programId} deleted successfully`,
+                };
+            }
+
+            throw new Error(`Failed to delete program with ID ${programId}`);
+        } catch (error) {
+            console.error('Error deleting program:', error.message);
+            throw Error(error.message);
+        }
+    };
+
+    const { programId } = req.params;
+
+    try {
+        const result = await deleteProgram(programId);
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+});
 router.post('/program', async (req, res) => {
     const { programs } = req.body || {};
 
@@ -30,7 +65,6 @@ router.post('/program', async (req, res) => {
         res.status(500).send('Error processing programs');
     }
 });
-
 router.patch('/programupdate/', async (req, res) => {
     try {
         let programs = [];
