@@ -37,12 +37,12 @@ const generateTeacherDetailsPDF = async (dateTimeId) => {
     // Add the table to the PDF
     doc.autoTable({ columns, body: rows });
 
+    const fileName = `${teacherDetails[0].dateTime.date}-${teacherDetails[0].dateTime.timeCode}.pdf`;
+
     // Save or display the PDF
-    doc.save(
-        `${getRootDir()}/reports/${teacherDetails[0].dateTime.date}-${
-            teacherDetails[0].dateTime.timeCode
-        }.pdf`,
-    );
+    doc.save(`${getRootDir()}/reports/${fileName}`);
+
+    return fileName;
 };
 
 export default generateTeacherDetailsPDF;

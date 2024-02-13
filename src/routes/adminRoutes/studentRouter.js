@@ -22,7 +22,7 @@ const router = express.Router();
 router.post('/', async (req, res) => {
     const { students } = req.body;
 
-    logger(students, 'Student');
+    logger.trace(students, 'Student');
 
     if (!students) {
         return res.status(400).json({ error: 'Missing required data' });
@@ -36,8 +36,8 @@ router.post('/', async (req, res) => {
         return res.status(200).json({ failedRecords: uncreatedStudents });
     } catch (error) {
         const errorMessage = `Error in POST /student: ${error.message}`;
-        console.error(errorMessage);
-        console.error(error);
+        logger.error(errorMessage);
+        logger.error(error);
         return res.status(500).send(errorMessage);
     }
 });
@@ -58,7 +58,7 @@ router.patch('/', async (req, res) => {
         }
         return res.status(404).json({ error: 'Student not found!' });
     } catch (error) {
-        console.error(`Error in PATCH /student: ${error.message}`);
+        logger.error(`Error in PATCH /student: ${error.message}`);
         return res.status(500).json({ error: 'Error updating students' });
     }
 });
@@ -82,7 +82,7 @@ router.delete('/', async (req, res) => {
             .status(404)
             .json({ error: `Student with ID ${studentId} not found` });
     } catch (error) {
-        console.error(`Error in DELETE /student: ${error.message}`);
+        logger.error(`Error in DELETE /student: ${error.message}`);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -93,7 +93,7 @@ router.get('/count', async (req, res) => {
         const count = await getStudentCount(programId, semester);
         res.json(count);
     } catch (error) {
-        console.error(`Error in GET /student/count: ${error.message}`);
+        logger.error(`Error in GET /student/count: ${error.message}`);
         res.status(500).json({ error: 'Error counting students' });
     }
 });
@@ -136,7 +136,7 @@ router.get('/list', async (req, res) => {
 
         res.json(data);
     } catch (error) {
-        console.error(`Error in GET /student/list: ${error.message}`);
+        logger.error(`Error in GET /student/list: ${error.message}`);
         res.status(500).json({ error: 'Error fetching student list' });
     }
 });
@@ -150,7 +150,7 @@ router.get('/pro-sem', async (req, res) => {
 
         return res.status(200).json(students);
     } catch (error) {
-        console.error(`Error in GET /students/pro-sem: ${error.message}`);
+        logger.error(`Error in GET /students/pro-sem: ${error.message}`);
         return res.status(500).json({ error: 'Error fetching students' });
     }
 });
@@ -183,13 +183,13 @@ router.post('/supplementary', async (req, res) => {
                     studentIds.map(async (studentId) => {
                         if (!studentId) return;
                         try {
-                            console.log(courseId, studentId);
+                            logger.trace(courseId, studentId);
                             await models.supplementary.upsert({
                                 examId: exam.id,
                                 studentId,
                             });
                         } catch (error) {
-                            console.log(error);
+                            logger.trace(error);
                             failedRecords.push({
                                 courseId,
                                 studentId,
@@ -205,7 +205,7 @@ router.post('/supplementary', async (req, res) => {
             failedRecords,
         });
     } catch (error) {
-        console.error('Error creating records:', error);
+        logger.error(error, 'Error creating records:');
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -214,20 +214,20 @@ router.get('/supplementary', async (req, res) => {
     try {
         let { date, courseIds } = req.query;
 
-        console.log(req.query);
+        logger.trace(req.query);
 
         const data = await findSupplementaryStudents({ date, courseIds });
 
         res.json(data);
     } catch (error) {
-        console.error(`Error in GET /student/list: ${error.message}`);
+        logger.error(`Error in GET /student/list: ${error.message}`);
         res.status(500).json({ error: 'Error fetching student list' });
     }
 });
 
 router.patch('/supplementary', async (req, res) => {
     const student = req.body;
-    logger(student);
+    logger.trace(student);
 
     if (!student) {
         return res.status(400).json({ error: 'Missing required data' });
@@ -244,7 +244,7 @@ router.patch('/supplementary', async (req, res) => {
         }
         return res.status(404).json({ error: 'Student not found!' });
     } catch (error) {
-        console.error(`Error in PATCH /student: ${error}`, error);
+        logger.error(`Error in PATCH /student: ${error}`);
         return res.status(500).json({ error: 'Error updating students' });
     }
 });
@@ -268,7 +268,7 @@ router.delete('/supplementary/:supplyId', async (req, res) => {
             .status(404)
             .json({ error: `Supply ID ${supplyId} not found` });
     } catch (error) {
-        console.error(`Error in DELETE /student: ${error.message}`);
+        logger.error(`Error in DELETE /student: ${error.message}`);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });

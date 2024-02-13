@@ -33,9 +33,9 @@ export default async function findRepeatingStudents(rooms) {
 /* const repeatingRegNos = await findRepeatingRegNos(classes);
 
 if (repeatingRegNos.length > 0) {
-    console.log("Repeating registration numbers found:");
-    console.log(repeatingRegNos);
+    logger.debug("Repeating registration numbers found:");
+    logger.debug(repeatingRegNos);
 } else {
-    console.log("No repeating registration numbers found.");
+    logger.debug("No repeating registration numbers found.");
 }
  */

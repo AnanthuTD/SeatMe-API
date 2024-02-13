@@ -2,6 +2,7 @@ import express from 'express';
 import getRootDir from '../../getRootDir.js';
 
 import { models } from '../sequelize/models.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
@@ -41,8 +42,6 @@ router.delete('/department/:departmentId', async (req, res) => {
 });
 
 router.post('/department', (req, res) => {
-    console.log('this is called');
-    console.log(req.body);
     let body = req.body.departments;
     let deps = [];
     body.forEach((item) => {
@@ -54,8 +53,6 @@ router.post('/department', (req, res) => {
             name,
             code,
         });
-        console.log(deps);
-        console.log(`ID: ${item.id}, Name: ${item.name}`);
     });
 
     models.department
@@ -64,7 +61,7 @@ router.post('/department', (req, res) => {
             res.send();
         })
         .catch((error) => {
-            console.error('Error in inserting into DB:', error);
+            logger.error(error, 'Error in inserting into DB:');
 
             // Sending SQL error message to frontend
             res.status(500).json({
@@ -84,16 +81,7 @@ router.patch('/departmentupdate/', async (req, res) => {
                 id,
                 name,
             });
-            //  console.log(departments,"hai this is patch");
-        });
-        departments.forEach((department) => {
-            const departmentId = department.id;
-            const departmentName = department.name;
-
-            // Use the values as needed
-            console.log('department ID:', departmentId);
-            console.log('department Name:', departmentName);
-            console.log('----------------------');
+            //  logger.trace(departments,"hai this is patch");
         });
         const updates = departments.map(async (department1) => {
             // Find the department by departmentId
@@ -133,7 +121,7 @@ router.patch('/departmentupdate/', async (req, res) => {
             results,
         });
     } catch (error) {
-        console.error('Error updating department in DB:', error);
+        logger.error(error, 'Error updating department in DB:');
         res.status(500).json({
             error: 'Error updating department in DB',
             errorMessage: error.message,

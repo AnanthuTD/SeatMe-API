@@ -2,6 +2,7 @@
 import express from 'express';
 import { Op } from 'sequelize';
 import { models, sequelize } from '../sequelize/models.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
@@ -10,11 +11,11 @@ router.get('/', async (req, res) => {
         const staffId = req.user.id;
         let onDuty;
         const currentDate = new Date();
-        console.log(currentDate);
+        logger.trace(currentDate);
         const today = currentDate
             .toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })
             .split(',')[0];
-        console.log(today);
+        logger.trace(today);
 
         // Use await with findOne to wait for the query to complete
         const dateEntry = await models.dateTime.findOne({
@@ -53,12 +54,12 @@ router.get('/', async (req, res) => {
             }
         } else {
             onDuty = false;
-            console.log('No dateTime entry found for today');
+            logger.trace('No dateTime entry found for today');
         }
 
         res.json({ onDuty, examDetails });
     } catch (error) {
-        console.error('Error:', error);
+        logger.error(error, 'Error:');
         res.status(500).send('Internal Server Error');
     }
 });
@@ -179,7 +180,7 @@ router.post('/attendance/:teacherSeatId', async (req, res) => {
             });
         });
     } catch (error) {
-        console.error('Error updating the database:', error);
+        logger.error(error, 'Error updating the database:');
         res.status(500).json({
             message: 'Internal Server Error',
             error: error.message,

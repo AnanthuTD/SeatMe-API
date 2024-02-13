@@ -19,6 +19,7 @@ import staffRouter from './staffRouter.js';
 import studentRouter from './studentRouter.js';
 import examRouter from './examRouter.js';
 import configRouter from './configRouter.js';
+import courseRouter from './courseRouter.js';
 import { getDateTimeId } from '../../helpers/adminHelpers/examHelper.js';
 import { models } from '../../sequelize/models.js';
 import { checkCredentialsAndRetrieveData } from '../../helpers/commonHelper.js';
@@ -45,12 +46,14 @@ router.use('/exams', examRouter);
 
 router.use('/config', configRouter);
 
+router.use('/course', courseRouter);
+
 router.get('/departments', async (req, res) => {
     try {
         const departments = await getDepartments();
         res.json(departments);
     } catch (error) {
-        console.error(`Error in GET /departments: ${error.message}`);
+        logger.error(`Error in GET /departments: ${error.message}`);
         res.status(500).json({ error: 'Error fetching departments' });
     }
 });
@@ -59,7 +62,7 @@ router.get('/blocks', async (req, res) => {
         const blocks = await getBlocks();
         res.json(blocks);
     } catch (error) {
-        console.error(`Error in GET /blocks: ${error.message}`);
+        logger.error(`Error in GET /blocks: ${error.message}`);
         res.status(500).json({ error: 'Error fetching departments' });
     }
 });
@@ -70,7 +73,7 @@ router.get('/programs', async (req, res) => {
         const programs = await getPrograms(departmentCode);
         res.json(programs);
     } catch (error) {
-        console.error(`Error in GET /programs: ${error.message}`);
+        logger.error(`Error in GET /programs: ${error.message}`);
         res.status(500).json({ error: 'Error fetching programs' });
     }
 });
@@ -81,7 +84,7 @@ router.get('/courses', async (req, res) => {
         const courses = await getCourses(programId, semester);
         res.json(courses);
     } catch (error) {
-        console.error(`Error in GET /courses: ${error.message}`);
+        logger.error(`Error in GET /courses: ${error.message}`);
         res.status(500).json({ error: 'Error fetching courses' });
     }
 });
@@ -89,11 +92,11 @@ router.get('/courses', async (req, res) => {
 router.get('/courses/exams', async (req, res) => {
     try {
         const { programId, semester } = req.query;
-        console.log(programId, semester);
+        logger.trace(programId, semester);
         const courses = await getCoursesExams(programId, semester);
         res.json(courses);
     } catch (error) {
-        console.error(`Error in GET /courses: ${error.message}`);
+        logger.error(`Error in GET /courses: ${error.message}`);
         res.status(500).json({ error: 'Error fetching courses' });
     }
 });
@@ -109,7 +112,7 @@ router.get('/open-courses', async (req, res) => {
         const openCourses = await getAvailableOpenCourses(programId);
         return res.status(200).json(openCourses);
     } catch (error) {
-        console.error(`Error in GET /open-courses: ${error.message}`);
+        logger.error(`Error in GET /open-courses: ${error.message}`);
         return res.status(500).json({ error: 'Error fetching open courses' });
     }
 });
@@ -121,7 +124,7 @@ router.get('/rooms/:examType', async (req, res) => {
         const rooms = await getRooms({ examType, availability });
         res.json(rooms);
     } catch (error) {
-        console.error('Error fetching rooms:', error);
+        logger.error(error, 'Error fetching rooms:');
         res.status(500).json({ error: 'Error fetching rooms' });
     }
 });
@@ -137,7 +140,7 @@ router.get('/rooms', async (req, res) => {
         });
         res.json(rooms);
     } catch (error) {
-        console.error('Error fetching rooms:', error);
+        logger.error(error, 'Error fetching rooms:');
         res.status(500).json({ error: 'Error fetching rooms' });
     }
 });
@@ -152,7 +155,7 @@ router.post('/rooms', async (req, res) => {
                 try {
                     await models.room.upsert(room, { where: { id: room.id } });
                 } catch (error) {
-                    console.error(error);
+                    logger.error(error);
                     failedRecords.push({ room, error: error.message });
                 }
             }),
@@ -163,7 +166,7 @@ router.post('/rooms', async (req, res) => {
             failedRecords,
         });
     } catch (error) {
-        console.error('Error posting rooms:', error);
+        logger.error(error, 'Error posting rooms:');
         res.status(500).json({
             success: false,
             message: 'Internal server error.',
@@ -181,7 +184,7 @@ router.patch('/rooms', async (req, res) => {
         });
         return res.json({ updateCount });
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         res.sendStatus(400);
     }
 });
@@ -192,7 +195,7 @@ router.get('/date-time-id', async (req, res) => {
         const dateTime = await getDateTimeId(date, timeCode);
         res.status(200).json({ dateTimeId: dateTime.id });
     } catch (error) {
-        console.error('Error getting dateTimeId:', error);
+        logger.error(error, 'Error getting dateTimeId:');
         res.status(500).json({ error: 'Error fetching dateTimeId' });
     }
 });
@@ -208,7 +211,7 @@ router.patch('/rooms-availability', async (req, res) => {
         await updateRoomAvailability({ roomIds });
         return res.json({ message: 'Room availability updated successfully' });
     } catch (error) {
-        console.error(`Error in PATCH /rooms: ${error.message}`);
+        logger.error(`Error in PATCH /rooms: ${error.message}`);
         return res
             .status(500)
             .json({ error: 'Failed to update room availability' });
@@ -234,7 +237,7 @@ router.patch('/rooms/:examType', async (req, res) => {
 
         return res.json({ updateCount });
     } catch (error) {
-        console.error(`Error in PATCH /rooms/${examType}: ${error.message}`);
+        logger.error(`Error in PATCH /rooms/${examType}: ${error.message}`);
         return res.status(500).json({ error: 'Failed to update room' });
     }
 });
@@ -249,7 +252,7 @@ router.get('/exam', async (req, res) => {
             res.sendStatus(204);
         }
     } catch (error) {
-        console.error(`Error in GET /exam: ${error.message}`);
+        logger.error(`Error in GET /exam: ${error.message}`);
         res.status(500).json({ error: 'Error fetching exam details' });
     }
 });
@@ -263,22 +266,47 @@ router.get('/examines-count', async (req, res) => {
         });
         res.json(examineesByProgram);
     } catch (error) {
-        console.error('Error counting exams for date:', error);
+        logger.error(error, 'Error counting exams for date:');
         res.status(500).json({ error: 'Error counting exams for date' });
     }
 });
 
 router.get('/download/report/:examName', (req, res) => {
-    const { examName } = req.params;
-    const outputFilePath = path.join(reportsDir, `${examName}.zip`);
+    try {
+        const { examName } = req.params;
 
-    // Set headers for the response
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename=output.zip');
+        if (!examName) {
+            res.sendStatus(400);
+            return;
+        }
 
-    // Pipe the saved zip file to the client response
-    const fileStream = fs.createReadStream(outputFilePath);
-    fileStream.pipe(res);
+        const outputFilePath = path.join(reportsDir, `${examName}`);
+
+        // Check if the file exists
+        if (!fs.existsSync(outputFilePath)) {
+            res.status(404).send('Report not found');
+            return;
+        }
+
+        // Set headers for the response
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', 'attachment; filename=output.zip');
+
+        // Pipe the saved zip file to the client response
+        const fileStream = fs.createReadStream(outputFilePath);
+
+        // Handle stream errors
+        fileStream.on('error', (error) => {
+            logger.error(error, 'Error streaming report file: ');
+            res.sendStatus(500);
+        });
+
+        // Pipe the file stream to the response
+        fileStream.pipe(res);
+    } catch (error) {
+        logger.error(error, 'Error on report download: ');
+        res.sendStatus(500);
+    }
 });
 
 router.get('/reports/:fileName', (req, res) => {
@@ -305,14 +333,14 @@ router.get('/reports/:fileName', (req, res) => {
 
             // Handle any errors that occur during streaming
             fileStream.on('error', (error) => {
-                console.error(`Error streaming file: ${error}`);
+                logger.error(`Error streaming file: ${error}`);
                 res.status(500).send('Error streaming the file');
             });
 
             // Stream the file to the response
             return fileStream.pipe(res);
         } catch (error) {
-            console.error(`Error serving file ( /public/:fileName ): ${error}`);
+            logger.error(`Error serving file ( /public/:fileName ): ${error}`);
             return res.status(500).send('Error serving the file');
         }
     } else {
@@ -327,7 +355,7 @@ router.delete('/reports/:fileName', (req, res) => {
     // Validate and sanitize the fileName to prevent directory traversal attacks
     if (fileName.includes('..')) {
         const errorMessage = `Error in DELETE /reports/${fileName}: Invalid file name - ${fileName}`;
-        console.error(errorMessage);
+        logger.error(errorMessage);
         return res.status(400).send('Invalid file name');
     }
 
@@ -338,16 +366,16 @@ router.delete('/reports/:fileName', (req, res) => {
         if (fs.existsSync(filePath)) {
             // Attempt to remove the file
             fs.unlinkSync(filePath);
-            console.log(`File deleted: ${filePath}`);
+            logger.trace(`File deleted: ${filePath}`);
             return res.status(204).send(); // Send a success response with no content
         }
         // Handle the case when the file does not exist
         const errorMessage = `Error in DELETE /reports/${fileName}: File not found - ${filePath}`;
-        console.error(errorMessage);
+        logger.error(errorMessage);
         return res.status(404).send('File not found');
     } catch (error) {
         const errorMessage = `Error in DELETE /reports/${fileName}: Error removing file - ${error}`;
-        console.error(errorMessage);
+        logger.error(errorMessage);
         return res.status(500).send('Internal Server Error');
     }
 });
@@ -375,7 +403,7 @@ router.get('/reports', async (req, res) => {
         res.json(sortedFileNames);
     } catch (error) {
         const errorMessage = `Error in GET /reports: ${error.message}`;
-        console.error(errorMessage);
+        logger.error(errorMessage);
         res.status(500).send('Error listing PDFs.');
     }
 });
@@ -387,7 +415,7 @@ router.patch('/profile', async (req, res) => {
         return res.status(400).send('Invalid request data');
     }
 
-    console.log(req.user);
+    logger.trace(req.user);
 
     try {
         const { password, ...otherProfileFields } = profileInfo;
@@ -453,7 +481,7 @@ router.patch('/profile', async (req, res) => {
         // Authentication failed or user not found
         return res.status(403).send('Invalid credentials or not authorized.');
     } catch (error) {
-        console.error('Error updating profile!', error);
+        logger.error(error, 'Error updating profile!');
         return res.status(500).send('Internal Server Error');
     }
 });

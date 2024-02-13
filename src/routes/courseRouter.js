@@ -36,7 +36,7 @@ router.post('/course', async (req, res) => {
                                 courseId: course.id,
                             });
                         } catch (error) {
-                            console.error(
+                            logger.error(
                                 'Error upserting record in to programCourse:',
                                 error,
                             );
@@ -46,7 +46,7 @@ router.post('/course', async (req, res) => {
                             });
                         }
                     } else {
-                        console.error(
+                        logger.error(
                             `Program with ID ${course.programId} not found.`,
                         );
 
@@ -56,7 +56,7 @@ router.post('/course', async (req, res) => {
                         });
                     }
                 } catch (error) {
-                    console.error('Error upserting record:', error);
+                    logger.error(error, 'Error upserting record:');
 
                     failedRecords.push({
                         ...course,
@@ -68,7 +68,7 @@ router.post('/course', async (req, res) => {
 
         return res.status(200).json({ failedRecords });
     } catch (error) {
-        console.error('Error in upserting records:', error.message);
+        logger.error(error, 'Error in upserting records:');
         return res.status(500).json({
             error: 'Error upserting values into DB',
             errorMessage: error.message,
@@ -132,7 +132,6 @@ router.patch('/courseupdate/', async (req, res) => {
                 type,
                 program,
             });
-            //  console.log(courses,"hai this is patch");
         });
         const updates = courses.map(async (course1) => {
             // Find the course by courseId
@@ -173,7 +172,7 @@ router.patch('/courseupdate/', async (req, res) => {
             results,
         });
     } catch (error) {
-        console.error('Error updating course in DB:', error);
+        logger.error(error, 'Error updating course in DB');
         return res.status(500).json({
             error: 'Error updating course in DB',
             errorMessage: error.message,

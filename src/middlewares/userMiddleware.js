@@ -1,5 +1,7 @@
 import redisClient from '../redis/config.js';
 import keyNames from '../redis/keyNames.js';
+import dayjs from '../helpers/dayjs.js';
+import logger from '../helpers/logger.js';
 
 const checkSameStudent = (req, res, next) => {
     try {
@@ -21,7 +23,7 @@ const checkSameStudent = (req, res, next) => {
 
         return next();
     } catch (error) {
-        console.error(
+        logger.error(
             'An error occurred in userMiddleware (checkSameStudent)\n',
             error,
         );
@@ -33,7 +35,7 @@ const checkSeatingAvailability = async (req, res, next) => {
     const { studentId } = req.query;
     res.cookie('studentId', studentId);
 
-    const currentDayOfWeek = new Date().getDay();
+    const currentDayOfWeek = new dayjs.tz().day();
 
     const daysOfWeek = [
         'Sunday',
@@ -60,24 +62,28 @@ const checkSeatingAvailability = async (req, res, next) => {
     }
 
     const seatingConfigurations = JSON.parse(seatingConfigList);
-    const currentTime = new Date();
+    const currentTime = new dayjs.tz();
 
     // Check if the current time is within any of the configured ranges
     const matchingConfig = seatingConfigurations.find((config) => {
-        const configStartTime = new Date(`1970-01-01T${config.startTime}`);
-        const configEndTime = new Date(`1970-01-01T${config.endTime}`);
+        const configStartTime = new dayjs.tz(`1970-01-01T${config.startTime}`);
+        const configEndTime = new dayjs.tz(`1970-01-01T${config.endTime}`);
+
+        logger.trace('Current Time:', currentTime.format());
+        logger.trace('Config Start Time:', configStartTime.format());
+        logger.trace('Config End Time:', configEndTime.format());
 
         const isAfterStartTime =
-            currentTime.getHours() > configStartTime.getHours() ||
-            (currentTime.getHours() === configStartTime.getHours() &&
-                currentTime.getMinutes() >= configStartTime.getMinutes());
+            currentTime.hour() > configStartTime.hour() ||
+            (currentTime.hour() === configStartTime.hour() &&
+                currentTime.minute() >= configStartTime.minute());
 
         const isBeforeEndTime =
-            currentTime.getHours() < configEndTime.getHours() ||
-            (currentTime.getHours() === configEndTime.getHours() &&
-                currentTime.getMinutes() < configEndTime.getMinutes());
+            currentTime.hour() < configEndTime.hour() ||
+            (currentTime.hour() === configEndTime.hour() &&
+                currentTime.minute() < configEndTime.minute());
 
-        console.log(isAfterStartTime, isBeforeEndTime);
+        logger.trace(isAfterStartTime, isBeforeEndTime);
 
         // Check if the current time is within the range of config.startTime and config.endTime
         return isAfterStartTime && isBeforeEndTime;

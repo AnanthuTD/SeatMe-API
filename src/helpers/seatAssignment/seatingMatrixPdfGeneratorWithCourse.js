@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import getRootDir from '../../../getRootDir.js';
+import logger from '../logger.js';
 
 export default async function generateSeatingMatrixPDFWithCourse(
     classes,
@@ -100,7 +101,7 @@ export default async function generateSeatingMatrixPDFWithCourse(
         }
 
         // Add column headers
-        tableData2.push([...tableHeaders2]); // Create a copy of tableHeaders2
+        // tableData2.push([...tableHeaders2]);
 
         // Add rows for seating matrix
         const numRows = seatingMatrix.length;
@@ -125,11 +126,19 @@ export default async function generateSeatingMatrixPDFWithCourse(
             tableData2.push(rowData);
         }
 
-        // Use jsPDF-AutoTable for the second table
+        const numCols = seatingMatrix[0].length;
+        const equalColumnWidth = doc.internal.pageSize.width / numCols;
+
+        const columnStyles = {};
+        for (let i = 1; i < numCols; i += 1) {
+            columnStyles[i] = { cellWidth: equalColumnWidth - 5 };
+        }
+
         doc.autoTable({
             startY: yOffset + 10,
             head: [tableHeaders2],
-            body: tableData2.slice(1), // Exclude the header from the body
+            body: tableData2,
+            columnStyles,
         });
 
         yOffset = 20;

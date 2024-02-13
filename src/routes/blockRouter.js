@@ -1,9 +1,8 @@
 import path from 'path';
 import express from 'express';
-
 import getRootDir from '../../getRootDir.js';
-
 import { models } from '../sequelize/models.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
@@ -47,8 +46,6 @@ router.post('/block', async (req, res) => {
         const body = req.body.blocks;
         const blocks = body.map((item) => ({ id: item.id, name: item.name }));
 
-        console.log(blocks);
-
         const createdBlocks = await models.block.bulkCreate(blocks, {
             validate: true,
             ignoreDuplicates: true, // Sequelize option to ignore duplicates
@@ -60,7 +57,7 @@ router.post('/block', async (req, res) => {
 
         res.send(successfulBlocks);
     } catch (error) {
-        console.error('Error inserting into DB:', error);
+        logger.error(error, 'Error inserting into DB:');
         res.status(500).send('Error inserting values into DB');
     }
 });
@@ -75,14 +72,6 @@ router.patch('/blockupdate/', async (req, res) => {
                 id,
                 name,
             });
-            //  console.log(blocks,"hai this is patch");
-        });
-        blocks.forEach((block) => {
-            const blockId = block.id;
-
-            // Use the values as needed
-            console.log('block ID:', blockId);
-            console.log('----------------------');
         });
         const updates = blocks.map(async (block1) => {
             // Find the block by blockId
@@ -91,13 +80,6 @@ router.patch('/blockupdate/', async (req, res) => {
             if (!block) {
                 return { error: `block with ID ${block1.id} not found` };
             }
-
-            /*  let updatedData = {
-                name: block1.name,
-            }; */
-
-            // Update the block with the provided data
-            // await block.update(updatedData);
 
             return {
                 message: `block with ID ${block1.id} updated successfully`,
@@ -120,7 +102,7 @@ router.patch('/blockupdate/', async (req, res) => {
             results,
         });
     } catch (error) {
-        console.error('Error updating block in DB:', error);
+        logger.error(error, 'Error updating block in DB');
         res.status(500).json({
             error: 'Error updating block in DB',
             errorMessage: error.message,

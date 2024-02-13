@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import redisClient from '../../redis/config.js';
 import keyNames from '../../redis/keyNames.js';
+import logger from '../logger.js';
 
 const getRefreshTokenFromRedis = async (userId) => {
     try {
@@ -8,10 +9,10 @@ const getRefreshTokenFromRedis = async (userId) => {
         const refreshToken = await redisClient.get(
             `${keyNames.refreshToken}:${userId}`,
         );
-        console.log('refresh token from redis: ', refreshToken);
+        logger.trace('refresh token from redis: ', refreshToken);
         return refreshToken;
     } catch (error) {
-        console.error('Error retrieving refresh token from Redis:', error);
+        logger.error(error, 'Error retrieving refresh token from Redis:');
         throw error; // Handle the error appropriately in your application
     }
 };
@@ -37,7 +38,7 @@ const verifyRefreshToken = async (refreshToken) => {
             message: 'Valid refresh token',
         };
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         return {
             error: true,
             message: 'Invalid refresh token',

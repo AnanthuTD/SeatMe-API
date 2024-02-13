@@ -26,12 +26,13 @@
         "sourceType": "module"
     },
     "rules": {
-        "consistent-return":"off",
-        "no-unused-vars":"off",
-        "new-cap":"off",
-        "consistent-return":"warn",
-        "no-unused-vars":"warn",
-        "no-loop-func":"off",
+        "no-process-exit":"off",
+        "consistent-return": "off",
+        "no-unused-vars": "off",
+        "new-cap": "off",
+        "consistent-return": "warn",
+        "no-unused-vars": "warn",
+        "no-loop-func": "off",
         "prettier/prettier": [
             "error",
             {

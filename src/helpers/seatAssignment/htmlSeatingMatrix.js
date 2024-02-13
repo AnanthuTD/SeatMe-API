@@ -1,5 +1,6 @@
 import fs from 'fs';
 import getRootDir from '../../../getRootDir.js';
+import logger from '../logger.js';
 
 /**
  * Generate an HTML file containing seating matrices for all classes.
@@ -66,7 +67,7 @@ export default function generateSeatingMatrixHTML(
             ...exams.map((program) => program.examines.length),
         );
 
-        for (let row = 0; row < maxExaminees; row++) {
+        for (let row = 0; row < maxExaminees; row += 1) {
             htmlContent += '<tr>';
             htmlContent += `<td>${row + 1}</td>`; // Seat number
 
@@ -120,7 +121,7 @@ export default function generateSeatingMatrixHTML(
     // Write the HTML content to a file
     fs.writeFileSync(`${getRootDir()}/public/${fileName}`, htmlContent);
 
-    console.log(
+    logger.trace(
         `Seating matrices for all classes have been saved to ${fileName}`,
     );
 }

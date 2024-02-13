@@ -35,7 +35,7 @@ router.get(
                     .json({ error: 'Student details not found' });
             }
 
-            console.log(seatingInfo.timeCode, req.timeCode);
+            logger.trace(seatingInfo.timeCode, req.timeCode);
 
             if (seatingInfo.timeCode !== req.timeCode)
                 return res.status(403).json({
@@ -45,7 +45,7 @@ router.get(
             const { programId, semester, openCourseId } =
                 seatingInfo?.student || {};
 
-            logger(seatingInfo, 'seating info');
+            logger.trace(seatingInfo, 'seating info');
 
             res.cookie('programId', programId);
             res.cookie('semester', semester);
@@ -53,7 +53,7 @@ router.get(
 
             return res.json({ seatingInfo });
         } catch (error) {
-            console.error('An error occurred:', error);
+            logger.error(error, 'An error occurred:');
             return res.status(500).json({ error: 'Internal Server Error' });
         }
     },
@@ -80,7 +80,7 @@ router.get('/exams', async (req, res) => {
 
         return res.status(200).json(upcomingExams);
     } catch (error) {
-        console.error('An error occurred:', error);
+        logger.error(error, 'An error occurred:');
 
         const { studentId } = req.cookies;
         if (!studentId)
@@ -92,7 +92,7 @@ router.get('/exams', async (req, res) => {
 
             return res.status(200).json(upcomingExams);
         } catch (err) {
-            console.error('An error occurred:', err);
+            logger.error(err, 'An error occurred:');
             return res.status(500).json({ err: 'Internal Server Error' });
         }
     }
@@ -106,7 +106,7 @@ router.get('/exams', async (req, res) => {
 
         return res.status(200).json(upcomingExams);
     } catch (error) {
-        console.error('An error occurred:', error);
+        logger.error(error,'An error occurred:');
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 }); */

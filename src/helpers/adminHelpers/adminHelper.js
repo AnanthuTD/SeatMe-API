@@ -100,7 +100,7 @@ const getStaffs = async (
         return data;
     } catch (error) {
         // Handle the error, log it, or throw a custom error if needed
-        console.error('Error in getStaffs:', error);
+        logger.error(error, 'Error in getStaffs');
         throw new Error('An error occurred while fetching staff data.');
     }
 };
@@ -254,7 +254,7 @@ const findStudent = async (
         return data;
     } catch (error) {
         // Handle the error, log it, or throw a custom error if needed
-        console.error('Error in getStudents:', error);
+        logger.error(error, 'Error in getStudents');
         throw new Error('An error occurred while fetching students data.');
     }
 };
@@ -280,8 +280,6 @@ const getPrograms = async (departmentCode) => {
             },
             raw: true,
         });
-        console.log('hi');
-        logger('programs', programs);
         return programs;
     }
     const allPrograms = await models.program.findAll({
@@ -393,7 +391,7 @@ const getCourses = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            type: [Op.ne, 'open'],
+                            [Op.or]: [{ [Op.ne]: 'open' }, { [Op.is]: null }],
                         },
                     ],
                 },
@@ -420,7 +418,7 @@ const getCourses = async (programId, semester) => {
 
         return courses;
     } catch (error) {
-        console.error('Error:', error);
+        logger.error(error, 'Error');
         return [];
     }
 };
@@ -477,7 +475,12 @@ const getCoursesExams = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            type: { [Op.ne]: 'open' },
+                            type: {
+                                [Op.or]: [
+                                    { [Op.ne]: 'open' },
+                                    { [Op.is]: null },
+                                ],
+                            },
                         },
                     ],
                 },
@@ -520,7 +523,12 @@ const getCoursesExams = async (programId, semester) => {
                             '$programCourses.program_id$': {
                                 [Op.eq]: programId,
                             },
-                            type: [Op.ne, 'open'],
+                            type: {
+                                [Op.or]: [
+                                    { [Op.ne]: 'open' },
+                                    { [Op.is]: null },
+                                ],
+                            },
                         },
                     ],
                 },
@@ -531,11 +539,9 @@ const getCoursesExams = async (programId, semester) => {
             return [];
         }
 
-        logger(courses, 'courses');
-
         return courses;
     } catch (error) {
-        console.error('Error:', error);
+        logger.error(error);
         return [];
     }
 };
@@ -556,7 +562,7 @@ const setExam = async (data) => {
 
         return true;
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         return false;
     }
 };
@@ -654,11 +660,11 @@ const getExams = async ({
             ],
             raw: true,
         });
-        // console.log(JSON.stringify(data, null, 2));
+        logger.trace(data);
         return data;
     } catch (error) {
         // Handle the error, log it, or throw a custom error if needed
-        console.error('Error in getExams:', error);
+        logger.error(error, 'Error in getExams:');
         throw new Error('An error occurred while fetching exams data.');
     }
 };
@@ -715,7 +721,7 @@ const getRooms = async ({ examType = 'final', availability = undefined }) => {
         });
         return rooms;
     } catch (error) {
-        console.error('Error fetching rooms:', error);
+        logger.error(error, 'Error fetching rooms:');
         throw error;
     }
 };
@@ -759,20 +765,22 @@ const countExamineesByProgramForDate = async ({
     timeCode = 'AN',
 }) => {
     try {
-        console.log('targetDate: ', targetDate);
+        logger.trace('targetDate: ', targetDate);
         targetDate = dayjs(targetDate).tz('Asia/Kolkata');
-        console.log('targetDate: ', targetDate);
+        logger.trace('targetDate: ', targetDate);
     } catch (error) {
-        console.error('Invalid date!');
+        logger.error(error, 'Invalid date!');
         throw error;
     }
 
-    const { openCourses, nonOpenCourses } = await fetchExams(
+    const { openCourses, nonOpenCourses, commonCourse2 } = await fetchExams(
         targetDate,
         timeCode,
     );
 
-    const data = [...nonOpenCourses, ...openCourses];
+    const data = [...nonOpenCourses, ...openCourses, ...commonCourse2];
+
+    logger.debug(data, 'data');
 
     try {
         const regularStudentsCounts = await models.student.count({
@@ -794,6 +802,8 @@ const countExamineesByProgramForDate = async ({
             group: ['programId'],
         });
 
+        logger.debug(regularStudentsCounts, 'regularStudentCounts')
+
         // Calculate supplyStudentsCount
         const supplyStudentsCount = await models.student.count({
             include: [
@@ -804,6 +814,7 @@ const countExamineesByProgramForDate = async ({
                             [Op.in]: [
                                 ...nonOpenCourses.map((value) => value.examId),
                                 ...openCourses.map((value) => value.examId),
+                                ...commonCourse2.map((value) => value.examId),
                             ],
                         },
                     },
@@ -832,13 +843,27 @@ const countExamineesByProgramForDate = async ({
                 if (matchingProgram) {
                     matchingProgram.supply = supply;
                     delete matchingProgram.count;
+                } else {
+                    logger.trace('No matching regular');
+                    const newProgram = {
+                        programId: supplyProgramId,
+                        supply,
+                        regular: 0,
+                    };
+                    totalCountsByProgram.push(newProgram);
+                    logger.debug(
+                        totalCountsByProgram,
+                        'matchingProgram only supply',
+                    );
                 }
             },
         );
 
+        logger.debug(totalCountsByProgram, 'totalStudentsByProgram');
+
         return totalCountsByProgram;
     } catch (error) {
-        console.error('Error counting exams:', error);
+        logger.error(error, 'Error counting exams');
         throw error;
     }
 };
@@ -867,7 +892,7 @@ const upsertStudents = async (students) => {
                 try {
                     await models.student.upsert(student);
                 } catch (error) {
-                    console.error(
+                    logger.error(
                         `Error creating or updating student ${student.id}:`,
                         error,
                     );
@@ -879,11 +904,9 @@ const upsertStudents = async (students) => {
             }),
         );
 
-        logger(uncreatedStudents);
-
         return { success: true, uncreatedStudents, error: null };
     } catch (error) {
-        console.error('Error creating or updating students:', error);
+        logger.error(error, 'Error creating or updating students:');
         return { success: false, uncreatedStudents: [], error: error.message };
     }
 };
@@ -985,7 +1008,7 @@ const findStudentsByProgramSem = async (programId, semester = undefined) => {
             });
         return students;
     } catch (error) {
-        console.error('Error querying students:', error);
+        logger.error(error, 'Error querying students:');
         throw error;
     }
 };

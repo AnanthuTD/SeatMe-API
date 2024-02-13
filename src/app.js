@@ -3,7 +3,6 @@ import fs from 'fs';
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import session from 'express-session';
 import compression from 'compression';
 import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRoutes/adminRouter.js';
@@ -20,10 +19,7 @@ import {
     adminAuthMiddleware,
     staffAuthMiddleware,
 } from './middlewares/authMiddleware.js';
-import {
-    csrfProtectionMiddleware,
-    generateCsrfToken,
-} from './middlewares/csrfMiddleware.js';
+import { generateCsrfToken } from './middlewares/csrfMiddleware.js';
 import getRootDir from '../getRootDir.js';
 import validateENV from './env.js';
 import { retrieveAndStoreExamsInRedis } from './helpers/adminHelpers/studentSeat.js';
@@ -32,6 +28,8 @@ import updateSeatingInfoScheduledTasks from './redis/seatingInfoScheduler.js';
 import { loadSeatingAvailabilityTimesToRedis } from './redis/loadSeatingAvailabilityTimes.js';
 import loadRefreshTokensToRedis from './redis/loadRefreshTokens.js';
 import { updateSeatingInfoRedis } from './redis/seatingInfo.js';
+import dayjs from './helpers/dayjs.js';
+import logger from './helpers/logger.js';
 
 const dirname = getRootDir();
 
@@ -48,16 +46,15 @@ async function assertDatabaseConnectionOk({ retryDelay = 5000 }) {
     let retries = 0;
 
     async function attemptConnection() {
-        console.log(`Checking database connection... Attempt ${retries + 1}`);
+        logger.info(`Checking database connection... Attempt ${retries + 1}`);
         try {
             await sequelize.authenticate();
-            console.log('Database connection OK!');
+            logger.info('Database connection OK!');
             // initializing models
             import('./sequelize/models.js');
             return true; // Connection successful
         } catch (error) {
-            console.error('Unable to connect to the database:');
-            console.error(error.message);
+            logger.error(error, 'Unable to connect to the database');
             return false; // Connection failed
         }
     }
@@ -71,7 +68,7 @@ async function assertDatabaseConnectionOk({ retryDelay = 5000 }) {
         }
 
         retries += 1;
-        console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+        logger.info(`Retrying in ${retryDelay / 1000} seconds...`);
         // eslint-disable-next-line no-await-in-loop
         await new Promise((resolve) => {
             setTimeout(() => {
@@ -89,32 +86,39 @@ function setupMiddlewares() {
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
     app.use(compression());
-    app.use(
+    /* app.use(
         session({
             secret: process.env.SESSION_KEY, // Secret key for session data encryption
             resave: false, // Don't save session data if not modified
             saveUninitialized: true, // Save new sessions even if they have not been modified
         }),
-    );
+    ); */
     app.use(cookieParser());
     app.set('view engine', 'ejs');
-    if (process.env.NODE_ENV === 'production') {
+    /* if (process.env.NODE_ENV === 'production') {
         app.use(csrfProtectionMiddleware);
-    }
+    } */
 
     app.use((req, res, next) => {
-        const start = Date.now();
-        console.log(
-            `[${new Date().toISOString()}] Request: ${req.method} ${req.url}`,
+        const startTime = dayjs.tz(); // Use dayjs for the start timestamp
+
+        logger.info(
+            `[${startTime.format('YYYY-MM-DD HH:mm:ss')}] Request: ${
+                req.method
+            } ${req.url}`,
         );
+
         res.on('finish', () => {
-            const duration = Date.now() - start;
-            console.log(
-                `[${new Date().toISOString()}] Response: ${
+            const endTime = dayjs.tz();
+            const duration = endTime.diff(startTime);
+
+            logger.info(
+                `[${endTime.format('YYYY-MM-DD HH:mm:ss')}] Response: ${
                     res.statusCode
                 } - ${duration}ms`,
             );
         });
+
         next();
     });
 }
@@ -124,7 +128,6 @@ function setupMiddlewares() {
  */
 function setupRoutes() {
     app.use('/', userRouter);
-
     app.use('/admin/blockentry', blockRouter);
     app.use('/admin/departmententry', departmentRouter);
     app.use('/admin/courseentry', courseRouter);
@@ -145,14 +148,41 @@ function setupRoutes() {
  */
 function startServer() {
     const port = process.env.PORT;
-    app.listen(port, () => {
-        console.log(`Server is running on port ${port}`);
+    const server = app.listen(port, () => {
+        logger.info(`Server is running on port ${port}`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            logger.error(`Port ${port} is already in use`);
+            process.exit(1);
+        } else {
+            logger.error(err, `Error starting server on port ${port}`);
+            process.exit(1);
+        }
+    });
+
+    process.on('uncaughtException', (err) => {
+        // Log the exception
+        logger.fatal(err, 'Uncaught exception detected', { stderr: true });
+
+        // Attempt to shut down the server gracefully
+        server.close((error) => {
+            if (error) {
+                logger.error(error, 'Error during server shutdown');
+            } else {
+                logger.info('Server closed gracefully');
+            }
+
+            // Exit the process completely
+            process.exit(1);
+        });
     });
 }
 
 async function assertRedisConnectionOk() {
     if (!(await isRedisAvailable())) {
-        console.log('Redis is not available. Retrying in 5 seconds...');
+        logger.warn('Redis is not available. Retrying in 5 seconds...');
         // Return the result of the recursive call inside the setTimeout callback
         return new Promise((resolve) => {
             setTimeout(async () => {
@@ -175,10 +205,10 @@ function populateRedis() {
  * Initialize the application by connecting to the database, setting up middlewares, routes, and starting the server.
  */
 async function init() {
+    setupMiddlewares();
     validateENV();
     await assertDatabaseConnectionOk({ retryDelay: 5000 });
     await assertRedisConnectionOk();
-    setupMiddlewares();
     setupRoutes();
 
     const directoriesToCreate = ['reports', 'pdf'];

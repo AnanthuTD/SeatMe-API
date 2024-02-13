@@ -9,6 +9,7 @@ import optimizer from './optimizer.js';
 import generateSeatingArrangementPDF from './seatingArrangementMainReport.js';
 import generateSeatingMatrixPDFWithCourse from './seatingMatrixPdfGeneratorWithCourse.js';
 import answerBookReport from './answerBookReport.js';
+import logger from '../logger.js';
 
 /**
  * Assign seats to students for a given date.
@@ -25,16 +26,22 @@ async function assignSeats({
     orderBy = 'rollNumber',
     fileName = 'unnamed',
     examType = 'internal',
+    examOrder = undefined,
 }) {
     /** @type {[NestedStudentArray, number]} */
-    let [students, totalStudents] = await getData({ date, orderBy, timeCode });
+    let [students, totalStudents] = await getData({
+        date,
+        orderBy,
+        timeCode,
+        examOrder,
+    });
 
-    console.log(`total subjects : ${students.length}`);
-    console.log(`Generated ${totalStudents} students`);
+    logger.info(`total subjects : ${students.length}`);
+    logger.info(`Generated ${totalStudents} students`);
 
     let { rooms, totalSeats } = await generateSeatingMatrix(examType);
 
-    console.log(
+    logger.info(
         `Generated ${rooms.length} classes with a total of ${totalSeats} seats.`,
     );
 
@@ -50,7 +57,7 @@ async function assignSeats({
         try {
             seatingArrangement.assignSeats();
         } catch (error) {
-            console.error(error.message);
+            logger.error(error.message);
         }
         const unassignedStudents = seatingArrangement.getUnsignedStudents();
         students = unassignedStudents.filter(
@@ -64,20 +71,20 @@ async function assignSeats({
     let totalUnassignedStudents = totalStudents - totalAssignedSeats;
 
     if (totalAssignedSeats === totalStudents) {
-        console.log(
+        logger.info(
             `All students have been assigned ( ${totalAssignedSeats}  )`,
         );
     } else
-        console.warn(
+        logger.warn(
             `${totalUnassignedStudents} students are not been assigned`,
         );
 
-    // logger(students, 'unassigned students')
+    // logger.trace(students, 'unassigned students')
 
     // optimizing
     if (totalUnassignedStudents > 0) {
         // const groupedStudents = groupStudentsByCourseId(students[0]);
-        // logger(groupedStudents, 'unassigned students grouped')
+        // logger.trace(groupedStudents, 'unassigned students grouped')
         const optimizedRooms = await optimizer(
             _.cloneDeep(rooms),
             totalUnassignedStudents,
@@ -96,21 +103,21 @@ async function assignSeats({
         totalUnassignedStudents = totalStudents - totalAssignedSeats;
 
         if (totalAssignedSeats === totalStudents) {
-            console.log(
+            logger.info(
                 `All students have been assigned ( ${totalAssignedSeats}  )`,
             );
         } else
-            console.warn(
+            logger.warn(
                 `${totalUnassignedStudents} students are not been assigned`,
             );
 
         const repeatingRegNos = findRepeatingRegNos(rooms);
 
         if (repeatingRegNos.length > 0) {
-            console.log('Repeating registration numbers found:');
-            console.log(repeatingRegNos);
+            logger.info('Repeating registration numbers found:');
+            logger.info(repeatingRegNos);
         } else {
-            console.log('No repeating registration numbers found.');
+            logger.info('No repeating registration numbers found.');
         }
     }
     try {
@@ -139,7 +146,7 @@ async function assignSeats({
 
         return [rooms, totalUnassignedStudents];
     } catch (error) {
-        console.error('An error occurred:', error);
+        logger.error(error, 'An error occurred:');
         throw error;
     }
 }

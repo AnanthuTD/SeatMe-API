@@ -7,12 +7,12 @@ import dayjs from '../dayjs.js';
 
 const findMatchingConfig = (currentTime, seatingTimes) => {
     return seatingTimes.find((config) => {
-        const configStartTime = dayjs(`1970-01-01T${config.startTime}`);
-        const configEndTime = dayjs(`1970-01-01T${config.endTime}`);
+        const configStartTime = dayjs.tz(`1970-01-01T${config.startTime}`);
+        const configEndTime = dayjs.tz(`1970-01-01T${config.endTime}`);
 
-        console.log('Current Time:', currentTime.format());
-        console.log('Config Start Time:', configStartTime.format());
-        console.log('Config End Time:', configEndTime.format());
+        logger.trace('Current Time:', currentTime.format());
+        logger.trace('Config Start Time:', configStartTime.format());
+        logger.trace('Config End Time:', configEndTime.format());
 
         const isAfterStartTime =
             currentTime.hour() > configStartTime.hour() ||
@@ -24,7 +24,7 @@ const findMatchingConfig = (currentTime, seatingTimes) => {
             (currentTime.hour() === configEndTime.hour() &&
                 currentTime.minute() < configEndTime.minute());
 
-        console.log(isAfterStartTime, isBeforeEndTime);
+        logger.trace(isAfterStartTime, isBeforeEndTime);
 
         // Check if the current time is within the range of config.startTime and config.endTime
         return isAfterStartTime && isBeforeEndTime;
@@ -33,17 +33,17 @@ const findMatchingConfig = (currentTime, seatingTimes) => {
 
 const getTimeCodeForNow = async (seatingTimes) => {
     try {
-        const currentTime = dayjs();
+        const currentTime = dayjs.tz();
 
         // Ensure logger is defined and functioning correctly
-        logger(seatingTimes, 'seating times');
+        logger.trace(seatingTimes, 'seating times');
 
         const matchingConfig = findMatchingConfig(currentTime, seatingTimes);
 
         return matchingConfig ? matchingConfig.timeCode : null;
     } catch (error) {
         // Add proper error handling
-        console.error('Error in getTimeCodeForNow:', error.message);
+        logger.error(error, 'Error in getTimeCodeForNow');
         return null;
     }
 };
@@ -52,15 +52,15 @@ const clearSeatingInfoFromRedis = async () => {
     try {
         redisClient.del(keyNames.seatingInfo);
     } catch (error) {
-        console.error('Failed to clear seating info from redis!');
+        logger.error(error, 'Failed to clear seating info from redis!');
     }
 };
 
 const retrieveAndStoreSeatingInfoInRedis = async () => {
-    console.log('retrieving and storing seating info to redis');
+    logger.trace('retrieving and storing seating info to redis');
     try {
-        const currentDate = new Date();
-        const currentDayOfWeek = currentDate.getDay();
+        const currentDate = new dayjs.tz();
+        const currentDayOfWeek = currentDate.day();
 
         const daysOfWeek = [
             'Sunday',
@@ -81,7 +81,7 @@ const retrieveAndStoreSeatingInfoInRedis = async () => {
         const timeCode = await getTimeCodeForNow(seatingTimes);
 
         if (!timeCode)
-            return console.warn(
+            return logger.warn(
                 'No info available to store currently into redis.',
             );
 
@@ -141,7 +141,7 @@ const retrieveAndStoreSeatingInfoInRedis = async () => {
             ],
         });
 
-        console.log('length of seatingData: ', seatingData.length);
+        logger.trace('length of seatingData: ', seatingData.length);
 
         await redisClient.del(keyNames.seatingInfo);
 
@@ -157,13 +157,14 @@ const retrieveAndStoreSeatingInfoInRedis = async () => {
             }),
         );
 
-        console.log('Seating information stored in Redis successfully');
+        logger.trace('Seating information stored in Redis successfully');
     } catch (error) {
-        console.error(
+        logger.error(
             'Error retrieving or storing seating information in (retrieveAndStoreSeatingInfoInRedis)\n',
             error,
         );
     }
+    return null;
 };
 
 const retrieveStudentDetails = async (studentId) => {
@@ -174,7 +175,7 @@ const retrieveStudentDetails = async (studentId) => {
         );
 
         if (!studentDetailsStr) {
-            console.log(`Student with ID ${studentId} not found in Redis`);
+            logger.trace(`Student with ID ${studentId} not found in Redis`);
             return null;
         }
 
@@ -182,7 +183,7 @@ const retrieveStudentDetails = async (studentId) => {
 
         return studentDetails;
     } catch (error) {
-        console.error('Error retrieving student details from Redis:', error);
+        logger.error(error, 'Error retrieving student details from Redis:');
         return null;
     }
 };
@@ -229,27 +230,27 @@ const createRecord = async (seating) => {
         // retrieve and store data into redis
         retrieveAndStoreSeatingInfoInRedis();
     } catch (error) {
-        console.error(
-            'Error during bulk insert or update of studentSeat:',
+        logger.error(
             error,
+            'Error during bulk insert or update of studentSeat:',
         );
     }
 };
 
 async function removeAllSetsWithPattern(pattern) {
-    const keysToDelete = await redisClient.keys(`${pattern}'*'`);
+    const keysToDelete = await redisClient.keys(`${pattern}*`);
 
     if (keysToDelete.length > 0) {
         await redisClient.del(keysToDelete);
-        console.log('Sets removed:', keysToDelete);
+        logger.trace('Sets removed:', keysToDelete);
     } else {
-        console.log('No sets found with the specified pattern.');
+        logger.trace('No sets found with the specified pattern.');
     }
 }
 
 const getUpcomingExamsById = async (studentId) => {
     const student = await models.student.findByPk(studentId, {});
-    const currentDate = new Date();
+    const currentDate = new dayjs.tz();
 
     let data = await models.course.findAll({
         attributes: [
@@ -309,12 +310,11 @@ const getUpcomingExamsById = async (studentId) => {
         raw: true,
     });
 
-    // logger(data);
     return data;
 };
 
 const getUpcomingExamsFromDB = async () => {
-    const currentDate = new dayjs();
+    const currentDate = new dayjs.tz();
 
     try {
         const upcomingExams = await models.course.findAll({
@@ -350,7 +350,7 @@ const getUpcomingExamsFromDB = async () => {
 
         return upcomingExams;
     } catch (error) {
-        console.error('Something went wrong!', error);
+        logger.error(error, 'Something went wrong!');
         return [];
     }
 };
@@ -382,11 +382,11 @@ const getUpcomingExams = async (
     openCourseId = undefined,
 ) => {
     try {
-        console.log(programId, semester, openCourseId);
+        logger.trace(programId, semester, openCourseId);
         let key = `${keyNames.coursesProgram}:${programId}:${semester}`;
         const members = await redisClient.smembers(key);
         const examDataNormal = members.map((member) => JSON.parse(member));
-        console.log('Retrieved normal exam data:', examDataNormal);
+        logger.trace('Retrieved normal exam data:', examDataNormal);
 
         const combinedResults = [...examDataNormal];
 
@@ -400,18 +400,19 @@ const getUpcomingExams = async (
 
             if (examOpenCourseData) {
                 const parsedExam = JSON.parse(examOpenCourseData);
-                console.log('Retrieved exam data for open course:', parsedExam);
+                logger.trace(
+                    'Retrieved exam data for open course:',
+                    parsedExam,
+                );
                 combinedResults.push(parsedExam);
             } else {
-                console.log(`No data found for key: ${key}`);
+                logger.trace(`No data found for key: ${key}`);
             }
         }
 
-        console.log(combinedResults);
-
         return combinedResults;
     } catch (err) {
-        console.error('Error retrieving exam data:', err);
+        logger.error(err, 'Error retrieving exam data:');
         throw err; // Re-throw the error to handle it at a higher level if needed.
     }
 };
@@ -480,9 +481,6 @@ const getTimeTableAndSeating = async (studentId) => {
         ],
     });
 
-    // console.log('data: ', JSON.stringify(data, null, 4));
-    // console.log('student: ', JSON.stringify(student, null, 2));
-
     data = data.map((value) => {
         if (value.exams.length > 1) {
             value.exams.splice(1);
@@ -490,7 +488,6 @@ const getTimeTableAndSeating = async (studentId) => {
         return value;
     });
 
-    // console.log('data: ', JSON.stringify(data, null, 2));
     return data;
 };
 

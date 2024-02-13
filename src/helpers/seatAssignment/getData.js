@@ -1,11 +1,11 @@
 import { Op } from 'sequelize';
 import { models, sequelize } from '../../sequelize/models.js';
 import dayjs from '../dayjs.js';
+import logger from '../logger.js';
 
 async function fetchExams(date, timeCode) {
     try {
         date = dayjs(date).tz('Asia/Kolkata').format('YYYY-MM-DD');
-        console.log(date);
         const data = await models.course.findAll({
             attributes: ['id', 'name', 'semester', 'type'],
             include: [
@@ -27,10 +27,10 @@ async function fetchExams(date, timeCode) {
             ],
         });
 
-        // console.log(JSON.stringify(data, null, 2));
-
         const openCourses = [];
         const nonOpenCourses = [];
+        const commonCourse2 = [];
+        const uniqueCourseIds = new Set();
 
         data.forEach((course) => {
             const courseDetails = {
@@ -49,23 +49,48 @@ async function fetchExams(date, timeCode) {
 
                 if (course.type === 'open') {
                     openCourses.push({ ...courseDetails, ...programInfo });
+                } else if (course.type === 'common2') {
+                    if (!uniqueCourseIds.has(course.id)) {
+                        commonCourse2.push({
+                            ...courseDetails,
+                            ...programInfo,
+                        });
+                        uniqueCourseIds.add(course.id);
+                    }
                 } else {
                     nonOpenCourses.push({ ...courseDetails, ...programInfo });
                 }
             });
         });
 
-        // console.log(JSON.stringify(students, null, 2));
-
-        return { openCourses, nonOpenCourses };
+        return { openCourses, nonOpenCourses, commonCourse2 };
     } catch (error) {
         throw new Error(`Error fetching data: ${error.message}`);
     }
 }
 
-// fetchExams(new Date('2023-10-25'));
+function countStudentsByProgram(students) {
+    const programCounts = {};
 
-async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
+    students.forEach((student) => {
+        const { programName } = student;
+
+        if (!programCounts[programName]) {
+            programCounts[programName] = 1;
+        } else {
+            programCounts[programName] += 1;
+        }
+    });
+
+    return programCounts;
+}
+
+async function fetchStudents({
+    nonOpenCourses,
+    openCourses,
+    commonCourse2,
+    orderBy = '',
+}) {
     try {
         const combinedNonOpenCourses = nonOpenCourses.map((value) => ({
             programId: value.programId,
@@ -77,9 +102,81 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
             semester: value.semester,
         }));
 
-        const students = await models.student.findAll({
+        const studentsOpenCourse = await models.student.findAll({
             where: {
-                [Op.or]: [...combinedNonOpenCourses, ...combinedOpenCourses],
+                [Op.or]: [...combinedOpenCourses],
+            },
+            include: [
+                {
+                    model: models.program,
+                    attributes: [['abbreviation', 'name']],
+                },
+            ],
+            order: [[orderBy, 'ASC']],
+            attributes: [
+                'name',
+                'id',
+                'semester',
+                'programId',
+                'rollNumber',
+                [sequelize.col('program.abbreviation'), 'programName'],
+                [sequelize.col('open_course_id'), 'courseId'],
+            ],
+            raw: true,
+        });
+
+        const combinedCommonCourse2 = commonCourse2
+            ?.map((value) => {
+                if (value.semester === 1)
+                    return {
+                        secondLang_1: value.courseId,
+                        semester: value.semester,
+                    };
+                if (value.semester === 2)
+                    return {
+                        secondLang_2: value.courseId,
+                        semester: value.semester,
+                    };
+                return null;
+            })
+            .filter((item) => item !== null);
+
+        const secondLang = await Promise.all(
+            (combinedCommonCourse2 || []).map(async (course) => {
+                const studentsSecondLang = await models.student.findAll({
+                    where: course,
+                    include: [
+                        {
+                            model: models.program,
+                            attributes: [['abbreviation', 'name']],
+                        },
+                    ],
+                    order: [[orderBy, 'ASC']],
+                    attributes: [
+                        'name',
+                        'id',
+                        'semester',
+                        'programId',
+                        'rollNumber',
+                        [sequelize.col('program.abbreviation'), 'programName'],
+                    ],
+                    raw: true,
+                });
+
+                studentsSecondLang.forEach((student) => {
+                    student.courseId =
+                        course?.secondLang_2 || course?.secondLang_1;
+                });
+
+                return studentsSecondLang;
+            }),
+        );
+
+        const studentsSecondLang = [].concat(...secondLang);
+
+        const studentsNonOpenCourse = await models.student.findAll({
+            where: {
+                [Op.or]: [...combinedNonOpenCourses],
             },
             include: [
                 {
@@ -98,6 +195,7 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
             ],
             raw: true,
         });
+
         const supplyStudents = await models.student.findAll({
             include: [
                 {
@@ -107,6 +205,7 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
                             [Op.in]: [
                                 ...nonOpenCourses.map((value) => value.examId),
                                 ...openCourses.map((value) => value.examId),
+                                ...commonCourse2.map((value) => value.examId),
                             ],
                         },
                     },
@@ -150,9 +249,22 @@ async function fetchStudents({ nonOpenCourses, openCourses, orderBy = '' }) {
             raw: true,
         });
 
-        // logger(supplyStudents, 'students');
+        // logger.trace(supplyStudents, 'students');
 
-        return [...students, ...supplyStudents];
+        const students = [
+            ...studentsSecondLang,
+            ...studentsNonOpenCourse,
+            ...studentsOpenCourse,
+            ...supplyStudents,
+        ];
+
+        // logger.debug(students, 'students');
+
+        const result = countStudentsByProgram(students);
+
+        logger.debug(result);
+
+        return students;
     } catch (error) {
         throw new Error(`Error fetching students: ${error.message}`);
     }
@@ -172,12 +284,19 @@ function matchStudentsWithData(students, data) {
                 student.courseId = value.courseId;
                 student.examId = value.examId;
                 student.courseType = value.courseType;
+            } else if (student.courseId && !student.examId) {
+                if (student.courseId === value.courseId) {
+                    student.examId = value.examId;
+                    student.courseName = value.courseName;
+                    student.courseType = value.courseType;
+                    student.courseSemester = value.semester;
+                }
             }
         });
 
         return student;
     });
-    // logger(groupedStudents, 'grouped students');
+    // logger.trace(groupedStudents, 'grouped students');
     return groupedStudents;
 }
 
@@ -188,13 +307,13 @@ function matchStudentsWithData(students, data) {
  * @type {import('./type.js').NestedStudentArray } NestedStudentArray
  * @returns {NestedStudentArray}
  */
-function groupStudentsByCourseId(students) {
+function groupStudentsByCourseId(students, examOrder) {
     const groupedStudents = {};
 
     students.forEach((student) => {
         const { courseId, courseType, programId } = student;
 
-        if (courseType === 'common') {
+        if (courseType === 'common' || true) { // TODO: sorting all courses based on program
             const programCourse = `${programId}-${courseId}`;
             if (!groupedStudents[programCourse]) {
                 groupedStudents[programCourse] = [];
@@ -211,9 +330,21 @@ function groupStudentsByCourseId(students) {
     });
 
     // Sorting the nested arrays in descending order based on length
-    const sortedGroupedStudents = Object.values(groupedStudents).sort(
+    let sortedGroupedStudents = Object.values(groupedStudents).sort(
         (a, b) => b.length - a.length,
     );
+
+    logger.debug(examOrder, 'examOrder');
+    if (Array.isArray(examOrder)) {
+        sortedGroupedStudents = examOrder.flatMap((programId) => {
+            const filteredGroups = sortedGroupedStudents.filter(
+                (group) => group[0].programId === parseInt(programId, 10),
+            );
+            return filteredGroups;
+        });
+    }
+
+    // logger.debug(sortedGroupedStudents, 'grouped students')
 
     return sortedGroupedStudents;
 }
@@ -222,37 +353,39 @@ function groupStudentsByCourseId(students) {
 export default async function getData({
     date,
     timeCode,
+    examOrder,
     orderBy = 'rollNumber',
 }) {
+    console.log('examOrder getData: ', examOrder);
     try {
-        const { nonOpenCourses, openCourses } = await fetchExams(
+        const { nonOpenCourses, openCourses, commonCourse2 } = await fetchExams(
             date,
             timeCode,
         );
-        // console.log(JSON.stringify(data, null, 4));
 
         const students = await fetchStudents({
             orderBy,
             nonOpenCourses,
             openCourses,
+            commonCourse2,
         });
-        // console.log(JSON.stringify(students, null, 4));
 
         const totalStudents = students.length;
 
         const updateStudents = matchStudentsWithData(students, [
             ...openCourses,
             ...nonOpenCourses,
+            ...commonCourse2,
         ]);
-        // console.log(JSON.stringify(updateStudents, null, 4));
 
-        const groupedStudents = groupStudentsByCourseId(updateStudents);
-
-        // console.log(JSON.stringify(groupedStudents, null, 4));
+        const groupedStudents = groupStudentsByCourseId(
+            updateStudents,
+            examOrder,
+        );
 
         return [groupedStudents, totalStudents];
     } catch (error) {
-        console.error(error.message);
+        logger.error(error.message);
         return null;
     }
 }

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
+import logger from '../logger.js';
 
 const BLACKLIST_FILE = 'src/jwtBlacklist.json';
 
@@ -10,7 +11,7 @@ try {
     blacklist = JSON.parse(fs.readFileSync(BLACKLIST_FILE, 'utf8'));
 } catch (err) {
     // Handle errors such as file not found.
-    console.error('Error reading blacklist:', err);
+    logger.error(err, 'Error reading blacklist:');
 }
 
 // Function to check if a JWT is blacklisted.
@@ -47,7 +48,7 @@ function cleanBlacklist() {
         return decoded.exp * 1000 > now; // Check if token is not expired
     });
     fs.writeFileSync(BLACKLIST_FILE, JSON.stringify(blacklist));
-    console.log('Blacklist cleaned.');
+    logger.info('Blacklist cleaned.');
 }
 
 export { addToBlacklist, isBlacklisted, cleanBlacklist };

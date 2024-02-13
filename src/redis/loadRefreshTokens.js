@@ -1,3 +1,4 @@
+import logger from '../helpers/logger.js';
 import { models } from '../sequelize/models.js';
 import redisClient from './config.js';
 import keyNames from './keyNames.js';
@@ -27,9 +28,9 @@ const loadRefreshTokensToRedis = async () => {
             }),
         );
 
-        console.log('Refresh tokens loaded into Redis successfully.');
+        logger.info('Refresh tokens loaded into Redis successfully.');
     } catch (error) {
-        console.error('Error loading refresh tokens into Redis:', error);
+        logger.error(error, 'Error loading refresh tokens into Redis:');
     }
 };
 
@@ -37,7 +38,7 @@ const removeRefreshTokenFromRedis = async (authUserId) => {
     try {
         await redisClient.del(`${keyNames.refreshToken}:${authUserId}`);
     } catch (error) {
-        console.error('Error removing refresh token from Redis:', error);
+        logger.error(error, 'Error removing refresh token from Redis:');
     }
 };
 

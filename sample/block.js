@@ -23,5 +23,4 @@ function generateDummyBlockData() {
 }
 
 const blockData = generateDummyBlockData();
-// console.log(blockData);
 block.bulkCreate(blockData);

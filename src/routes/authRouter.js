@@ -7,6 +7,7 @@ import verifyRefreshToken from '../helpers/tokenHelpers/verifyRefreshToken.js';
 import { setNewRefreshToken } from '../helpers/tokenHelpers/index.js';
 import { removeRefreshTokenFromRedis } from '../redis/loadRefreshTokens.js';
 import keyNames from '../redis/keyNames.js';
+import logger from '../helpers/logger.js';
 
 const router = express.Router();
 
@@ -45,14 +46,13 @@ router.post('/login', async (req, res) => {
         return res.status(401).send('Invalid credentials or not Authorized.');
     } catch (error) {
         // Handle errors during authentication
-        console.error('error');
+        logger.error(error, 'error');
         return res.status(500).send('An error occurred during authentication.');
     }
 });
 
 router.post('/refresh', async (req, res) => {
     const { refreshToken } = req.cookies;
-    console.log(refreshToken);
     if (!refreshToken) return res.sendStatus(403);
 
     try {
@@ -74,7 +74,7 @@ router.post('/refresh', async (req, res) => {
 
         return res.json({ accessToken: newAccessToken });
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -95,7 +95,7 @@ router.delete('/logout', async (req, res) => {
 
         return res.sendStatus(200);
     } catch (error) {
-        console.error(error);
+        logger.error(error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });

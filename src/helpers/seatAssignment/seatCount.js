@@ -1,3 +1,5 @@
+import logger from '../logger.js';
+
 /**
  * @typedef {Object} SeatCounts
  * @property {number} totalEmptySeats - The total number of empty seats.
@@ -14,7 +16,6 @@ export default function seatCount(classes) {
         .flatMap(({ seatingMatrix }) => seatingMatrix.flat())
         .reduce(
             (counts, seat) => {
-                // console.log(seat);
                 if (seat.occupied) {
                     counts.totalAssignedSeats += 1;
                 } else {
@@ -24,7 +25,6 @@ export default function seatCount(classes) {
             },
             { totalEmptySeats: 0, totalAssignedSeats: 0 },
         );
-    // console.log('seatData', seatData);
     return seatData;
 }
 
@@ -32,6 +32,6 @@ export default function seatCount(classes) {
 /* const classes = [...]; // Replace with your array of seating matrices
 const seatCounts = seatCount(classes);
 
-console.log("Total seat counts across all classes:");
-console.log("Total Empty Seats:", seatCounts.totalEmptySeats);
-console.log("Total Assigned Seats:", seatCounts.totalAssignedSeats); */
+logger.trace("Total seat counts across all classes:");
+logger.trace("Total Empty Seats:", seatCounts.totalEmptySeats);
+logger.trace("Total Assigned Seats:", seatCounts.totalAssignedSeats); */
