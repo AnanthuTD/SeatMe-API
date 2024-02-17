@@ -1,4 +1,4 @@
-# seating-arrangement
+# SeatMe-API
 
 ## Table of Contents
 
