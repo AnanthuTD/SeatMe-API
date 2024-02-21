@@ -497,7 +497,10 @@ router.patch('/ban/:studentId', async (req, res) => {
         // Ban the student by creating a new entry in the bannedStudents table
         await models.bannedStudent.create({ studentId });
 
-        res.status(200).json({ message: 'Student banned successfully' });
+        // Return the details of the banned student along with the success message
+        res.status(200).json({
+            message: 'Student banned successfully',
+        });
     } catch (error) {
         console.error('Error banning student:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -522,8 +525,22 @@ router.patch('/unban/:studentId', async (req, res) => {
 // Route to get the list of banned students
 router.get('/banned', async (req, res) => {
     try {
-        // Find all banned students
-        const bannedStudents = await models.bannedStudent.findAll();
+        // Find all banned students along with their name, program, and semester
+        const bannedStudents = await models.student.findAll({
+            include: [
+                {
+                    model: models.bannedStudent,
+                    attributes: [],
+                    required: true,
+                },
+                {
+                    model: models.program,
+                    attributes: ['abbreviation'],
+                },
+            ],
+            attributes: ['name', 'id', 'semester'],
+            raw: true,
+        });
 
         res.status(200).json(bannedStudents);
     } catch (error) {

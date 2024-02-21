@@ -782,6 +782,16 @@ const countExamineesByProgramForDate = async ({
 
     logger.debug(data, 'data');
 
+    const bannedStudentsId = await models.bannedStudent
+        .findAll({
+            attributes: ['studentId'],
+        })
+        .then((bannedStudents) => {
+            return bannedStudents.map(
+                (bannedStudent) => bannedStudent.studentId,
+            );
+        });
+
     try {
         const regularStudentsCounts = await models.student.count({
             attributes: [
@@ -794,6 +804,9 @@ const countExamineesByProgramForDate = async ({
                     programId: value.programId,
                     semester: value.semester,
                 })),
+                id: {
+                    [Op.notIn]: bannedStudentsId,
+                },
             },
             include: {
                 model: models.program,
@@ -802,10 +815,15 @@ const countExamineesByProgramForDate = async ({
             group: ['programId'],
         });
 
-        logger.debug(regularStudentsCounts, 'regularStudentCounts')
+        logger.debug(regularStudentsCounts, 'regularStudentCounts');
 
         // Calculate supplyStudentsCount
         const supplyStudentsCount = await models.student.count({
+            where: {
+                id: {
+                    [Op.notIn]: bannedStudentsId,
+                },
+            },
             include: [
                 {
                     model: models.supplementary,

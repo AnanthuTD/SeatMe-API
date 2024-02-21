@@ -102,9 +102,22 @@ async function fetchStudents({
             semester: value.semester,
         }));
 
+        const bannedStudentsId = await models.bannedStudent
+            .findAll({
+                attributes: ['studentId'],
+            })
+            .then((bannedStudents) => {
+                return bannedStudents.map(
+                    (bannedStudent) => bannedStudent.studentId,
+                );
+            });
+
         const studentsOpenCourse = await models.student.findAll({
             where: {
                 [Op.or]: [...combinedOpenCourses],
+                id: {
+                    [Op.notIn]: bannedStudentsId,
+                },
             },
             include: [
                 {
@@ -144,7 +157,12 @@ async function fetchStudents({
         const secondLang = await Promise.all(
             (combinedCommonCourse2 || []).map(async (course) => {
                 const studentsSecondLang = await models.student.findAll({
-                    where: course,
+                    where: {
+                        ...course,
+                        id: {
+                            [Op.notIn]: bannedStudentsId,
+                        },
+                    },
                     include: [
                         {
                             model: models.program,
@@ -177,6 +195,9 @@ async function fetchStudents({
         const studentsNonOpenCourse = await models.student.findAll({
             where: {
                 [Op.or]: [...combinedNonOpenCourses],
+                id: {
+                    [Op.notIn]: bannedStudentsId,
+                },
             },
             include: [
                 {
@@ -197,6 +218,11 @@ async function fetchStudents({
         });
 
         const supplyStudents = await models.student.findAll({
+            where: {
+                id: {
+                    [Op.notIn]: bannedStudentsId,
+                },
+            },
             include: [
                 {
                     model: models.supplementary,
@@ -260,12 +286,13 @@ async function fetchStudents({
 
         // logger.debug(students, 'students');
 
-        const result = countStudentsByProgram(students);
+        // const result = countStudentsByProgram(students);
 
-        logger.debug(result);
+        // logger.debug(result);
 
         return students;
     } catch (error) {
+        logger.debug(error);
         throw new Error(`Error fetching students: ${error.message}`);
     }
 }
@@ -313,7 +340,8 @@ function groupStudentsByCourseId(students, examOrder) {
     students.forEach((student) => {
         const { courseId, courseType, programId } = student;
 
-        if (courseType === 'common' || true) { // TODO: sorting all courses based on program
+        if (courseType === 'common' || true) {
+            // TODO: sorting all courses based on program
             const programCourse = `${programId}-${courseId}`;
             if (!groupedStudents[programCourse]) {
                 groupedStudents[programCourse] = [];
