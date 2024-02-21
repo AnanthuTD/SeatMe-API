@@ -12,6 +12,35 @@ router.get('/', (req, res) => {
     res.sendFile(p);
 });
 
+// Add a new route for handling block deletion
+router.delete('/block/:blockId', async (req, res) => {
+    const { blockId } = req.params;
+
+    try {
+        const deletedBlock = await models.block.destroy({
+            where: {
+                id: blockId,
+            },
+        });
+
+        if (deletedBlock > 0) {
+            return res.status(200).json({
+                message: `Block with ID ${blockId} deleted successfully`,
+            });
+        }
+
+        return res.status(404).json({
+            error: `Block with ID ${blockId} not found`,
+        });
+    } catch (error) {
+        console.error('Error deleting block:', error);
+        return res.status(500).json({
+            error: 'Error deleting block',
+            errorMessage: error.message,
+        });
+    }
+});
+
 router.post('/block', async (req, res) => {
     try {
         const body = req.body.blocks;
