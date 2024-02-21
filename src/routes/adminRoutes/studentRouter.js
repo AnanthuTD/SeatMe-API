@@ -490,4 +490,46 @@ router.patch('/passout', async (req, res) => {
     }
 });
 
+router.patch('/ban/:studentId', async (req, res) => {
+    try {
+        const { studentId } = req.params;
+
+        // Ban the student by creating a new entry in the bannedStudents table
+        await models.bannedStudent.create({ studentId });
+
+        res.status(200).json({ message: 'Student banned successfully' });
+    } catch (error) {
+        console.error('Error banning student:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Route to unban a student
+router.patch('/unban/:studentId', async (req, res) => {
+    try {
+        const { studentId } = req.params;
+
+        // Unban the student by removing the entry from the bannedStudents table
+        await models.bannedStudent.destroy({ where: { studentId } });
+
+        res.status(200).json({ message: 'Student unbanned successfully' });
+    } catch (error) {
+        console.error('Error unbanning student:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Route to get the list of banned students
+router.get('/banned', async (req, res) => {
+    try {
+        // Find all banned students
+        const bannedStudents = await models.bannedStudent.findAll();
+
+        res.status(200).json(bannedStudents);
+    } catch (error) {
+        console.error('Error retrieving banned students:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 export default router;

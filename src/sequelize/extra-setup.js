@@ -19,6 +19,7 @@ const applyExtraSetup = (sequelize) => {
         programCourse,
         exam,
         refreshToken,
+        bannedStudent,
     } = sequelize.models;
 
     refreshToken.belongsTo(authUser, { foreignKey: 'authUserId' });
@@ -105,5 +106,8 @@ const applyExtraSetup = (sequelize) => {
 
     program.hasMany(student, { foreignKey: 'programId' });
     student.belongsTo(program, { foreignKey: 'programId' });
+
+    student.hasOne(bannedStudent, { foreignKey: 'studentId' });
+    bannedStudent.belongsTo(student, { foreignKey: 'studentId' });
 };
 export { applyExtraSetup };

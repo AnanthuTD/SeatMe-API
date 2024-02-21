@@ -15,6 +15,7 @@ import teacherSeat from './models/teacherSeat.js';
 import exam from './models/exam.js';
 import refreshToken from './models/refreshToken.js';
 import seatingTimeConfig from './models/seatingTimeConfig.js';
+import bannedStudent from './models/bannedStudent.js';
 
 const models = {
     department: department(sequelize),
@@ -32,6 +33,7 @@ const models = {
     exam: exam(sequelize),
     refreshToken: refreshToken(sequelize),
     seatingTimeConfig: seatingTimeConfig(sequelize),
+    bannedStudent: bannedStudent(sequelize),
 };
 
 applyExtraSetup(sequelize);
