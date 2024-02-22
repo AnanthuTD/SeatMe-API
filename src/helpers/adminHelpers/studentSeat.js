@@ -148,7 +148,7 @@ const retrieveAndStoreSeatingInfoInRedis = async () => {
         // Store the entire seating information in Redis
         await Promise.all(
             seatingData.map(async (record) => {
-                const key = record.student.id.toString();
+                const key = `${record.student.id}:${record.student.rollNumber}`;
                 await redisClient.hset(
                     keyNames.seatingInfo,
                     key,
@@ -167,26 +167,59 @@ const retrieveAndStoreSeatingInfoInRedis = async () => {
     return null;
 };
 
-const retrieveStudentDetails = async (studentId) => {
-    try {
-        const studentDetailsStr = await redisClient.hget(
-            keyNames.seatingInfo,
-            studentId.toString(),
-        );
+async function scanHashAsync(key, pattern, cursor = '0', keys = []) {
+    const [nextCursor, newKeys] = await redisClient.hscan(
+        key,
+        cursor,
+        'MATCH',
+        pattern,
+        'COUNT',
+        '1000', // Adjust the COUNT parameter
+    );
+    keys.push(...newKeys);
+    if (nextCursor === '0') {
+        return keys;
+    }
+    return scanHashAsync(key, pattern, nextCursor, keys);
+}
 
-        if (!studentDetailsStr) {
-            logger.trace(`Student with ID ${studentId} not found in Redis`);
+async function retrieveStudentDetails(studentId) {
+    try {
+        // Validate studentId format
+        if (!/^\d{6}$|^\d{12}$/.test(studentId)) {
+            logger.debug(
+                'Invalid studentId provided. It must be either 12 or 6 digits long.',
+            );
             return null;
         }
 
-        const studentDetails = JSON.parse(studentDetailsStr);
+        let keys;
+
+        // Construct Redis query based on studentId length
+        if (studentId.length === 12) {
+            keys = await scanHashAsync(keyNames.seatingInfo, `${studentId}:*`);
+        } else {
+            keys = await scanHashAsync(keyNames.seatingInfo, `*:${studentId}`);
+        }
+
+        // Check if keys were found
+        if (!keys || keys.length < 2) {
+            logger.error(
+                'No student details found for the provided studentId.',
+            );
+            return null;
+        }
+
+        // Parse studentDetails from JSON
+        const studentDetails = JSON.parse(keys[1]);
 
         return studentDetails;
     } catch (error) {
-        logger.error(error, 'Error retrieving student details from Redis:');
+        // Log error
+        logger.error('Error retrieving student details from Redis:', error);
         return null;
     }
-};
+}
 
 const generateRecords = (seating) => {
     const records = [];
