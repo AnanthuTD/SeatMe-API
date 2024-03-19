@@ -43,6 +43,7 @@ export default (sequelize) => {
             priority: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 defaultValue: 1,
+                allowNull: false,
             },
         },
         {
