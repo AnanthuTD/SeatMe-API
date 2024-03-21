@@ -50,7 +50,28 @@ router.patch('/', async (req, res) => {
     }
 
     try {
-        const updateCount = await updateStudent(student);
+        logger.debug(student, 'student');
+        const {
+            id,
+            email,
+            phone,
+            programId,
+            rollNumber,
+            semester,
+            openCourseId,
+            isAided,
+        } = student;
+        const newStudent = {
+            id,
+            rollNumber,
+            email,
+            phone,
+            programId,
+            semester,
+            openCourseId,
+            isAided,
+        };
+        const updateCount = await updateStudent(newStudent);
         if (updateCount > 0) {
             return res.status(200).json({
                 message: `Update successful.`,
@@ -58,7 +79,7 @@ router.patch('/', async (req, res) => {
         }
         return res.status(404).json({ error: 'Student not found!' });
     } catch (error) {
-        logger.error(`Error in PATCH /student: ${error.message}`);
+        logger.error(error, `Error in PATCH /student: `);
         return res.status(500).json({ error: 'Error updating students' });
     }
 });
