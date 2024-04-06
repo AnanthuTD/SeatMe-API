@@ -1,5 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import { checkCredentialsAndRetrieveData } from '../helpers/commonHelper.js';
 import env from '../env.js';
 import { models } from '../sequelize/models.js';
@@ -97,6 +98,66 @@ router.delete('/logout', async (req, res) => {
     } catch (error) {
         logger.error(error);
         return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.post('/signin', async (req, res) => {
+    const { credential } = req.body;
+    const idToken = credential;
+
+    const { CLIENT_ID } = process.env;
+
+    const client = new OAuth2Client(CLIENT_ID);
+
+    try {
+        // Verify the ID token using the OAuth2Client
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        const userEmail = payload['email'];
+
+        // Check if the user's email exists in the auth_user table
+        const existingUser = await models.authUser.findOne({
+            where: { email: userEmail },
+            attributes: [
+                'id',
+                'name',
+                'designation',
+                'isAdmin',
+                'email',
+                'phone',
+            ],
+        });
+
+        const userData = existingUser.get();
+
+        if (userData) {
+            // User exists in the database
+
+            if (userData) {
+                const accessToken = jwt.sign(userData, accessTokenPrivateKey, {
+                    expiresIn: '15m',
+                });
+
+                if (await setNewRefreshToken(res, userData)) {
+                    return res.json({ user: userData, accessToken });
+                }
+                throw new Error('Failed to set a new refresh token');
+            }
+
+            // Authentication failed
+            return res
+                .status(401)
+                .send('Invalid credentials or not Authorized.');
+        }
+        res.status(400).json({ message: 'Signin Failed' });
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        // Handle the error (e.g., return an error response)
+        res.status(400).json({ error: 'Invalid token' });
     }
 });
 
