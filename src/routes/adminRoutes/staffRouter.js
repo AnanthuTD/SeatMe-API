@@ -8,6 +8,7 @@ import { getStaffsByDepartmentCode } from '../../helpers/adminHelpers/staffHelpe
 import { models } from '../../sequelize/models.js';
 import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
 import logger from '../../helpers/logger.js';
+import { authorizeAdmin } from '../../helpers/commonHelper.js';
 
 const router = express.Router();
 
@@ -70,7 +71,7 @@ router.patch('/:staffId', async (req, res) => {
     }
 });
 
-router.delete('/:staffId', async (req, res) => {
+router.delete('/:staffId', authorizeAdmin(), async (req, res) => {
     try {
         const { staffId } = req.params;
 

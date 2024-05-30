@@ -17,7 +17,7 @@ import roomRouter from './routes/roomRouter.js';
 import { sequelize } from './sequelize/connection.js';
 import {
     adminAuthMiddleware,
-    staffAuthMiddleware,
+    invigilatorAuthMiddleware,
 } from './middlewares/authMiddleware.js';
 import { generateCsrfToken } from './middlewares/csrfMiddleware.js';
 import getRootDir from '../getRootDir.js';
@@ -134,7 +134,7 @@ function setupRoutes() {
     app.use('/admin/roomentry', roomRouter);
     app.use('/admin/programentry', programRouter);
     app.use('/admin', adminAuthMiddleware, adminRouter);
-    app.use('/staff', staffAuthMiddleware, staffRouter);
+    app.use('/staff', invigilatorAuthMiddleware, staffRouter);
     app.use('/auth', authRouter);
     app.use('/csrf', generateCsrfToken);
     app.use('/admin/departmententry', departmentRouter);

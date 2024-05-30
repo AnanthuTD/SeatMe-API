@@ -20,7 +20,7 @@ async function checkCredentialsAndRetrieveData(email, password) {
                 'id',
                 'name',
                 'designation',
-                'isAdmin',
+                'role',
                 'password',
                 'email',
                 'phone',
@@ -45,4 +45,13 @@ async function checkCredentialsAndRetrieveData(email, password) {
     }
 }
 
-export { checkCredentialsAndRetrieveData };
+function authorizeAdmin() {
+    return (req, res, next) => {
+        if (!(req.user.role === 'admin')) {
+            return res.sendStatus(403); // Forbidden
+        }
+        return next();
+    };
+}
+
+export { checkCredentialsAndRetrieveData, authorizeAdmin };

@@ -3,6 +3,7 @@ import getRootDir from '../../getRootDir.js';
 
 import { models } from '../sequelize/models.js';
 import logger from '../helpers/logger.js';
+import { authorizeAdmin } from '../helpers/commonHelper.js';
 
 const router = express.Router();
 
@@ -13,33 +14,37 @@ router.get('/', (req, res) => {
 });
 
 // Add a new route for handling department deletion
-router.delete('/department/:departmentId', async (req, res) => {
-    const { departmentId } = req.params;
+router.delete(
+    '/department/:departmentId',
+    authorizeAdmin(),
+    async (req, res) => {
+        const { departmentId } = req.params;
 
-    try {
-        const deletedDepartment = await models.department.destroy({
-            where: {
-                id: departmentId,
-            },
-        });
+        try {
+            const deletedDepartment = await models.department.destroy({
+                where: {
+                    id: departmentId,
+                },
+            });
 
-        if (deletedDepartment > 0) {
-            return res.status(200).json({
-                message: `Department with ID ${departmentId} deleted successfully`,
+            if (deletedDepartment > 0) {
+                return res.status(200).json({
+                    message: `Department with ID ${departmentId} deleted successfully`,
+                });
+            }
+
+            return res.status(404).json({
+                error: `Department with ID ${departmentId} not found`,
+            });
+        } catch (error) {
+            console.error('Error deleting department:', error);
+            return res.status(500).json({
+                error: 'Error deleting department',
+                errorMessage: error.message,
             });
         }
-
-        return res.status(404).json({
-            error: `Department with ID ${departmentId} not found`,
-        });
-    } catch (error) {
-        console.error('Error deleting department:', error);
-        return res.status(500).json({
-            error: 'Error deleting department',
-            errorMessage: error.message,
-        });
-    }
-});
+    },
+);
 
 router.post('/department', (req, res) => {
     let body = req.body.departments;

@@ -14,10 +14,10 @@ import {
     retrieveAndStoreExamsInRedis,
 } from '../../helpers/adminHelpers/studentSeat.js';
 import { models, sequelize } from '../../sequelize/models.js';
-import generateTeacherDetailsPDF from '../../helpers/adminHelpers/staffAssignmentPDF.js';
 import getRootDir from '../../../getRootDir.js';
 import logger from '../../helpers/logger.js';
 import { getExamsByProgram } from '../../helpers/adminHelpers/examHelper.js';
+import { authorizeAdmin } from '../../helpers/commonHelper.js';
 
 const router = express.Router();
 const reportsDir = `${getRootDir()}/reports`;
@@ -33,7 +33,7 @@ router.get('/count', async (req, res) => {
 });
 
 router.get('/program', async (req, res) => {
-    let { date, timeCode} = req.query;
+    let { date, timeCode } = req.query;
 
     console.log(date, timeCode);
 
@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/assign', async (req, res) => {
+router.get('/assign', authorizeAdmin(), async (req, res) => {
     try {
         const {
             orderBy,
@@ -94,7 +94,7 @@ router.get('/assign', async (req, res) => {
             examOrder,
         } = req.query;
 
-        logger.debug(examOrder, 'examOrder')
+        logger.debug(examOrder, 'examOrder');
 
         let { date } = req.query;
 
@@ -314,7 +314,7 @@ router.put('/:examId', async (req, res) => {
     }
 });
 
-router.delete('/:examId', async (req, res) => {
+router.delete('/:examId', authorizeAdmin(), async (req, res) => {
     try {
         const { examId } = req.params;
 

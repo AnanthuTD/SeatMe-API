@@ -38,7 +38,7 @@ router.get(
             logger.trace(seatingInfo.timeCode, req.timeCode);
 
             if (seatingInfo.timeCode !== req.timeCode)
-                return res.status(403).json({
+                return res.status(404).json({
                     error: 'Seating arrangement not available at this time.',
                 });
 

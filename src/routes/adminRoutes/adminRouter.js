@@ -22,7 +22,10 @@ import configRouter from './configRouter.js';
 import courseRouter from './courseRouter.js';
 import { getDateTimeId } from '../../helpers/adminHelpers/examHelper.js';
 import { models } from '../../sequelize/models.js';
-import { checkCredentialsAndRetrieveData } from '../../helpers/commonHelper.js';
+import {
+    checkCredentialsAndRetrieveData,
+    authorizeAdmin,
+} from '../../helpers/commonHelper.js';
 import { encrypt } from '../../helpers/bcryptHelper.js';
 import { setNewRefreshToken } from '../../helpers/tokenHelpers/index.js';
 import logger from '../../helpers/logger.js';
@@ -349,7 +352,7 @@ router.get('/reports/:fileName', (req, res) => {
     }
 });
 
-router.delete('/reports/:fileName', (req, res) => {
+router.delete('/reports/:fileName', authorizeAdmin(), (req, res) => {
     const { fileName } = req.params;
 
     // Validate and sanitize the fileName to prevent directory traversal attacks
@@ -459,8 +462,7 @@ router.patch('/profile', async (req, res) => {
                             'id',
                             'name',
                             'designation',
-                            'isAdmin',
-                            'password',
+                            'role',
                             'email',
                             'phone',
                         ],

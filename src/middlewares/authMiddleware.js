@@ -8,7 +8,7 @@ const config = env();
 const accessTokenPrivateKey = config.ACCESS_TOKEN_PRIVATE_KEY;
 
 passport.use(
-    'staff',
+    'invigilator',
     new BearerStrategy((token, done) => {
         try {
             const decodedToken = jwt.verify(token, accessTokenPrivateKey, {
@@ -41,19 +41,19 @@ passport.use(
 
 // Strategy for administrators
 passport.use(
-    'admin',
+    'staff',
     new BearerStrategy((token, done) => {
         try {
             const decodedToken = jwt.verify(token, accessTokenPrivateKey, {
                 ignoreExpiration: true,
             });
 
-            const { id, isAdmin, exp } = decodedToken;
+            const { role, exp } = decodedToken;
 
             // Check if the token is in the blacklist
-            if (isBlacklisted(id, token)) {
+            /* if (isBlacklisted(id, token)) {
                 return done(null, false);
-            }
+            } */
 
             // Now, you can manually check the token's expiration
             const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -62,9 +62,10 @@ passport.use(
             }
 
             // Check if the user is an administrator
-            if (isAdmin) {
+            if (['admin', 'staff'].includes(role)) {
                 // Here you may fetch admin user data from your database and return it
                 // const adminUser = { id, isAdmin };
+                console.log('authenticated');
                 return done(null, decodedToken);
             }
             return done(null, false);
@@ -75,7 +76,9 @@ passport.use(
     }),
 );
 
-const adminAuthMiddleware = passport.authenticate('admin', { session: false });
-const staffAuthMiddleware = passport.authenticate('staff', { session: false });
+const adminAuthMiddleware = passport.authenticate('staff', { session: false });
+const invigilatorAuthMiddleware = passport.authenticate('invigilator', {
+    session: false,
+});
 
-export { adminAuthMiddleware, staffAuthMiddleware };
+export { adminAuthMiddleware, invigilatorAuthMiddleware };

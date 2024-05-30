@@ -27,7 +27,7 @@ const verifyRefreshToken = async (refreshToken) => {
             decodedToken.id,
         );
 
-        if (!refreshTokenRecord /* || refreshTokenRecord !== refreshToken */) {
+        if (!refreshTokenRecord || refreshTokenRecord !== refreshToken) {
             // TODO Re-enable this refresh token verification before production deployment
             throw new Error('Invalid refresh token');
         }
