@@ -24,20 +24,20 @@ router.post('/course', async (req, res) => {
                         },
                     );
 
-                    const programId = await models.program.findByPk(
-                        course.programId,
+                    const courseId = await models.course.findByPk(
+                        course.courseId,
                         { attributes: ['id'] },
                     );
 
-                    if (programId) {
+                    if (courseId) {
                         try {
-                            await models.programCourse.upsert({
-                                programId: course.programId,
-                                courseId: course.id,
+                            await models.courseCourse.upsert({
+                                courseId: course.courseId,
+                                // courseId: course.id,
                             });
                         } catch (error) {
                             logger.error(
-                                'Error upserting record in to programCourse:',
+                                'Error upserting record in to courseCourse:',
                                 error,
                             );
                             failedRecords.push({
@@ -47,12 +47,12 @@ router.post('/course', async (req, res) => {
                         }
                     } else {
                         logger.error(
-                            `Program with ID ${course.programId} not found.`,
+                            `course with ID ${course.courseId} not found.`,
                         );
 
                         failedRecords.push({
                             ...course,
-                            error: `Program with ID ${course.programId} not found`,
+                            error: `course with ID ${course.courseId} not found`,
                         });
                     }
                 } catch (error) {
@@ -116,64 +116,58 @@ router.delete('/course/:courseId', async (req, res) => {
     }
 });
 
-router.patch('/courseupdate/', async (req, res) => {
+router.patch('/courseupdate', async (req, res) => {
     try {
-        let courses = [];
-        req.body.forEach((item) => {
-            let { id } = item;
-            let { name } = item;
-            let { semester } = item;
-            let { type } = item;
-            let { program } = item;
-            courses.push({
-                id,
-                name,
-                semester,
-                type,
-                program,
-            });
-        });
-        const updates = courses.map(async (course1) => {
-            // Find the course by courseId
-            const course = await models.course.findByPk(course1.id);
-
+        console.log('-------------------------------------Called update');
+        // Iterate through each updated course sent in the request body
+        const updates = req.body.map(async (item) => {
+            // Find the course by its ID
+            let course = await models.course.findByPk(item.id);
+            console.log(
+                `-------------------------course:${course}, itemID:${item}`,
+            );
             if (!course) {
-                return { error: `Course with ID ${course1.id} not found` };
+                // If course not found, try finding it again
+                course = await models.course.findOne({
+                    where: { id: item.id },
+                });
             }
-
-            let updatedData = {
-                name: course1.name,
-                semester: course1.semester,
-                type: course1.type,
-                program: course1.program,
-            };
-
-            // Update the course with the provided data
-            await course.update(updatedData);
-
+            if (!course) {
+                console.log('-------------------------error');
+                // If course still not found, return an error message
+                return { error: `course with ID ${item.id} not found` };
+            }
+            // Update the course with the new details
+            console.log(`---------------------------item${course}`);
+            await course.update({
+                name: item.name,
+                semester: item.semester,
+                // Add any additional fields you want to update here
+            });
+            // Return a success message and the updated course
             return {
-                message: `Course with ID ${course1.id} updated successfully`,
-                updatedCourse: course,
+                message: `course with ID ${item.id} updated successfully`,
+                updatedcourse: course,
             };
         });
 
-        // Wait for all updates to complete before sending the response
+        // Wait for all updates to complete
         const results = await Promise.all(updates);
-
-        // Check for errors in the results
+        // Filter out any errors from the results
         const errors = results.filter((result) => result.error);
+        // If there are errors, return a 404 status with the error messages
         if (errors.length > 0) {
             return res.status(404).json({ errors });
         }
-
-        // If no errors, send a success response
-        return res.status(200).json({
+        // If no errors, return a success message with the updated courses
+        res.status(200).json({
             message: 'All courses updated successfully',
             results,
         });
     } catch (error) {
-        logger.error(error, 'Error updating course in DB');
-        return res.status(500).json({
+        // If an error occurs, log it and return a 500 status with an error message
+        logger.error(error, 'Error updating course in DB:');
+        res.status(500).json({
             error: 'Error updating course in DB',
             errorMessage: error.message,
         });

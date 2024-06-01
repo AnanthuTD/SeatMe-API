@@ -5,40 +5,32 @@ import logger from '../helpers/logger.js';
 const router = express.Router();
 
 router.delete('/program/:programId', async (req, res) => {
-    const deleteProgram = async (programId) => {
-        try {
-            // Find the program by programId
-            const program = await models.program.findByPk(programId);
-
-            if (!program) {
-                throw new Error(`Program with ID ${programId} not found`);
-            }
-
-            // Delete the program
-            const deletedProgramCount = await program.destroy();
-
-            if (deletedProgramCount > 0) {
-                return {
-                    message: `Program with ID ${programId} deleted successfully`,
-                };
-            }
-
-            throw new Error(`Failed to delete program with ID ${programId}`);
-        } catch (error) {
-            console.error('Error deleting program:', error.message);
-            throw Error(error.message);
-        }
-    };
-
+    console.log('--------------------------delete called');
     const { programId } = req.params;
 
     try {
-        const result = await deleteProgram(programId);
-        return res.status(200).json(result);
+        // Find the program by programId
+        const program = await models.program.findByPk(programId);
+
+        if (!program) {
+            return res
+                .status(404)
+                .json({ message: `Program with ID ${programId} not found` });
+        }
+
+        // Delete the program
+        await program.destroy();
+
+        // Send a success response
+        return res.status(200).json({
+            message: `Program with ID ${programId} deleted successfully`,
+        });
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        console.error('Error deleting program:', error.message);
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 router.post('/program', async (req, res) => {
     const { programs } = req.body || {};
 
@@ -66,85 +58,65 @@ router.post('/program', async (req, res) => {
         res.status(500).send('Error processing programs');
     }
 });
-router.patch('/programupdate/', async (req, res) => {
+
+router.patch('/programupdate', async (req, res) => {
     try {
-        let programs = [];
-        req.body.forEach((item) => {
-            let { id } = item;
-            let { name } = item;
-            let { duration } = item;
-            let { level } = item;
-            let { departmentId } = item;
-            let { abbreviation } = item;
-            programs.push({
-                id,
-                name,
-                duration,
-                level,
-                departmentId,
-                abbreviation,
-            });
-            //  logger.trace(programs,"hai this is patch");
-        });
-        programs.forEach((program) => {
-            const programId = program.id;
-            const programName = program.name;
-            const programduration = program.duration;
-            const programlevel = program.level;
-            const programdept = program.departmentId;
-            const proabbreviation = program.abbreviation;
-
-            // Use the values as needed
-            logger.trace('program ID:', programId);
-            logger.trace('program Name:', programName);
-            logger.trace('program duration:', programduration);
-            logger.trace('program level:', programlevel);
-            logger.trace('program dept:', programdept);
-            logger.trace('program abbreviation:', proabbreviation);
-            logger.trace('----------------------');
-        });
-        const updates = programs.map(async (program1) => {
-            // Find the program by programId
-            const program = await models.program.findByPk(program1.id);
-
+        console.log('-------------------------------------Called update');
+        // Iterate through each updated program sent in the request body
+        const updates = req.body.map(async (item) => {
+            // Find the program by its ID
+            let program = await models.program.findByPk(item.id);
+            console.log(
+                `-------------------------program:${program}, itemID:${item.id}`,
+            );
             if (!program) {
-                return { error: `program with ID ${program1.id} not found` };
+                // If program not found, try finding it again
+                program = await models.program.findOne({
+                    where: { id: item.id },
+                });
             }
-
-            let updatedData = {
-                name: program1.name,
-                duration: program1.duration,
-                level: program1.level,
-                departmentId: program1.departmentId,
-                abbreviation: program1.abbreviation,
-            };
-
-            // Update the program with the provided data
-            await program.update(updatedData);
-
+            if (!program) {
+                console.log('-------------------------error');
+                // If program still not found, return an error message
+                return { error: `program with ID ${item.id} not found` };
+            }
+            // Update the program with the new details
+            console.log(
+                `---------------------------item${item.departmentCode}`,
+            );
+            await program.update({
+                name: item.name,
+                duration: item.duration,
+                level: item.level,
+                isAided: item.isAided,
+                abbreviation: item.abbreviation,
+                departmentCode: item.departmentCode,
+                // Add any additional fields you want to update here
+            });
+            // Return a success message and the updated program
             return {
-                message: `program with ID ${program1.id} updated successfully`,
+                message: `program with ID ${item.id} updated successfully`,
                 updatedprogram: program,
             };
         });
 
-        // Wait for all updates to complete before sending the response
+        // Wait for all updates to complete
         const results = await Promise.all(updates);
-
-        // Check for errors in the results
+        // Filter out any errors from the results
         const errors = results.filter((result) => result.error);
+        // If there are errors, return a 404 status with the error messages
         if (errors.length > 0) {
             return res.status(404).json({ errors });
         }
-
-        // If no errors, send a success response
-        return res.status(200).json({
+        // If no errors, return a success message with the updated programs
+        res.status(200).json({
             message: 'All programs updated successfully',
             results,
         });
     } catch (error) {
+        // If an error occurs, log it and return a 500 status with an error message
         logger.error(error, 'Error updating program in DB:');
-        return res.status(500).json({
+        res.status(500).json({
             error: 'Error updating program in DB',
             errorMessage: error.message,
         });
