@@ -3,6 +3,7 @@ import express from 'express';
 import getRootDir from '../../../getRootDir.js';
 import { models } from '../../sequelize/models.js';
 import logger from '../../helpers/logger.js';
+import { authorizeAdmin } from '../../helpers/commonHelper.js';
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.get('/', (req, res) => {
 });
 
 // Add a new route for handling block deletion
-router.delete('/block/:blockId', async (req, res) => {
+router.delete('/block/:blockId', authorizeAdmin(), async (req, res) => {
     const { blockId } = req.params;
 
     try {

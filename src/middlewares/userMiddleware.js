@@ -56,7 +56,7 @@ const checkSeatingAvailability = async (req, res, next) => {
     );
 
     if (!seatingConfigList) {
-        return res.status(403).json({
+        return res.status(404).json({
             error: 'Seating arrangement time not configured for this day.',
         });
     }
@@ -93,7 +93,7 @@ const checkSeatingAvailability = async (req, res, next) => {
         req.timeCode = matchingConfig.timeCode;
         return next();
     }
-    return res.status(403).json({
+    return res.status(404).json({
         error: 'Seating arrangement not available at this time.',
     });
 };

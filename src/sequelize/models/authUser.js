@@ -39,7 +39,7 @@ export default (sequelize) => {
                 },
             },
             phone: { type: DataTypes.BIGINT },
-            isAdmin: { type: DataTypes.BOOLEAN, defaultValue: false },
+            role: { type: DataTypes.ENUM(['admin', 'staff', 'invigilator']) },
             password: { type: DataTypes.STRING(72) },
             designation: { type: DataTypes.STRING(100), allowNull: true },
         },

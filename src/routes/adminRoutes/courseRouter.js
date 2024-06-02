@@ -1,6 +1,7 @@
 import express from 'express';
 import { models, sequelize } from '../../sequelize/models.js';
 import logger from '../../helpers/logger.js';
+import { authorizeAdmin } from '../../helpers/commonHelper.js';
 
 const router = express.Router();
 
@@ -79,7 +80,7 @@ router.post('/course', async (req, res) => {
 // import { deleteCourse } from './yourModuleFileName.js';
 
 // Use the deleteCourse function in your route or other logic
-router.delete('/course/:courseId', async (req, res) => {
+router.delete('/course/:courseId', authorizeAdmin(), async (req, res) => {
     const deleteCourse = async (courseId) => {
         try {
             // Find the course by courseId
@@ -106,7 +107,7 @@ router.delete('/course/:courseId', async (req, res) => {
         }
     };
     const { courseId } = req.params;
-    // AGFX403 B.G DESIGN FOR CEL ANIMATION (AOC) skill 4
+
     try {
         const result = deleteCourse(courseId);
         console.error('rsult : ', result);

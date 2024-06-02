@@ -12,8 +12,7 @@ const setNewRefreshToken = async (res, userData) => {
     try {
         const payload = {
             id: userData.id,
-            isAdmin: userData.isAdmin,
-            email: userData.email,
+            role: userData.role,
         };
 
         const refreshToken = jwt.sign(payload, refreshTokenPrivateKey, {

@@ -16,6 +16,7 @@ import {
     deleteSupplement,
     findSupplementaryStudents,
 } from '../../helpers/adminHelpers/studentHelpers.js';
+import { authorizeAdmin } from '../../helpers/commonHelper.js';
 
 const router = express.Router();
 
@@ -84,7 +85,7 @@ router.patch('/', async (req, res) => {
     }
 });
 
-router.delete('/', async (req, res) => {
+router.delete('/', authorizeAdmin(), async (req, res) => {
     const { studentId } = req.query;
 
     if (!studentId) {
@@ -270,29 +271,33 @@ router.patch('/supplementary', async (req, res) => {
     }
 });
 
-router.delete('/supplementary/:supplyId', async (req, res) => {
-    const { supplyId } = req.params;
+router.delete(
+    '/supplementary/:supplyId',
+    authorizeAdmin(),
+    async (req, res) => {
+        const { supplyId } = req.params;
 
-    if (!supplyId) {
-        return res.status(400).json({ error: 'Missing required data' });
-    }
-
-    try {
-        const deletionCount = await deleteSupply(supplyId);
-
-        if (deletionCount > 0) {
-            return res.status(200).json({
-                message: `Supply ID ${supplyId} deleted successfully.`,
-            });
+        if (!supplyId) {
+            return res.status(400).json({ error: 'Missing required data' });
         }
-        return res
-            .status(404)
-            .json({ error: `Supply ID ${supplyId} not found` });
-    } catch (error) {
-        logger.error(`Error in DELETE /student: ${error.message}`);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-});
+
+        try {
+            const deletionCount = await deleteSupply(supplyId);
+
+            if (deletionCount > 0) {
+                return res.status(200).json({
+                    message: `Supply ID ${supplyId} deleted successfully.`,
+                });
+            }
+            return res
+                .status(404)
+                .json({ error: `Supply ID ${supplyId} not found` });
+        } catch (error) {
+            logger.error(`Error in DELETE /student: ${error.message}`);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+);
 
 const getMaxSemesterByProgramId = async (programId) => {
     try {
@@ -511,7 +516,7 @@ router.patch('/passout', async (req, res) => {
     }
 });
 
-router.patch('/ban/:studentId', async (req, res) => {
+router.patch('/ban/:studentId', authorizeAdmin(), async (req, res) => {
     try {
         const { studentId } = req.params;
 
@@ -529,7 +534,7 @@ router.patch('/ban/:studentId', async (req, res) => {
 });
 
 // Route to unban a student
-router.patch('/unban/:studentId', async (req, res) => {
+router.patch('/unban/:studentId', authorizeAdmin(), async (req, res) => {
     try {
         const { studentId } = req.params;
 

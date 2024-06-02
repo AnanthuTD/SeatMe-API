@@ -24,6 +24,7 @@ const accessTokenPrivateKey = config.ACCESS_TOKEN_PRIVATE_KEY;
  * @returns {object} Response with a JWT token upon successful authentication, or an error message.
  */
 router.post('/login', async (req, res) => {
+    logger.debug(req.body);
     const { email, password } = req.body;
 
     if (!(email && password)) {
@@ -52,6 +53,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// get a new access token using the refresh token
 router.post('/refresh', async (req, res) => {
     const { refreshToken } = req.cookies;
     if (!refreshToken) return res.sendStatus(403);
@@ -117,7 +119,7 @@ router.post('/signin', async (req, res) => {
         });
 
         const payload = ticket.getPayload();
-        const userEmail = payload['email'];
+        const userEmail = payload.email;
 
         // Check if the user's email exists in the auth_user table
         const existingUser = await models.authUser.findOne({
