@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import userRouter from './routes/userRouter.js';
-import adminRouter from './routes/adminRoutes/adminRouter.js';
+import staffRouter from './routes/adminRoutes/adminRouter.js';
 import invigilatorRouter from './routes/invigilatorRouter.js';
 import authRouter from './routes/authRouter.js';
 import datetimeRouter from './routes/datetimeRouter.js';
@@ -14,7 +14,6 @@ import {
     staffAuthMiddleware,
     invigilatorAuthMiddleware,
 } from './middlewares/authMiddleware.js';
-import { generateCsrfToken } from './middlewares/csrfMiddleware.js';
 import getRootDir from '../getRootDir.js';
 import validateENV from './env.js';
 import { retrieveAndStoreExamsInRedis } from './helpers/adminHelpers/studentSeat.js';
@@ -123,10 +122,9 @@ function setupMiddlewares() {
  */
 function setupRoutes() {
     app.use('/', userRouter);
-    app.use('/staff', staffAuthMiddleware, adminRouter);
+    app.use('/staff', staffAuthMiddleware, staffRouter);
     app.use('/invigilator', invigilatorAuthMiddleware, invigilatorRouter);
     app.use('/auth', authRouter);
-    app.use('/csrf', generateCsrfToken);
     app.use('/datetime', datetimeRouter);
 }
 
