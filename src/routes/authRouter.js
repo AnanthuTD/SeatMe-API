@@ -69,8 +69,10 @@ router.post('/refresh', async (req, res) => {
             id: tokenDetails.id,
             isAdmin: tokenDetails.isAdmin,
             email: tokenDetails.email,
+            role: tokenDetails.role,
         };
         await setNewRefreshToken(res, payload);
+
         const newAccessToken = jwt.sign(payload, accessTokenPrivateKey, {
             expiresIn: '15m',
         });

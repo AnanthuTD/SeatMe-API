@@ -68,6 +68,8 @@ passport.use(
                 console.log('authenticated');
                 return done(null, decodedToken);
             }
+
+            console.log('Not authenticated!');
             return done(null, false);
         } catch (error) {
             // Handle JWT verification errors
@@ -76,8 +78,8 @@ passport.use(
     }),
 );
 
-const staffAuthMiddleware = passport.authenticate('admin', { session: false });
-const invigilatorAuthMiddleware = passport.authenticate('staff', {
+const staffAuthMiddleware = passport.authenticate('staff', { session: false });
+const invigilatorAuthMiddleware = passport.authenticate('invigilator', {
     session: false,
 });
 
