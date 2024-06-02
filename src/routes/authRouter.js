@@ -53,6 +53,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// get a new access token using the refresh token
 router.post('/refresh', async (req, res) => {
     const { refreshToken } = req.cookies;
     if (!refreshToken) return res.sendStatus(403);
