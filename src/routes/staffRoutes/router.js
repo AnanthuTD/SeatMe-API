@@ -55,7 +55,7 @@ router.use('/config', configRouter);
 
 router.use('/course', courseRouter);
 
-router.use('/block-entry', blockRouter);
+router.use('/block', blockRouter);
 router.use('/department-entry', departmentRouter);
 router.use('/room-entry', roomRouter);
 router.use('/program-entry', programRouter);
@@ -66,15 +66,6 @@ router.get('/departments', async (req, res) => {
         res.json(departments);
     } catch (error) {
         logger.error(`Error in GET /departments: ${error.message}`);
-        res.status(500).json({ error: 'Error fetching departments' });
-    }
-});
-router.get('/blocks', async (req, res) => {
-    try {
-        const blocks = await getBlocks();
-        res.json(blocks);
-    } catch (error) {
-        logger.error(`Error in GET /blocks: ${error.message}`);
         res.status(500).json({ error: 'Error fetching departments' });
     }
 });

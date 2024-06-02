@@ -1,20 +1,23 @@
-import path from 'path';
 import express from 'express';
-import getRootDir from '../../../getRootDir.js';
 import { models } from '../../sequelize/models.js';
 import logger from '../../helpers/logger.js';
 import { authorizeAdmin } from '../../helpers/commonHelper.js';
+import { getBlocks } from '../../helpers/adminHelpers/adminHelper.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    const p = path.join(getRootDir(), 'src/Views/block.html');
-
-    res.sendFile(p);
+router.get('/', async (req, res) => {
+    try {
+        const blocks = await getBlocks();
+        res.json(blocks);
+    } catch (error) {
+        logger.error(`Error in GET /blocks: ${error.message}`);
+        res.status(500).json({ error: 'Error fetching departments' });
+    }
 });
 
 // Add a new route for handling block deletion
-router.delete('/block/:blockId', authorizeAdmin(), async (req, res) => {
+router.delete('/:blockId', authorizeAdmin(), async (req, res) => {
     const { blockId } = req.params;
 
     try {
@@ -42,10 +45,10 @@ router.delete('/block/:blockId', authorizeAdmin(), async (req, res) => {
     }
 });
 
-router.post('/block', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const body = req.body.blocks;
-        const blocks = body.map((item) => ({ id: item.id, name: item.name }));
+        const blocks = body.map((item) => ({ id: item.id }));
 
         const createdBlocks = await models.block.bulkCreate(blocks, {
             validate: true,
@@ -63,44 +66,16 @@ router.post('/block', async (req, res) => {
     }
 });
 
-router.patch('/blockupdate/', async (req, res) => {
+router.patch('/', async (req, res) => {
     try {
-        let blocks = [];
-        req.body.forEach((item) => {
-            let { id } = item;
-            let { name } = item;
-            blocks.push({
-                id,
-                name,
-            });
-        });
-        const updates = blocks.map(async (block1) => {
-            // Find the block by blockId
-            const block = await models.block.findByPk(block1.id);
+        const { prevId, id } = req.body;
+        console.log(prevId, id);
 
-            if (!block) {
-                return { error: `block with ID ${block1.id} not found` };
-            }
+        // Find the block by blockId
+        await models.block.update({ id }, { where: { id: prevId } });
 
-            return {
-                message: `block with ID ${block1.id} updated successfully`,
-                updatedblock: block,
-            };
-        });
-
-        // Wait for all updates to complete before sending the response
-        const results = await Promise.all(updates);
-
-        // Check for errors in the results
-        const errors = results.filter((result) => result.error);
-        if (errors.length > 0) {
-            return res.status(404).json({ errors });
-        }
-
-        // If no errors, send a success response
         res.status(200).json({
-            message: 'All blocks updated successfully',
-            results,
+            message: `Block with ID ${id} updated successfully`,
         });
     } catch (error) {
         logger.error(error, 'Error updating block in DB');

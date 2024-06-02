@@ -45,7 +45,9 @@ router.patch('/update-password', async (req, res) => {
 router.patch('/:staffId', async (req, res) => {
     try {
         const staff = req.body;
-        const { id, name, email, phone, departmentId } = staff;
+        const { id, name, email, phone, departmentCode, role } = staff;
+
+        console.log(staff);
 
         if (!name || !email) {
             return res
@@ -54,7 +56,7 @@ router.patch('/:staffId', async (req, res) => {
         }
 
         const [updateCount] = await models.authUser.update(
-            { name, email, phone, departmentId },
+            { name, email, phone, departmentCode, role },
             {
                 where: { id },
             },

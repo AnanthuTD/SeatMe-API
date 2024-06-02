@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import userRouter from './routes/userRouter.js';
-import staffRouter from './routes/adminRoutes/adminRouter.js';
+import staffRouter from './routes/staffRoutes/router.js';
 import invigilatorRouter from './routes/invigilatorRouter.js';
 import authRouter from './routes/authRouter.js';
 import datetimeRouter from './routes/datetimeRouter.js';
