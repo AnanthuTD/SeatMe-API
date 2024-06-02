@@ -1,7 +1,7 @@
 import express from 'express';
-import getRootDir from '../../getRootDir.js';
-import { models } from '../sequelize/models.js';
-import logger from '../helpers/logger.js';
+import getRootDir from '../../../getRootDir.js';
+import { models } from '../../sequelize/models.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 

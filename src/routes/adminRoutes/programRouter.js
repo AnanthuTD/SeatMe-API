@@ -1,6 +1,6 @@
 import express from 'express';
-import { models } from '../sequelize/models.js';
-import logger from '../helpers/logger.js';
+import { models } from '../../sequelize/models.js';
+import logger from '../../helpers/logger.js';
 
 const router = express.Router();
 

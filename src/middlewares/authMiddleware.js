@@ -75,7 +75,9 @@ passport.use(
     }),
 );
 
-const adminAuthMiddleware = passport.authenticate('admin', { session: false });
-const staffAuthMiddleware = passport.authenticate('staff', { session: false });
+const staffAuthMiddleware = passport.authenticate('admin', { session: false });
+const invigilatorAuthMiddleware = passport.authenticate('staff', {
+    session: false,
+});
 
-export { adminAuthMiddleware, staffAuthMiddleware };
+export { invigilatorAuthMiddleware, staffAuthMiddleware };

@@ -6,18 +6,13 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import userRouter from './routes/userRouter.js';
 import adminRouter from './routes/adminRoutes/adminRouter.js';
-import staffRouter from './routes/staffRouter.js';
+import invigilatorRouter from './routes/invigilatorRouter.js';
 import authRouter from './routes/authRouter.js';
-import departmentRouter from './routes/departmententRouter.js';
-import courseRouter from './routes/courseRouter.js';
-import blockRouter from './routes/blockRouter.js';
 import datetimeRouter from './routes/datetimeRouter.js';
-import programRouter from './routes/programRouter.js';
-import roomRouter from './routes/roomRouter.js';
 import { sequelize } from './sequelize/connection.js';
 import {
-    adminAuthMiddleware,
     staffAuthMiddleware,
+    invigilatorAuthMiddleware,
 } from './middlewares/authMiddleware.js';
 import { generateCsrfToken } from './middlewares/csrfMiddleware.js';
 import getRootDir from '../getRootDir.js';
@@ -128,18 +123,10 @@ function setupMiddlewares() {
  */
 function setupRoutes() {
     app.use('/', userRouter);
-    app.use('/admin/blockentry', blockRouter);
-    app.use('/admin/departmententry', departmentRouter);
-    app.use('/admin/courseentry', courseRouter);
-    app.use('/admin/roomentry', roomRouter);
-    app.use('/admin/programentry', programRouter);
-    app.use('/admin', adminAuthMiddleware, adminRouter);
-    app.use('/staff', staffAuthMiddleware, staffRouter);
+    app.use('/staff', staffAuthMiddleware, adminRouter);
+    app.use('/invigilator', invigilatorAuthMiddleware, invigilatorRouter);
     app.use('/auth', authRouter);
     app.use('/csrf', generateCsrfToken);
-    app.use('/admin/departmententry', departmentRouter);
-    app.use('/admin/courseentry', courseRouter);
-    app.use('/blockentry', blockRouter);
     app.use('/datetime', datetimeRouter);
 }
 

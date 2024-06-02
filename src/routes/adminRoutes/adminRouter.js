@@ -26,6 +26,10 @@ import { checkCredentialsAndRetrieveData } from '../../helpers/commonHelper.js';
 import { encrypt } from '../../helpers/bcryptHelper.js';
 import { setNewRefreshToken } from '../../helpers/tokenHelpers/index.js';
 import logger from '../../helpers/logger.js';
+import blockRouter from './blockRouter.js';
+import roomRouter from './roomRouter.js';
+import programRouter from './programRouter.js';
+import departmentRouter from './departmentRouter.js';
 
 const router = express.Router();
 const reportsDir = `${getRootDir()}/reports`;
@@ -47,6 +51,11 @@ router.use('/exams', examRouter);
 router.use('/config', configRouter);
 
 router.use('/course', courseRouter);
+
+router.use('/block-entry', blockRouter);
+router.use('/department-entry', departmentRouter);
+router.use('/room-entry', roomRouter);
+router.use('/program-entry', programRouter);
 
 router.get('/departments', async (req, res) => {
     try {
@@ -289,7 +298,7 @@ router.get('/download/report/:examName', (req, res) => {
         }
 
         // Set headers for the response
-        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Type', 'routerlication/zip');
         res.setHeader('Content-Disposition', 'attachment; filename=output.zip');
 
         // Pipe the saved zip file to the client response
