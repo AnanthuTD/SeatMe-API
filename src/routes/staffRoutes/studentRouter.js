@@ -335,54 +335,81 @@ const isMaxSemesterReached = async (currentSemester, programId) => {
 
 router.patch('/promote', async (req, res) => {
     try {
-        const { semester, year, program: programId } = req.body;
+        const { year, program: programId, level } = req.body;
 
-        if (semester && programId) {
-            if (await isMaxSemesterReached(semester, programId))
-                return res.json({
-                    error: 'max semester for the students have reached!',
-                });
-            await models.student.update(
-                { semester: sequelize.literal('semester + 1') },
-                { where: { semester, programId } },
-            );
-            res.status(200).json({ message: 'Promotion successful' });
-        } else if (year) {
+        if (year) {
             if (year.length > 4) {
                 return res.status(400).json({ error: 'Invalid year format' });
             }
             const normalizedYear = year.toString().slice(-2);
 
-            await models.student.update(
-                { semester: sequelize.literal('semester + 1') },
-                {
-                    where: {
-                        rollNumber: { [Op.like]: `${normalizedYear}%` },
+            if (level === 'ug') {
+                await models.student.update(
+                    { semester: sequelize.literal('semester + 1') },
+                    {
+                        where: {
+                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        },
+                        include: [
+                            {
+                                model: models.program,
+                                where: {
+                                    level: 'ug',
+                                    abbreviation: { [Op.notLike]: 'bvoc%' },
+                                },
+                            },
+                        ],
                     },
-                },
-            );
+                );
+            } else if (level === 'pg') {
+                await models.student.update(
+                    { semester: sequelize.literal('semester + 1') },
+                    {
+                        where: {
+                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        },
+                        include: [
+                            {
+                                model: models.program,
+                                where: {
+                                    level: 'pg',
+                                    id: { [Op.notIn]: ['30', '20'] },
+                                },
+                            },
+                        ],
+                    },
+                );
+            } else if (level === 'bvoc') {
+                await models.student.update(
+                    { semester: sequelize.literal('semester + 1') },
+                    {
+                        where: {
+                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        },
+                        include: [
+                            {
+                                model: models.program,
+                                where: {
+                                    abbreviation: { [Op.like]: `bvoc%` },
+                                },
+                            },
+                        ],
+                    },
+                );
+            } else if (programId) {
+                await models.student.update(
+                    { semester: sequelize.literal('semester + 1') },
+                    {
+                        where: {
+                            programId,
+                        },
+                    },
+                );
+            } else return res.status(400).json({ error: 'Provide options.' });
+
             return res.status(200).json({ message: 'Promotion successful' });
-        } /* else if (semester) {
-            await models.student.update(
-                { semester: sequelize.literal('semester + 1') },
-                { where: { semester } },
-            );
-            res.status(200).json({
-                message: 'Promotion successful for all students',
-            });
-        } else if (programId) {
-            await models.student.update(
-                { semester: sequelize.literal('semester + 1') },
-                { where: { programId } },
-            );
-            return res.status(200).json({
-                message: 'Promotion successful for all students',
-            });
-        }  */ else {
-            return res
-                .status(400)
-                .json({ error: 'Invalid request parameters' });
         }
+        return res.status(400).json({ error: 'Invalid request parameters' });
     } catch (error) {
         // Handle errors
         console.error('Error promoting students:', error);
@@ -392,74 +419,87 @@ router.patch('/promote', async (req, res) => {
 
 router.patch('/demote', async (req, res) => {
     try {
-        const { semester, year, program: programId } = req.body;
+        const { year, program: programId, level } = req.body;
 
-        if (semester && programId) {
-            if (semester <= 1) {
-                return res.status(400).json({
-                    error: 'Semester cannot be demoted further!',
-                });
-            }
-
-            await models.student.update(
-                {
-                    semester: sequelize.literal(
-                        'CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END',
-                    ),
-                },
-                { where: { semester, programId } },
-            );
-            res.status(200).json({ message: 'Demotion successful' });
-        } else if (year) {
+        if (year) {
             if (year.length > 4) {
                 return res.status(400).json({ error: 'Invalid year format' });
             }
             const normalizedYear = year.toString().slice(-2);
 
-            await models.student.update(
-                {
-                    semester: sequelize.literal(
-                        'CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END',
-                    ),
-                },
-                { where: { rollNumber: { [Op.like]: `${normalizedYear}%` } } },
-            );
-            return res.status(200).json({ message: 'Demotion successful' });
-        } /* else if (semester) {
-            if (semester <= 1) {
-                return res.json({
-                    error: 'Semester cannot be demoted further!',
-                });
-            }
+            if (level === 'ug') {
+                await models.student.update(
+                    { semester: sequelize.literal('semester - 1') },
 
-            await models.student.update(
-                {
-                    semester: sequelize.literal(
-                        'CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END',
-                    ),
-                },
-                { where: { semester } },
-            );
-            res.status(200).json({
-                message: 'Demotion successful for all students',
-            });
-        }  */ else if (programId) {
-            await models.student.update(
-                {
-                    semester: sequelize.literal(
-                        'CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END',
-                    ),
-                },
-                { where: { programId } },
-            );
-            return res.status(200).json({
-                message: 'Demotion successful for all students',
-            });
-        } else {
-            return res
-                .status(400)
-                .json({ error: 'Invalid request parameters' });
+                    /*  {
+                        semester: sequelize.literal(
+                            'CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END',
+                        ),
+                    }, */
+                    {
+                        where: {
+                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        },
+                        include: [
+                            {
+                                model: models.program,
+                                where: {
+                                    level: 'ug',
+                                    abbreviation: { [Op.notLike]: 'bvoc%' },
+                                },
+                            },
+                        ],
+                    },
+                );
+            } else if (level === 'pg') {
+                await models.student.update(
+                    { semester: sequelize.literal('semester - 1') },
+                    {
+                        where: {
+                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        },
+                        include: [
+                            {
+                                model: models.program,
+                                where: {
+                                    level: 'pg',
+                                    id: { [Op.notIn]: ['30', '20'] },
+                                },
+                            },
+                        ],
+                    },
+                );
+            } else if (level === 'bvoc') {
+                await models.student.update(
+                    { semester: sequelize.literal('semester - 1') },
+                    {
+                        where: {
+                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        },
+                        include: [
+                            {
+                                model: models.program,
+                                where: {
+                                    abbreviation: { [Op.like]: `bvoc%` },
+                                },
+                            },
+                        ],
+                    },
+                );
+            } else if (programId) {
+                await models.student.update(
+                    { semester: sequelize.literal('semester - 1') },
+                    {
+                        where: {
+                            programId,
+                        },
+                    },
+                );
+            } else return res.status(400).json({ error: 'Provide options.' });
+            return res.status(200).json({ message: 'Demotion successful' });
         }
+
+        return res.status(400).json({ error: 'Invalid request parameters' });
     } catch (error) {
         // Handle errors
         console.error('Error demoting students:', error);
@@ -469,46 +509,81 @@ router.patch('/demote', async (req, res) => {
 
 router.patch('/passout', async (req, res) => {
     try {
-        const { semester, year, program: programId } = req.body;
+        const { year, program: programId, level } = req.body;
 
-        if (semester && programId) {
-            await models.student.update(
-                { semester: 0 },
-                { where: { semester, programId } },
-            );
-            res.status(200).json({ message: 'Passout successful' });
-        } else if (year) {
+        if (year) {
             if (year.length > 4) {
                 return res.status(400).json({ error: 'Invalid year format' });
             }
             const normalizedYear = year.toString().slice(-2);
 
-            await models.student.update(
-                { semester: 0 },
-                { where: { rollNumber: { [Op.like]: `${normalizedYear}%` } } },
-            );
+            if (level === 'ug') {
+                await models.student.update(
+                    { semester: 0 },
+                    {
+                        where: {
+                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        },
+                        include: [
+                            {
+                                model: models.program,
+                                where: {
+                                    level: 'ug',
+                                    abbreviation: { [Op.notLike]: 'bvoc%' },
+                                },
+                            },
+                        ],
+                    },
+                );
+            } else if (level === 'pg') {
+                await models.student.update(
+                    { semester: 0 },
+                    {
+                        where: {
+                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        },
+                        include: [
+                            {
+                                model: models.program,
+                                where: {
+                                    level: 'pg',
+                                    id: { [Op.notIn]: ['30', '20'] },
+                                },
+                            },
+                        ],
+                    },
+                );
+            } else if (level === 'bvoc') {
+                await models.student.update(
+                    { semester: 0 },
+                    {
+                        where: {
+                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        },
+                        include: [
+                            {
+                                model: models.program,
+                                where: {
+                                    abbreviation: { [Op.like]: `bvoc%` },
+                                },
+                            },
+                        ],
+                    },
+                );
+            } else if (programId) {
+                await models.student.update(
+                    { semester: 0 },
+                    {
+                        where: {
+                            programId,
+                        },
+                    },
+                );
+            } else return res.status(400).json({ error: 'Provide options.' });
+
             return res.status(200).json({ message: 'Passout successful' });
-        } /* else if (semester) {
-            await models.student.update(
-                { semester: 0 },
-                { where: { semester } },
-            );
-            res.status(200).json({
-                message: 'Passout successful for all students',
-            });
-        } else if (programId) {
-            await models.student.update(
-                { semester: 0 },
-                { where: { programId } },
-            );
-            return res.status(200).json({
-                message: 'Passout successful for all students',
-            });
-        } */ else {
-            return res
-                .status(400)
-                .json({ error: 'Invalid request parameters' });
         }
+        return res.status(400).json({ error: 'Invalid request parameters' });
     } catch (error) {
         // Handle errors
         console.error('Error marking students as passout:', error);
