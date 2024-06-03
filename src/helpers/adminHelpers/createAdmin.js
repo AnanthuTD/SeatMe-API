@@ -5,7 +5,7 @@ const userData = {
     name: 'admin',
     email: 'seatmemes@gmail.com',
     phone: '1234567891',
-    isAdmin: true,
+    role: true,
     password: 'dca2024',
     designation: 'admin',
 };

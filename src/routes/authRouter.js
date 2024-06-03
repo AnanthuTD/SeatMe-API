@@ -67,7 +67,6 @@ router.post('/refresh', async (req, res) => {
         }
         const payload = {
             id: tokenDetails.id,
-            isAdmin: tokenDetails.isAdmin,
             email: tokenDetails.email,
             role: tokenDetails.role,
         };
@@ -126,14 +125,7 @@ router.post('/signin', async (req, res) => {
         // Check if the user's email exists in the auth_user table
         const existingUser = await models.authUser.findOne({
             where: { email: userEmail },
-            attributes: [
-                'id',
-                'name',
-                'designation',
-                'isAdmin',
-                'email',
-                'phone',
-            ],
+            attributes: ['id', 'name', 'designation', 'email', 'phone', 'role'],
         });
 
         const userData = existingUser.get();
