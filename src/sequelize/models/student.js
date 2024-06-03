@@ -47,6 +47,10 @@ export default (sequelize) => {
             semester: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
+                validate: {
+                    min: 0,
+                    max: 8,
+                },
             },
             name: {
                 type: DataTypes.STRING(100),
