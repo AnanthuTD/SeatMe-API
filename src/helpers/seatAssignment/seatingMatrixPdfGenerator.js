@@ -131,7 +131,7 @@ export default async function generateSeatingMatrixPDF(
         }
 
         const styles = {
-            fontSize: 16,
+            fontSize: 12,
             margin: '0px',
         };
 
