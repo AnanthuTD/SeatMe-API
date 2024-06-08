@@ -107,7 +107,9 @@ export default async function generateSeatingMatrixPDFWithCourse(
         const numRows = seatingMatrix.length;
         for (let row = 0; row < numRows; row += 1) {
             const numCols = seatingMatrix[row].length;
-            const rowData = [row + 1]; // Seat number
+            const rowData = [
+                /* row + 1 */
+            ]; // Seat number
             for (let col = 0; col < numCols; col += 1) {
                 const seat = seatingMatrix[row][col];
                 if (seat.occupied) {
