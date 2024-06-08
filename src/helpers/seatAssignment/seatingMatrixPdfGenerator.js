@@ -97,7 +97,7 @@ export default async function generateSeatingMatrixPDF(
         // Add a table for seating matrix
         yOffset += doc.autoTable.previous.finalY + 20; */
 
-        const tableHeaders2 = [''];
+        const tableHeaders2 = [];
         const tableData2 = [];
 
         for (let col = 1; col <= seatingMatrix[0].length; col += 1) {
@@ -111,7 +111,7 @@ export default async function generateSeatingMatrixPDF(
         doc.setFontSize(14);
         const numRows = seatingMatrix.length;
         for (let row = 0; row < numRows; row += 1) {
-            const numCols = seatingMatrix[row].length;
+            const numCols = seatingMatrix[row].length - 1;
             const rowData = [
                 /* row + 1 */
             ]; // Seat number
