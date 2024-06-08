@@ -120,7 +120,7 @@ export default async function generateSeatingMatrixPDFWithCourse(
                         `program: ${seat.programName}\nExam: ${seat.courseName}`,
                     );
                 } else {
-                    rowData.push('Empty');
+                    rowData.push('--');
                 }
             }
             tableData2.push(rowData);

@@ -122,7 +122,7 @@ export default async function generateSeatingMatrixPDF(
                         /* Seat: ${row * numCols + col + 1}\n */
                     );
                 } else {
-                    rowData.push('Empty');
+                    rowData.push('--');
                 }
             }
             tableData2.push(rowData);

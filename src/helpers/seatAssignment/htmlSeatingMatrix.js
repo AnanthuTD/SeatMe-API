@@ -107,7 +107,7 @@ export default function generateSeatingMatrixHTML(
             </td>
           `;
                 } else {
-                    htmlContent += '<td>Empty</td>';
+                    htmlContent += '<td>--</td>';
                 }
             }
             htmlContent += '</tr>';
