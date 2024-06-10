@@ -66,9 +66,7 @@ export default async function generateSeatingArrangementPDF({
         </style>
         <section class="content">
             <h3>M.E.S COLLEGE MARAMPALLY ${classIndex + 1}</h3>
-            <p>Seating Arrangements for ${examName}, ${romanSemesters.join(
-                ', ',
-            )} PVT CBCS Exam ${monthAbbreviation} ${date.format('YYYY')}</p>
+            <p>Seating Arrangements for ${examName}</p>
             <div style="display: flex; justify-content: space-between;">
                 <h3>Hall No: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${id} ${
                     description ? `(${description})` : ''
