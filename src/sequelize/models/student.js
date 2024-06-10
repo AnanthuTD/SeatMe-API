@@ -62,6 +62,13 @@ export default (sequelize) => {
                 validate: {
                     isEmail: true,
                 },
+                set(value) {
+                    if (!value || value.trim() === '') {
+                        this.setDataValue('email', null);
+                    } else {
+                        this.setDataValue('email', value);
+                    }
+                },
             },
             phone: { type: DataTypes.BIGINT.UNSIGNED, allowNull: true },
         },
