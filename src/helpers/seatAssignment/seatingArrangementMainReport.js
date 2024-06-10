@@ -73,7 +73,7 @@ export default async function generateSeatingArrangementPDF({
                 break-after: avoid;
             }
         </style>
-        <section class="content section-header">
+        <section class="content">
             <h3>M.E.S COLLEGE MARAMPALLY ${classIndex + 1}</h3>
             <p>Seating Arrangements for ${examName}</p>
             <div style="display: flex; justify-content: space-between;">
@@ -151,6 +151,8 @@ export default async function generateSeatingArrangementPDF({
             .content {
                 page-break-inside: avoid;
                 break-inside: avoid;
+                page-break-after: auto;
+                break-after: auto;
             }
             .section-header {
                 page-break-before: avoid;
