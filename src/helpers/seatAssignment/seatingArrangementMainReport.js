@@ -62,9 +62,18 @@ export default async function generateSeatingArrangementPDF({
             }
             .content {
                 page-break-inside: avoid;
+                break-inside: avoid;
+                page-break-after: auto;
+                break-after: auto;
+            }
+            .section-header {
+                page-break-before: avoid;
+                break-before: avoid;
+                page-break-after: avoid;
+                break-after: avoid;
             }
         </style>
-        <section class="content">
+        <section class="content section-header">
             <h3>M.E.S COLLEGE MARAMPALLY ${classIndex + 1}</h3>
             <p>Seating Arrangements for ${examName}</p>
             <div style="display: flex; justify-content: space-between;">
@@ -103,7 +112,6 @@ export default async function generateSeatingArrangementPDF({
             count: program.examines.length,
         }));
 
-        // Calculate the total count using reduce
         const totalCount = programExamineeCounts.reduce(
             (sum, program) => sum + program.count,
             0,
@@ -142,17 +150,29 @@ export default async function generateSeatingArrangementPDF({
             content: `
             .content {
                 page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .section-header {
+                page-break-before: avoid;
+                break-before: avoid;
+                page-break-after: avoid;
+                break-after: avoid;
             }
             `,
         });
 
-        // Set the path to save the PDF file
         const pdfPath = `${getRootDir()}/pdf/${fileName}.pdf`;
 
-        // Generate PDF
         await page.pdf({
             path: pdfPath,
             format: 'A4',
+            printBackground: true,
+            margin: {
+                top: '20px',
+                right: '20px',
+                bottom: '20px',
+                left: '20px',
+            },
         });
 
         await browser.close();
