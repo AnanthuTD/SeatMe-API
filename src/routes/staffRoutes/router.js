@@ -45,20 +45,20 @@ router.get('/', (req, res) => {
     res.send('admin page');
 });
 
-router.use('/staff', staffRouter);
+router.use('/staff', authorizeAdmin(), staffRouter);
 
 router.use('/student', studentRouter);
 
 router.use('/exams', examRouter);
 
-router.use('/config', configRouter);
+router.use('/config', authorizeAdmin(), configRouter);
 
-router.use('/course', courseRouter);
+router.use('/course', authorizeAdmin(), courseRouter);
 
-router.use('/block', blockRouter);
-router.use('/department-entry', departmentRouter);
-router.use('/room-entry', roomRouter);
-router.use('/program-entry', programRouter);
+router.use('/block', authorizeAdmin(), blockRouter);
+router.use('/department-entry', authorizeAdmin(), departmentRouter);
+router.use('/room-entry', authorizeAdmin(), roomRouter);
+router.use('/program-entry', authorizeAdmin(), programRouter);
 
 router.get('/departments', async (req, res) => {
     try {
@@ -148,7 +148,7 @@ router.get('/rooms', async (req, res) => {
     }
 });
 
-router.post('/rooms', async (req, res) => {
+router.post('/rooms', authorizeAdmin(), async (req, res) => {
     const rooms = req.body;
     const failedRecords = [];
 
@@ -178,7 +178,7 @@ router.post('/rooms', async (req, res) => {
     }
 });
 
-router.patch('/rooms', async (req, res) => {
+router.patch('/rooms', authorizeAdmin(), async (req, res) => {
     const room = req.body;
 
     try {

@@ -333,7 +333,7 @@ const isMaxSemesterReached = async (currentSemester, programId) => {
     }
 };
 
-router.patch('/promote', async (req, res) => {
+router.patch('/promote', authorizeAdmin(), async (req, res) => {
     try {
         const { year, program: programId, level } = req.body;
 
@@ -417,7 +417,7 @@ router.patch('/promote', async (req, res) => {
     }
 });
 
-router.patch('/demote', async (req, res) => {
+router.patch('/demote', authorizeAdmin(), async (req, res) => {
     try {
         const { year, program: programId, level } = req.body;
 
@@ -507,7 +507,7 @@ router.patch('/demote', async (req, res) => {
     }
 });
 
-router.patch('/passout', async (req, res) => {
+router.patch('/passout', authorizeAdmin(), async (req, res) => {
     try {
         const { year, program: programId, level } = req.body;
 
