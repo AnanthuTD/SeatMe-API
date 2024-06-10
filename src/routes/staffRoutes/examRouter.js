@@ -118,7 +118,7 @@ router.get('/assign', authorizeAdmin(), async (req, res) => {
         }
 
         const [seating, totalUnassignedStudents] = await assignSeats({
-            date,
+            date: providedDate,
             timeCode,
             orderBy,
             fileName,

@@ -10,6 +10,7 @@ import generateSeatingArrangementPDF from './seatingArrangementMainReport.js';
 import generateSeatingMatrixPDFWithCourse from './seatingMatrixPdfGeneratorWithCourse.js';
 import answerBookReport from './answerBookReport.js';
 import logger from '../logger.js';
+import dayjs from '../dayjs.js';
 
 /**
  * Assign seats to students for a given date.
@@ -20,7 +21,7 @@ import logger from '../logger.js';
  * @returns {Promise} A promise that resolves when seats are successfully assigned.
  */
 async function assignSeats({
-    date = new Date(),
+    date = new dayjs.tz(),
     examName,
     timeCode = 'AN',
     orderBy = 'rollNumber',

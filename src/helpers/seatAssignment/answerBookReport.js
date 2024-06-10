@@ -2,6 +2,12 @@ import puppeteer from 'puppeteer';
 import fs from 'fs';
 import logger from '../logger.js';
 import getRootDir from '../../../getRootDir.js';
+import dayjs from '../dayjs.js';
+
+function formatDate(date) {
+    const formattedDate = dayjs.tz(date).format('DD/MM/YYYY');
+    return formattedDate;
+}
 
 export default async function answerBookReport({
     rooms,
@@ -9,7 +15,7 @@ export default async function answerBookReport({
     fileName,
     examName = 'exam name',
 }) {
-    date = new Date(date);
+    date = dayjs.tz(date);
     let fullHtml = ''; // Accumulate HTML for all classes
 
     function arabicToWord(num) {
@@ -40,11 +46,7 @@ export default async function answerBookReport({
             arabicToWord(semester),
         );
 
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-
-        const formattedDate = `${day}/${month}/${year}`;
+        const formattedDate = formatDate(date);
 
         let html = `
                     <style>
