@@ -2,6 +2,12 @@ import puppeteer from 'puppeteer';
 import fs from 'fs';
 import logger from '../logger.js';
 import getRootDir from '../../../getRootDir.js';
+import dayjs from '../dayjs.js';
+
+function formatDate(date) {
+    const formattedDate = dayjs.tz(date).format('DD/MM/YYYY');
+    return formattedDate;
+}
 
 export default async function generateSeatingArrangementPDF({
     rooms,
@@ -9,7 +15,7 @@ export default async function generateSeatingArrangementPDF({
     fileName = 'seatingArrangement',
     examName,
 }) {
-    date = new Date(date);
+    date = dayjs.tz(date);
     let fullHtml = '';
 
     function arabicToRoman(num) {
@@ -25,34 +31,20 @@ export default async function generateSeatingArrangementPDF({
             'IX',
             'X',
         ];
-
         return romanNumerals[num - 1];
     }
 
     for (let classIndex = 0; classIndex < rooms.length; classIndex += 1) {
         const { exams, id, description } = rooms[classIndex];
-
         const allDistinctSemesters = [
             ...new Set(exams.map((exam) => exam.courseSemester)),
         ];
-
-        const romanSemesters = allDistinctSemesters.map((semester) =>
-            arabicToRoman(semester),
-        );
-
+        const romanSemesters = allDistinctSemesters.map(arabicToRoman);
         const maxExaminees = Math.max(
             ...exams.map((program) => program.examines.length),
         );
-
-        const monthAbbreviation = date.toLocaleString('default', {
-            month: 'short',
-        });
-
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-
-        const formattedDate = `${day}.${month}.${year}`;
+        const monthAbbreviation = date.format('MMMM');
+        const formattedDate = formatDate(date);
 
         let html = `
         <style>
@@ -60,7 +52,7 @@ export default async function generateSeatingArrangementPDF({
                 border: 1px solid black;
                 border-collapse: collapse;
             }
-            td{
+            td {
                 text-align: center;
                 padding: 2px;
             }
@@ -69,14 +61,14 @@ export default async function generateSeatingArrangementPDF({
                 margin: 0;
             }
             .content {
-                page-break-inside: avoid; /* Avoid breaking inside the div */
+                page-break-inside: avoid;
             }
         </style>
         <section class="content">
             <h3>M.E.S COLLEGE MARAMPALLY ${classIndex + 1}</h3>
             <p>Seating Arrangements for ${examName}, ${romanSemesters.join(
                 ', ',
-            )} PVT CBCS Exam ${monthAbbreviation} ${date.getFullYear()}</p>
+            )} PVT CBCS Exam ${monthAbbreviation} ${date.format('YYYY')}</p>
             <div style="display: flex; justify-content: space-between;">
                 <h3>Hall No: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${id} ${
                     description ? `(${description})` : ''
@@ -108,8 +100,6 @@ export default async function generateSeatingArrangementPDF({
             </tbody>
         </table>`;
 
-        // logger.trace(exams)
-
         const programExamineeCounts = exams.map((program) => ({
             name: program.name,
             count: program.examines.length,
@@ -120,14 +110,8 @@ export default async function generateSeatingArrangementPDF({
             (sum, program) => sum + program.count,
             0,
         );
+        programExamineeCounts.push({ name: 'TOTAL', count: totalCount });
 
-        // Add the total count as the last object
-        programExamineeCounts.push({
-            name: 'TOTAL',
-            count: totalCount,
-        });
-
-        // Create a table for program examinee counts
         html += `
             <table border="1">
                 <thead>
@@ -137,11 +121,7 @@ export default async function generateSeatingArrangementPDF({
                 <tbody>`;
 
         programExamineeCounts.forEach((program) => {
-            html += `
-                    <tr>
-                        <td>${program.name}</td>
-                        <td>${program.count}</td>
-                    </tr>`;
+            html += `<tr><td>${program.name}</td><td>${program.count}</td></tr>`;
         });
 
         html += `   </tbody>
@@ -162,10 +142,10 @@ export default async function generateSeatingArrangementPDF({
 
         await page.addStyleTag({
             content: `
-          .content {
-            page-break-inside: avoid; /* Avoid breaking inside the div */
-          }
-        `,
+            .content {
+                page-break-inside: avoid;
+            }
+            `,
         });
 
         // Set the path to save the PDF file
@@ -178,8 +158,6 @@ export default async function generateSeatingArrangementPDF({
         });
 
         await browser.close();
-
-        // Log success
         logger.trace(`PDF generated successfully: ${pdfPath}`);
     } catch (error) {
         logger.error(error, 'puppeteer failed: ');
