@@ -66,12 +66,6 @@ export default async function generateSeatingArrangementPDF({
                 page-break-after: auto;
                 break-after: auto;
             }
-            .section-header {
-                page-break-before: avoid;
-                break-before: avoid;
-                page-break-after: avoid;
-                break-after: avoid;
-            }
         </style>
         <section class="content">
             <h3>M.E.S COLLEGE MARAMPALLY ${classIndex + 1}</h3>
@@ -137,6 +131,8 @@ export default async function generateSeatingArrangementPDF({
         fullHtml += html;
     }
 
+    fullHtml += `<section class="content"></section>`;
+
     const htmlFilePath = `${getRootDir()}/pdf/${fileName}.html`;
     fs.writeFileSync(htmlFilePath, fullHtml, 'utf-8');
     logger.trace(`HTML file saved: ${htmlFilePath}`);
@@ -153,12 +149,6 @@ export default async function generateSeatingArrangementPDF({
                 break-inside: avoid;
                 page-break-after: auto;
                 break-after: auto;
-            }
-            .section-header {
-                page-break-before: avoid;
-                break-before: avoid;
-                page-break-after: avoid;
-                break-after: avoid;
             }
             `,
         });
