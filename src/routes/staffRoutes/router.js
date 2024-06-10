@@ -4,7 +4,6 @@ import express from 'express';
 import dayjs from 'dayjs';
 import {
     getDepartments,
-    getBlocks,
     getPrograms,
     getCourses,
     getRooms,
@@ -51,14 +50,14 @@ router.use('/student', studentRouter);
 
 router.use('/exams', examRouter);
 
-router.use('/config', authorizeAdmin(), configRouter);
+router.use('/config', configRouter);
 
-router.use('/course', authorizeAdmin(), courseRouter);
+router.use('/course', courseRouter);
 
-router.use('/block', authorizeAdmin(), blockRouter);
-router.use('/department-entry', authorizeAdmin(), departmentRouter);
-router.use('/room-entry', authorizeAdmin(), roomRouter);
-router.use('/program-entry', authorizeAdmin(), programRouter);
+router.use('/block', blockRouter);
+router.use('/department-entry', departmentRouter);
+router.use('/room-entry', roomRouter);
+router.use('/program-entry', programRouter);
 
 router.get('/departments', async (req, res) => {
     try {

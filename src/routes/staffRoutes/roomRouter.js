@@ -1,10 +1,11 @@
 import express from 'express';
 import { models } from '../../sequelize/models.js';
 import logger from '../../helpers/logger.js';
+import { authorizeAdmin } from '../../helpers/commonHelper.js';
 
 const router = express.Router();
 
-router.post('/room', (req, res) => {
+router.post('/room', authorizeAdmin(), (req, res) => {
     logger.trace('this is called');
     // logger.trace(req.body);
     let body = req.body.rooms;

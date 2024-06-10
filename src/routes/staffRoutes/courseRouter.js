@@ -5,7 +5,7 @@ import { authorizeAdmin } from '../../helpers/commonHelper.js';
 
 const router = express.Router();
 
-router.post('/course', async (req, res) => {
+router.post('/course', authorizeAdmin(), async (req, res) => {
     const { courses } = req.body || {};
 
     if (!Array.isArray(courses)) {
@@ -80,44 +80,49 @@ router.post('/course', async (req, res) => {
 // import { deleteCourse } from './yourModuleFileName.js';
 
 // Use the deleteCourse function in your route or other logic
-router.delete('/course/:courseId', authorizeAdmin(), async (req, res) => {
-    const deleteCourse = async (courseId) => {
+router.delete(
+    '/course/:courseId',
+    authorizeAdmin(),
+    authorizeAdmin(),
+    async (req, res) => {
+        const deleteCourse = async (courseId) => {
+            try {
+                // Find the course by courseId
+                const course = await models.course.findByPk(courseId);
+                console.error(course);
+                if (!course) {
+                    throw new Error(`Course with ID ${courseId} not found`);
+                }
+
+                // Delete the course
+                const deletedCourseCount = await course.destroy();
+                console.error('check', deletedCourseCount.dataValues.id);
+                console.error('deleted course', deletedCourseCount);
+                if (deletedCourseCount.dataValues.id) {
+                    console.error('succes');
+                    return {
+                        message: `Course with ID ${deletedCourseCount.dataValues.id} deleted successfully`,
+                    };
+                }
+                throw new Error(`Failed to delete course with ID ${courseId}`);
+            } catch (error) {
+                console.error('Error deleting course:', error.message);
+                // throw Error(error.message);
+            }
+        };
+        const { courseId } = req.params;
+
         try {
-            // Find the course by courseId
-            const course = await models.course.findByPk(courseId);
-            console.error(course);
-            if (!course) {
-                throw new Error(`Course with ID ${courseId} not found`);
-            }
-
-            // Delete the course
-            const deletedCourseCount = await course.destroy();
-            console.error('check', deletedCourseCount.dataValues.id);
-            console.error('deleted course', deletedCourseCount);
-            if (deletedCourseCount.dataValues.id) {
-                console.error('succes');
-                return {
-                    message: `Course with ID ${deletedCourseCount.dataValues.id} deleted successfully`,
-                };
-            }
-            throw new Error(`Failed to delete course with ID ${courseId}`);
+            const result = deleteCourse(courseId);
+            console.error('rsult : ', result);
+            return res.status(200).json(result);
         } catch (error) {
-            console.error('Error deleting course:', error.message);
-            // throw Error(error.message);
+            return res.status(500).json({ error: error.message });
         }
-    };
-    const { courseId } = req.params;
+    },
+);
 
-    try {
-        const result = deleteCourse(courseId);
-        console.error('rsult : ', result);
-        return res.status(200).json(result);
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
-});
-
-router.patch('/courseupdate', async (req, res) => {
+router.patch('/courseupdate', authorizeAdmin(), async (req, res) => {
     try {
         console.log('-------------------------------------Called update');
         // Iterate through each updated course sent in the request body
