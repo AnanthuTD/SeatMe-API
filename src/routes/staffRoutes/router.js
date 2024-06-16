@@ -55,9 +55,9 @@ router.use('/config', configRouter);
 router.use('/course', courseRouter);
 
 router.use('/block', blockRouter);
-router.use('/department-entry', departmentRouter);
-router.use('/room-entry', roomRouter);
-router.use('/program-entry', programRouter);
+router.use('/department', departmentRouter);
+router.use('/room', roomRouter);
+router.use('/program', programRouter);
 
 router.get('/departments', async (req, res) => {
     try {

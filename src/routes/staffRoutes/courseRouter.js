@@ -25,37 +25,10 @@ router.post('/course', authorizeAdmin(), async (req, res) => {
                         },
                     );
 
-                    const courseId = await models.course.findByPk(
-                        course.courseId,
-                        { attributes: ['id'] },
-                    );
-
-                    if (courseId) {
-                        try {
-                            await models.courseCourse.upsert({
-                                courseId: course.courseId,
-                                // courseId: course.id,
-                            });
-                        } catch (error) {
-                            logger.error(
-                                'Error upserting record in to courseCourse:',
-                                error,
-                            );
-                            failedRecords.push({
-                                ...course,
-                                error: error.message,
-                            });
-                        }
-                    } else {
-                        logger.error(
-                            `course with ID ${course.courseId} not found.`,
-                        );
-
-                        failedRecords.push({
-                            ...course,
-                            error: `course with ID ${course.courseId} not found`,
-                        });
-                    }
+                    await models.programCourse.upsert({
+                        programId: course.program,
+                        courseId: course.id,
+                    });
                 } catch (error) {
                     logger.error(error, 'Error upserting record:');
 
@@ -207,6 +180,30 @@ router.get('/common2', async (req, res) => {
         logger.error(error, 'Error while fetching /common2');
         res.status(500).json({
             message: 'An error occurred while retrieving common2 courses.',
+        });
+    }
+});
+
+router.post('/link', async (req, res) => {
+    const { links } = req.body;
+
+    if (!Array.isArray(links)) {
+        return res.status(400).json({ message: 'Invalid input data' });
+    }
+
+    logger.debug(links);
+
+    try {
+        await models.programCourse.bulkCreate(links, {
+            validate: true,
+        });
+        res.status(200).json({
+            message: 'Courses linked to programs successfully',
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: 'Failed to link courses to programs',
+            error: error.message,
         });
     }
 });
