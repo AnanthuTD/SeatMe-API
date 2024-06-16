@@ -70,6 +70,39 @@ export default (sequelize) => {
                     }
                 },
             },
+            secondLang_1: {
+                type: DataTypes.STRING(100),
+                allowNull: true,
+                set(value) {
+                    if (!value || value.trim() === '') {
+                        this.setDataValue('secondLang_1', null);
+                    } else {
+                        this.setDataValue('secondLang_1', value);
+                    }
+                },
+            },
+            secondLang_2: {
+                type: DataTypes.STRING(100),
+                allowNull: true,
+                set(value) {
+                    if (!value || value.trim() === '') {
+                        this.setDataValue('secondLang_2', null);
+                    } else {
+                        this.setDataValue('secondLang_2', value);
+                    }
+                },
+            },
+            openCourseId: {
+                type: DataTypes.STRING(100),
+                allowNull: true,
+                set(value) {
+                    if (!value || value.trim() === '') {
+                        this.setDataValue('openCourseId', null);
+                    } else {
+                        this.setDataValue('openCourseId', value);
+                    }
+                },
+            },
             phone: { type: DataTypes.BIGINT.UNSIGNED, allowNull: true },
         },
         {
