@@ -245,6 +245,8 @@ const findStudent = async (
                 'rollNumber',
                 'semester',
                 'openCourseId',
+                'secondLang_1',
+                'secondLang_2',
                 [sequelize.col('program.is_aided'), 'isAided'],
                 [sequelize.col('course.name'), 'openCourseName'],
                 [sequelize.col('program.name'), 'programName'],
