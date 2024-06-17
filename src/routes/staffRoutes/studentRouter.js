@@ -23,8 +23,6 @@ const router = express.Router();
 router.post('/', async (req, res) => {
     const { students } = req.body;
 
-    logger.trace(students, 'Student');
-
     if (!students) {
         return res.status(400).json({ error: 'Missing required data' });
     }
