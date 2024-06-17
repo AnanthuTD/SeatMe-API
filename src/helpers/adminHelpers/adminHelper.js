@@ -914,8 +914,8 @@ const upsertStudents = async (students) => {
                     await models.student.upsert(student);
                 } catch (error) {
                     logger.error(
-                        `Error creating or updating student ${student.id}:`,
                         error,
+                        `Error creating or updating student ${student.id}:`,
                     );
                     uncreatedStudents.push({
                         ...student,
