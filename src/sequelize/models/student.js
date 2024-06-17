@@ -92,6 +92,28 @@ export default (sequelize) => {
                     }
                 },
             },
+            secondLang_3: {
+                type: DataTypes.STRING(100),
+                allowNull: true,
+                set(value) {
+                    if (!value || value.trim() === '') {
+                        this.setDataValue('secondLang_3', null);
+                    } else {
+                        this.setDataValue('secondLang_3', value);
+                    }
+                },
+            },
+            secondLang_4: {
+                type: DataTypes.STRING(100),
+                allowNull: true,
+                set(value) {
+                    if (!value || value.trim() === '') {
+                        this.setDataValue('secondLang_4', null);
+                    } else {
+                        this.setDataValue('secondLang_4', value);
+                    }
+                },
+            },
             openCourseId: {
                 type: DataTypes.STRING(100),
                 allowNull: true,

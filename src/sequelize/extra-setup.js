@@ -73,6 +73,26 @@ const applyExtraSetup = (sequelize) => {
     course.hasMany(student, {
         foreignKey: 'secondLang_2',
     });
+    // second language sem 3
+    student.belongsTo(course, {
+        scope: {
+            type: 'common2',
+        },
+        foreignKey: 'secondLang_3',
+    });
+    course.hasMany(student, {
+        foreignKey: 'secondLang_3',
+    });
+    // second language sem 4
+    student.belongsTo(course, {
+        scope: {
+            type: 'common2',
+        },
+        foreignKey: 'secondLang_4',
+    });
+    course.hasMany(student, {
+        foreignKey: 'secondLang_4',
+    });
 
     studentSeat.belongsTo(room);
     room.hasMany(studentSeat);
