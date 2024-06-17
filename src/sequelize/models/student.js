@@ -33,7 +33,7 @@ export default (sequelize) => {
             programId: {
                 type: DataTypes.TINYINT.UNSIGNED,
                 allowNull: false,
-                set() {
+                /* set() {
                     // Calculate programId from the third and fourth digits of rollNumber
                     const rollNumberStr =
                         this.getDataValue('rollNumber').toString();
@@ -42,7 +42,7 @@ export default (sequelize) => {
                         'programId',
                         parseInt(programIdDigits, 10),
                     );
-                },
+                }, */
             },
             semester: {
                 type: DataTypes.TINYINT.UNSIGNED,
