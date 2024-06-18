@@ -69,151 +69,6 @@ async function fetchExams(date, timeCode) {
     }
 }
 
-async function fetchBannedStudentIds() {
-    const bannedStudents = await models.bannedStudent.findAll({
-        attributes: ['studentId'],
-    });
-    return bannedStudents.map((bannedStudent) => bannedStudent.studentId);
-}
-
-function getCombinedCourses(courses, keyMapping) {
-    return courses
-        .map((course) => {
-            const key = keyMapping(course.semester);
-            return key
-                ? { [key]: course.courseId, semester: course.semester }
-                : null;
-        })
-        .filter(Boolean);
-}
-
-function getSecondLangKey(semester) {
-    return `secondLang_${semester}`;
-}
-
-async function fetchStudentsByCourses(courses, bannedStudentsId, orderBy) {
-    return models.student.findAll({
-        where: {
-            [Op.or]: courses,
-            id: {
-                [Op.notIn]: bannedStudentsId,
-            },
-        },
-        include: [
-            {
-                model: models.program,
-                attributes: [['abbreviation', 'name']],
-            },
-        ],
-        order: [[orderBy, 'ASC']],
-        attributes: [
-            'name',
-            'id',
-            'semester',
-            'programId',
-            'rollNumber',
-            [sequelize.col('program.abbreviation'), 'programName'],
-        ],
-        raw: true,
-    });
-}
-
-async function fetchSupplementaryStudents(bannedStudentsId, exams, orderBy) {
-    return models.student.findAll({
-        where: {
-            id: {
-                [Op.notIn]: bannedStudentsId,
-            },
-        },
-        include: [
-            {
-                model: models.supplementary,
-                where: {
-                    exam_id: {
-                        [Op.in]: exams,
-                    },
-                },
-                attributes: [],
-                required: true,
-                include: [
-                    {
-                        model: models.exam,
-                        include: [
-                            {
-                                model: models.course,
-                            },
-                        ],
-                    },
-                ],
-            },
-            {
-                model: models.program,
-                attributes: [['abbreviation', 'name']],
-            },
-        ],
-        order: [[orderBy, 'ASC']],
-        attributes: [
-            'name',
-            'id',
-            'semester',
-            'programId',
-            'rollNumber',
-            [sequelize.col('supplementaries.exam_id'), 'examId'],
-            [sequelize.col('supplementaries.exam.course.id'), 'courseId'],
-            [sequelize.col('supplementaries.exam.course.type'), 'courseType'],
-            [sequelize.col('supplementaries.exam.course.name'), 'courseName'],
-            [sequelize.col('program.abbreviation'), 'programName'],
-        ],
-        raw: true,
-    });
-}
-
-async function fetchSecondLangStudents(
-    combinedCourses,
-    bannedStudentsId,
-    orderBy,
-) {
-    const secondLang = await Promise.all(
-        combinedCourses.map(async (course) => {
-            const students = await models.student.findAll({
-                where: {
-                    ...course,
-                    id: {
-                        [Op.notIn]: bannedStudentsId,
-                    },
-                },
-                include: [
-                    {
-                        model: models.program,
-                        attributes: [['abbreviation', 'name']],
-                    },
-                ],
-                order: [[orderBy, 'ASC']],
-                attributes: [
-                    'name',
-                    'id',
-                    'semester',
-                    'programId',
-                    'rollNumber',
-                    [sequelize.col('program.abbreviation'), 'programName'],
-                ],
-                raw: true,
-            });
-
-            const secondLangKey = Object.keys(course).find((key) =>
-                key.startsWith('secondLang_'),
-            );
-            students.forEach((student) => {
-                student.courseId = course[secondLangKey];
-            });
-
-            return students;
-        }),
-    );
-
-    return [].concat(...secondLang);
-}
-
 async function fetchStudents({
     nonOpenCourses,
     openCourses,
@@ -221,54 +76,210 @@ async function fetchStudents({
     orderBy = '',
 }) {
     try {
-        const bannedStudentsId = await fetchBannedStudentIds();
+        const combinedNonOpenCourses = nonOpenCourses.map((value) => ({
+            programId: value.programId,
+            semester: value.semester,
+        }));
 
-        const combinedNonOpenCourses = getCombinedCourses(
-            nonOpenCourses,
-            () => 'programId',
-        );
-        const combinedOpenCourses = getCombinedCourses(
-            openCourses,
-            () => 'openCourseId',
-        );
-        const combinedCommonCourse2 = getCombinedCourses(
-            commonCourse2,
-            getSecondLangKey,
+        const combinedOpenCourses = openCourses.map((value) => ({
+            openCourseId: value.courseId,
+            semester: value.semester,
+        }));
+
+        const bannedStudentsId = await models.bannedStudent
+            .findAll({
+                attributes: ['studentId'],
+            })
+            .then((bannedStudents) => {
+                return bannedStudents.map(
+                    (bannedStudent) => bannedStudent.studentId,
+                );
+            });
+
+        const studentsOpenCourse = await models.student.findAll({
+            where: {
+                [Op.or]: [...combinedOpenCourses],
+                id: {
+                    [Op.notIn]: bannedStudentsId,
+                },
+            },
+            include: [
+                {
+                    model: models.program,
+                    attributes: [['abbreviation', 'name']],
+                },
+            ],
+            order: [[orderBy, 'ASC']],
+            attributes: [
+                'name',
+                'id',
+                'semester',
+                'programId',
+                'rollNumber',
+                [sequelize.col('program.abbreviation'), 'programName'],
+                [sequelize.col('open_course_id'), 'courseId'],
+            ],
+            raw: true,
+        });
+
+        const combinedCommonCourse2 = commonCourse2
+            ?.map((value) => {
+                if (value.semester === 1)
+                    return {
+                        secondLang_1: value.courseId,
+                        semester: value.semester,
+                    };
+                if (value.semester === 2)
+                    return {
+                        secondLang_2: value.courseId,
+                        semester: value.semester,
+                    };
+                if (value.semester === 3)
+                    return {
+                        secondLang_3: value.courseId,
+                        semester: value.semester,
+                    };
+                if (value.semester === 4)
+                    return {
+                        secondLang_4: value.courseId,
+                        semester: value.semester,
+                    };
+                return null;
+            })
+            .filter((item) => item !== null);
+
+        const secondLang = await Promise.all(
+            (combinedCommonCourse2 || []).map(async (course) => {
+                const studentsSecondLang = await models.student.findAll({
+                    where: {
+                        ...course,
+                        id: {
+                            [Op.notIn]: bannedStudentsId,
+                        },
+                    },
+                    include: [
+                        {
+                            model: models.program,
+                            attributes: [['abbreviation', 'name']],
+                        },
+                    ],
+                    order: [[orderBy, 'ASC']],
+                    attributes: [
+                        'name',
+                        'id',
+                        'semester',
+                        'programId',
+                        'rollNumber',
+                        [sequelize.col('program.abbreviation'), 'programName'],
+                    ],
+                    raw: true,
+                });
+
+                studentsSecondLang.forEach((student) => {
+                    student.courseId =
+                        course?.secondLang_2 ||
+                        course?.secondLang_1 ||
+                        course?.secondLang_3 ||
+                        course?.secondLang_4;
+                });
+
+                return studentsSecondLang;
+            }),
         );
 
-        const studentsOpenCourse = await fetchStudentsByCourses(
-            combinedOpenCourses,
-            bannedStudentsId,
-            orderBy,
-        );
-        const studentsNonOpenCourse = await fetchStudentsByCourses(
-            combinedNonOpenCourses,
-            bannedStudentsId,
-            orderBy,
-        );
-        const studentsSecondLang = await fetchSecondLangStudents(
-            combinedCommonCourse2,
-            bannedStudentsId,
-            orderBy,
-        );
+        const studentsSecondLang = [].concat(...secondLang);
 
-        const examIds = [
-            ...nonOpenCourses.map((value) => value.examId),
-            ...openCourses.map((value) => value.examId),
-            ...commonCourse2.map((value) => value.examId),
-        ];
-        const supplyStudents = await fetchSupplementaryStudents(
-            bannedStudentsId,
-            examIds,
-            orderBy,
-        );
+        const studentsNonOpenCourse = await models.student.findAll({
+            where: {
+                [Op.or]: [...combinedNonOpenCourses],
+                id: {
+                    [Op.notIn]: bannedStudentsId,
+                },
+            },
+            include: [
+                {
+                    model: models.program,
+                    attributes: [['abbreviation', 'name']],
+                },
+            ],
+            order: [[orderBy, 'ASC']],
+            attributes: [
+                'name',
+                'id',
+                'semester',
+                'programId',
+                'rollNumber',
+                [sequelize.col('program.abbreviation'), 'programName'],
+            ],
+            raw: true,
+        });
 
-        return [
+        const supplyStudents = await models.student.findAll({
+            where: {
+                id: {
+                    [Op.notIn]: bannedStudentsId,
+                },
+            },
+            include: [
+                {
+                    model: models.supplementary,
+                    where: {
+                        exam_id: {
+                            [Op.in]: [
+                                ...nonOpenCourses.map((value) => value.examId),
+                                ...openCourses.map((value) => value.examId),
+                                ...commonCourse2.map((value) => value.examId),
+                            ],
+                        },
+                    },
+                    attributes: [],
+                    required: true,
+                    include: [
+                        {
+                            model: models.exam,
+                            include: [
+                                {
+                                    model: models.course,
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    model: models.program,
+                    attributes: [['abbreviation', 'name']],
+                },
+            ],
+            order: [[orderBy, 'ASC']],
+            attributes: [
+                'name',
+                'id',
+                'semester',
+                'programId',
+                'rollNumber',
+                [sequelize.col('supplementaries.exam_id'), 'examId'],
+                [sequelize.col('supplementaries.exam.course.id'), 'courseId'],
+                [
+                    sequelize.col('supplementaries.exam.course.type'),
+                    'courseType',
+                ],
+                [
+                    sequelize.col('supplementaries.exam.course.name'),
+                    'courseName',
+                ],
+                [sequelize.col('program.abbreviation'), 'programName'],
+            ],
+            raw: true,
+        });
+
+        const students = [
             ...studentsSecondLang,
             ...studentsNonOpenCourse,
             ...studentsOpenCourse,
             ...supplyStudents,
         ];
+
+        return students;
     } catch (error) {
         logger.debug(error);
         throw new Error(`Error fetching students: ${error.message}`);
