@@ -319,18 +319,6 @@ const getMaxSemesterByProgramId = async (programId) => {
     }
 };
 
-const isMaxSemesterReached = async (currentSemester, programId) => {
-    try {
-        const maxSemester = await getMaxSemesterByProgramId(programId);
-
-        // Check if the current semester is equal to or greater than the maximum semester
-        return currentSemester >= maxSemester;
-    } catch (error) {
-        console.error('Error checking maximum semester by program ID:', error);
-        throw error;
-    }
-};
-
 router.patch('/promote', authorizeAdmin(), async (req, res) => {
     try {
         const { year, program: programId, level } = req.body;
@@ -342,58 +330,43 @@ router.patch('/promote', authorizeAdmin(), async (req, res) => {
             const normalizedYear = year.toString().slice(-2);
 
             if (level === 'ug') {
-                await models.student.update(
-                    { semester: sequelize.literal('semester + 1') },
-                    {
-                        where: {
-                            rollNumber: { [Op.like]: `${normalizedYear}%` },
-                        },
-                        include: [
-                            {
-                                model: models.program,
-                                where: {
-                                    level: 'ug',
-                                    abbreviation: { [Op.notLike]: 'bvoc%' },
-                                },
-                            },
-                        ],
-                    },
-                );
+                await sequelize.query(`
+                    UPDATE students
+                    SET semester = semester + 1
+                    WHERE roll_number LIKE '${normalizedYear}%'
+                      AND EXISTS (
+                        SELECT 1
+                        FROM programs
+                        WHERE programs.id = students.program_id
+                        AND programs.level = 'ug'
+                        AND programs.abbreviation NOT LIKE 'BVOC%'
+                      )
+                  `);
             } else if (level === 'pg') {
-                await models.student.update(
-                    { semester: sequelize.literal('semester + 1') },
-                    {
-                        where: {
-                            rollNumber: { [Op.like]: `${normalizedYear}%` },
-                        },
-                        include: [
-                            {
-                                model: models.program,
-                                where: {
-                                    level: 'pg',
-                                    id: { [Op.notIn]: ['30', '20'] },
-                                },
-                            },
-                        ],
-                    },
-                );
+                await sequelize.query(`
+                    UPDATE students
+                    SET semester = semester + 1
+                    WHERE roll_number LIKE '${normalizedYear}%'
+                      AND EXISTS (
+                        SELECT 1
+                        FROM programs
+                        WHERE programs.id = students.program_id
+                        AND programs.level = 'pg'
+                        AND programs.id NOT IN (30, 20)
+                      )
+                  `);
             } else if (level === 'bvoc') {
-                await models.student.update(
-                    { semester: sequelize.literal('semester + 1') },
-                    {
-                        where: {
-                            rollNumber: { [Op.like]: `${normalizedYear}%` },
-                        },
-                        include: [
-                            {
-                                model: models.program,
-                                where: {
-                                    abbreviation: { [Op.like]: `bvoc%` },
-                                },
-                            },
-                        ],
-                    },
-                );
+                await sequelize.query(`
+                    UPDATE students
+                    SET semester = semester + 1
+                    WHERE roll_number LIKE '${normalizedYear}%'
+                      AND EXISTS (
+                        SELECT 1
+                        FROM programs
+                        WHERE programs.id = students.program_id
+                        AND programs.abbreviation LIKE 'bvoc%'
+                      )
+                  `);
             } else if (programId) {
                 await models.student.update(
                     { semester: sequelize.literal('semester + 1') },
@@ -426,74 +399,83 @@ router.patch('/demote', authorizeAdmin(), async (req, res) => {
             const normalizedYear = year.toString().slice(-2);
 
             if (level === 'ug') {
-                await models.student.update(
-                    { semester: sequelize.literal('semester - 1') },
-
-                    /*  {
-                        semester: sequelize.literal(
-                            'CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END',
-                        ),
-                    }, */
+                await sequelize.query(
+                    `
+                  UPDATE students
+                  SET semester = CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END
+                  WHERE roll_number LIKE :rollNumberPattern
+                    AND EXISTS (
+                      SELECT 1
+                      FROM programs
+                      WHERE programs.id = students.program_id
+                      AND programs.level = 'ug'
+                      AND programs.abbreviation NOT LIKE 'bvoc%'
+                    )
+                `,
                     {
-                        where: {
-                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        replacements: {
+                            rollNumberPattern: `${normalizedYear}%`,
                         },
-                        include: [
-                            {
-                                model: models.program,
-                                where: {
-                                    level: 'ug',
-                                    abbreviation: { [Op.notLike]: 'bvoc%' },
-                                },
-                            },
-                        ],
                     },
                 );
             } else if (level === 'pg') {
-                await models.student.update(
-                    { semester: sequelize.literal('semester - 1') },
+                await sequelize.query(
+                    `
+                  UPDATE students
+                  SET semester = CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END
+                  WHERE roll_number LIKE :rollNumberPattern
+                    AND EXISTS (
+                      SELECT 1
+                      FROM programs
+                      WHERE programs.id = students.program_id
+                      AND programs.level = 'pg'
+                      AND programs.id NOT IN (30, 20)
+                    )
+                `,
                     {
-                        where: {
-                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        replacements: {
+                            rollNumberPattern: `${normalizedYear}%`,
                         },
-                        include: [
-                            {
-                                model: models.program,
-                                where: {
-                                    level: 'pg',
-                                    id: { [Op.notIn]: ['30', '20'] },
-                                },
-                            },
-                        ],
                     },
                 );
             } else if (level === 'bvoc') {
-                await models.student.update(
-                    { semester: sequelize.literal('semester - 1') },
+                await sequelize.query(
+                    `
+                  UPDATE students
+                  SET semester = CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END
+                  WHERE roll_number LIKE :rollNumberPattern
+                    AND EXISTS (
+                      SELECT 1
+                      FROM programs
+                      WHERE programs.id = students.program_id
+                      AND programs.abbreviation LIKE 'bvoc%'
+                    )
+                `,
                     {
-                        where: {
-                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        replacements: {
+                            rollNumberPattern: `${normalizedYear}%`,
                         },
-                        include: [
-                            {
-                                model: models.program,
-                                where: {
-                                    abbreviation: { [Op.like]: `bvoc%` },
-                                },
-                            },
-                        ],
                     },
                 );
             } else if (programId) {
-                await models.student.update(
-                    { semester: sequelize.literal('semester - 1') },
+                await sequelize.query(
+                    `
+                  UPDATE students
+                  SET semester = CASE WHEN semester > 0 THEN semester - 1 ELSE 0 END
+                  WHERE roll_number LIKE :rollNumberPattern
+                    AND program_id = :programId
+                `,
                     {
-                        where: {
+                        replacements: {
+                            rollNumberPattern: `${normalizedYear}%`,
                             programId,
                         },
                     },
                 );
-            } else return res.status(400).json({ error: 'Provide options.' });
+            } else {
+                return res.status(400).json({ error: 'Provide options.' });
+            }
+
             return res.status(200).json({ message: 'Demotion successful' });
         }
 
@@ -516,68 +498,82 @@ router.patch('/passout', authorizeAdmin(), async (req, res) => {
             const normalizedYear = year.toString().slice(-2);
 
             if (level === 'ug') {
-                await models.student.update(
-                    { semester: 0 },
+                await sequelize.query(
+                    `
+                    UPDATE students
+                    SET semester = 0
+                    WHERE roll_number LIKE :rollNumberPattern
+                      AND EXISTS (
+                        SELECT 1
+                        FROM programs
+                        WHERE programs.id = students.program_id
+                          AND programs.level = 'ug'
+                          AND programs.abbreviation NOT LIKE 'bvoc%'
+                      )
+                `,
                     {
-                        where: {
-                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        replacements: {
+                            rollNumberPattern: `${normalizedYear}%`,
                         },
-                        include: [
-                            {
-                                model: models.program,
-                                where: {
-                                    level: 'ug',
-                                    abbreviation: { [Op.notLike]: 'bvoc%' },
-                                },
-                            },
-                        ],
                     },
                 );
             } else if (level === 'pg') {
-                await models.student.update(
-                    { semester: 0 },
+                await sequelize.query(
+                    `
+                    UPDATE students
+                    SET semester = 0
+                    WHERE roll_number LIKE :rollNumberPattern
+                      AND EXISTS (
+                        SELECT 1
+                        FROM programs
+                        WHERE programs.id = students.program_id
+                          AND programs.level = 'pg'
+                          AND programs.id NOT IN (30, 20)
+                      )
+                `,
                     {
-                        where: {
-                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        replacements: {
+                            rollNumberPattern: `${normalizedYear}%`,
                         },
-                        include: [
-                            {
-                                model: models.program,
-                                where: {
-                                    level: 'pg',
-                                    id: { [Op.notIn]: ['30', '20'] },
-                                },
-                            },
-                        ],
                     },
                 );
             } else if (level === 'bvoc') {
-                await models.student.update(
-                    { semester: 0 },
+                await sequelize.query(
+                    `
+                    UPDATE students
+                    SET semester = 0
+                    WHERE roll_number LIKE :rollNumberPattern
+                      AND EXISTS (
+                        SELECT 1
+                        FROM programs
+                        WHERE programs.id = students.program_id
+                          AND programs.abbreviation LIKE 'bvoc%'
+                      )
+                `,
                     {
-                        where: {
-                            rollNumber: { [Op.like]: `${normalizedYear}%` },
+                        replacements: {
+                            rollNumberPattern: `${normalizedYear}%`,
                         },
-                        include: [
-                            {
-                                model: models.program,
-                                where: {
-                                    abbreviation: { [Op.like]: `bvoc%` },
-                                },
-                            },
-                        ],
                     },
                 );
             } else if (programId) {
-                await models.student.update(
-                    { semester: 0 },
+                await sequelize.query(
+                    `
+                    UPDATE students
+                    SET semester = 0
+                    WHERE roll_number LIKE :rollNumberPattern
+                      AND program_id = :programId
+                `,
                     {
-                        where: {
+                        replacements: {
+                            rollNumberPattern: `${normalizedYear}%`,
                             programId,
                         },
                     },
                 );
-            } else return res.status(400).json({ error: 'Provide options.' });
+            } else {
+                return res.status(400).json({ error: 'Provide options.' });
+            }
 
             return res.status(200).json({ message: 'Passout successful' });
         }
