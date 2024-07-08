@@ -5,7 +5,7 @@ import { authorizeAdmin } from '../../helpers/commonHelper.js';
 
 const router = express.Router();
 
-router.post('/room', authorizeAdmin(), (req, res) => {
+router.post('/', authorizeAdmin(), (req, res) => {
     logger.trace('this is called');
     // logger.trace(req.body);
     let body = req.body.rooms;
@@ -39,6 +39,26 @@ router.post('/room', authorizeAdmin(), (req, res) => {
         .catch((error) => {
             logger.error(error, 'Error in inserting into DB:');
             res.status(500).send('Error inserting values into DB');
+        });
+});
+
+router.delete('/:id', authorizeAdmin(), (req, res) => {
+    const roomId = req.params.id;
+
+    models.room
+        .destroy({
+            where: { id: roomId },
+        })
+        .then((deleted) => {
+            if (deleted) {
+                res.status(200).send(`Room with ID ${roomId} was deleted.`);
+            } else {
+                res.status(404).send(`Room with ID ${roomId} not found.`);
+            }
+        })
+        .catch((error) => {
+            logger.error(error, 'Error in deleting room from DB:');
+            res.status(500).send('Error deleting room from DB');
         });
 });
 
