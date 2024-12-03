@@ -8,7 +8,7 @@ export default (sequelize) => {
         'student',
         {
             id: {
-                type: DataTypes.VARCHAR(20),
+                type: DataTypes.STRING(20),
                 primaryKey: true,
                 validate: {
                     // isTwelveDigitNumber(value) {
