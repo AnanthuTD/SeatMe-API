@@ -11,9 +11,15 @@ export default (sequelize) => {
                 type: DataTypes.BIGINT.UNSIGNED,
                 primaryKey: true,
                 validate: {
-                    isTwelveDigitNumber(value) {
-                        if (!/^\d{12}$/.test(value)) {
-                            throw new Error('ID must be a 12-digit number.');
+                    // isTwelveDigitNumber(value) {
+                    //     if (!/^\d{12}$/.test(value)) {
+                    //         throw new Error('ID must be a 12-digit number.');
+                    //     }
+                    isTwelveCharString(value) {
+                        if (!/^[a-zA-Z0-9]{12}$/.test(value)) {
+                            throw new Error(
+                                'ID must be exactly 12 characters .',
+                            );
                         }
                     },
                 },
